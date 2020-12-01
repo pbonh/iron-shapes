@@ -30,13 +30,13 @@ use crate::types::FloatType;
 
 #[derive(Clone, Hash, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct MatrixTransform<T: CoordinateType> {
+pub struct Matrix2dTransform<T: CoordinateType> {
     matrix: Matrix2d<T>
 }
 
-impl<T: CoordinateType> MatrixTransform<T> {
+impl<T: CoordinateType> Matrix2dTransform<T> {
     pub fn new(matrix: Matrix2d<T>) -> Self {
-        MatrixTransform { matrix }
+        Matrix2dTransform { matrix }
     }
 
     /// Create a rotation by an integer multiple of 90 degrees.
@@ -52,13 +52,13 @@ impl<T: CoordinateType> MatrixTransform<T> {
             Angle::R270 => Matrix2d::new(zero, one, minus_one, zero),
         };
 
-        MatrixTransform::new(matrix)
+        Matrix2dTransform::new(matrix)
     }
 
     /// Create a scaling by a factor.
     pub fn new_scaling(factor: T) -> Self {
         let zero = T::zero();
-        MatrixTransform::new(
+        Matrix2dTransform::new(
             Matrix2d::new(factor, zero, zero, factor)
         )
     }
@@ -68,7 +68,7 @@ impl<T: CoordinateType> MatrixTransform<T> {
         let zero = T::zero();
         let one = T::one();
         let minus_one = zero - one;
-        MatrixTransform::new(
+        Matrix2dTransform::new(
             Matrix2d::new(minus_one, zero, zero, one)
         )
     }
@@ -78,7 +78,7 @@ impl<T: CoordinateType> MatrixTransform<T> {
         let zero = T::zero();
         let one = T::one();
         let minus_one = zero - one;
-        MatrixTransform::new(
+        Matrix2dTransform::new(
             Matrix2d::new(one, zero, zero, minus_one)
         )
     }
@@ -108,10 +108,10 @@ impl<T: CoordinateType> MatrixTransform<T> {
 fn test_matrix_transform_rotations() {
     let p = Point::new(1, 0);
 
-    assert_eq!(MatrixTransform::new_rotation(Angle::R0).transform_point(p), p);
-    assert_eq!(MatrixTransform::new_rotation(Angle::R90).transform_point(p), Point::new(0, 1));
-    assert_eq!(MatrixTransform::new_rotation(Angle::R180).transform_point(p), Point::new(-1, 0));
-    assert_eq!(MatrixTransform::new_rotation(Angle::R270).transform_point(p), Point::new(0, -1));
+    assert_eq!(Matrix2dTransform::new_rotation(Angle::R0).transform_point(p), p);
+    assert_eq!(Matrix2dTransform::new_rotation(Angle::R90).transform_point(p), Point::new(0, 1));
+    assert_eq!(Matrix2dTransform::new_rotation(Angle::R180).transform_point(p), Point::new(-1, 0));
+    assert_eq!(Matrix2dTransform::new_rotation(Angle::R270).transform_point(p), Point::new(0, -1));
 }
 
 

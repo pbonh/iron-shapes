@@ -50,6 +50,7 @@ pub mod rect;
 pub mod simple_polygon;
 pub mod polygon;
 pub mod matrix2d;
+pub mod matrix3d;
 pub mod multi_polygon;
 pub mod path;
 pub mod shape;
