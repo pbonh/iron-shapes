@@ -1,0 +1,15 @@
+[package]
+name = "iron-shapes"
+version = "0.0.0"
+authors = ["Thomas Kramer <code@tkramer.ch>"]
+edition = "2018"
+license = "AGPLv3"
+description = "Data types and routines for computational geometry."
+
+[dependencies]
+num-traits = "0.2"
+num-rational = "0.2"
+itertools = "0.8.0"
+
+[dev-dependencies]
+rand = "0.7"
