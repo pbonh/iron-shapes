@@ -26,7 +26,8 @@ use crate::traits::{Angle, RotateOrtho, Transform, Mirror, Translate, Scale};
 
 use std::ops::Mul;
 use crate::types::FloatType;
-
+use crate::matrix3d::Matrix3d;
+use num_traits::{Zero, Float};
 
 #[derive(Clone, Hash, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -185,10 +186,12 @@ pub struct SimpleTransform<T: CoordinateType> {
 }
 
 impl<T: CoordinateType> SimpleTransform<T> {
-
     pub fn new(mirror: bool, rotation: Angle, magnification: T, displacement: Vector<T>) -> Self {
         SimpleTransform {
-            mirror, rotation, magnification, displacement
+            mirror,
+            rotation,
+            magnification,
+            displacement,
         }
     }
 
@@ -211,4 +214,187 @@ pub struct ComplexTransform<T: CoordinateType> {
     mirror: bool,
     rotation: FloatType,
     displacement: Vector<T>,
+}
+
+/// Affine transformation represented as a 3x3 matrix like:
+/// ```txt
+/// m11 m12 0
+/// m21 m22 0
+/// m31 m32 1
+/// ```
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Matrix3dTransform<T: CoordinateType> {
+    pub m11: T,
+    pub m12: T,
+    pub m21: T,
+    pub m22: T,
+    pub m31: T,
+    pub m32: T,
+}
+
+impl<T: CoordinateType> Matrix3dTransform<T> {
+    pub fn new(m11: T, m12: T, m21: T, m22: T, m31: T, m32: T) -> Self {
+        Matrix3dTransform {
+            m11,
+            m12,
+            m21,
+            m22,
+            m31,
+            m32,
+        }
+    }
+
+    /// Get the identity transform.
+    pub fn identity() -> Self {
+        Self::translate(Vector::zero())
+    }
+
+    /// Create a translation by a vector.
+    pub fn translate(t: Vector<T>) -> Self {
+        Self::new(
+            T::one(), T::zero(),
+            T::zero(), T::one(),
+            t.x, t.y,
+        )
+    }
+
+    /// Create a rotation by an integer multiple of 90 degrees.
+    pub fn rotate90(angle: Angle) -> Self {
+        let zero = T::zero();
+        let one = T::one();
+        let minus_one = zero - one;
+
+        let (a, b, c, d) = match angle {
+            Angle::R0 => (one, zero, zero, one),
+            Angle::R90 => (zero, one, minus_one, zero),
+            Angle::R180 => (minus_one, zero, zero, minus_one),
+            Angle::R270 => (zero, minus_one, one, zero),
+        };
+
+        Self::new(
+            a, b,
+            c, d,
+            T::zero(), T::zero(),
+        )
+    }
+
+    /// Create a scaling by a factor.
+    pub fn scale(factor: T) -> Self {
+        let zero = T::zero();
+        Self::new(
+            factor, zero,
+            zero, factor,
+            zero, zero,
+        )
+    }
+
+    /// Mirror at the x-axis.
+    pub fn mirror_x() -> Self {
+        let zero = T::zero();
+        let one = T::one();
+        let minus_one = zero - one;
+        Self::new(
+            minus_one, zero,
+            zero, zero,
+            zero, zero,
+        )
+    }
+
+    /// Mirror at the y-axis.
+    pub fn mirror_y() -> Self {
+        let zero = T::zero();
+        let one = T::one();
+        let minus_one = zero - one;
+        Self::new(
+            one, zero,
+            zero, minus_one,
+            zero, zero,
+        )
+    }
+
+    /// Apply the transformation to a single point.
+    pub fn transform_point(&self, p: Point<T>) -> Point<T> {
+        Point::new(
+            p.x * self.m11 + p.y * self.m21 + self.m31,
+            p.x * self.m12 + p.y * self.m22 + self.m32,
+        )
+    }
+
+
+    /// Return the matrix describing this transformation.
+    pub fn to_matrix3d(&self) -> Matrix3d<T> {
+        Matrix3d::new(
+            self.m11, self.m12, T::zero(),
+            self.m21, self.m22, T::zero(),
+            self.m31, self.m32, T::zero(),
+        )
+    }
+
+    /// Get the inverse transformation if it exists.
+    pub fn try_invert(&self) -> Option<Self> {
+        unimplemented!()
+    }
+}
+
+#[test]
+fn test_identity() {
+    let p = Point::new(1, 2);
+    let tf = Matrix3dTransform::identity();
+    assert_eq!(tf.transform_point(p), p);
+}
+
+#[test]
+fn test_translate() {
+    let p = Point::new(1, 2);
+    let tf = Matrix3dTransform::translate(Vector::new(10, 100));
+    assert_eq!(tf.transform_point(p), Point::new(11, 102));
+}
+
+#[test]
+fn test_rotate90() {
+    let p = Point::new(1, 2);
+    let tf = Matrix3dTransform::rotate90(Angle::R0);
+    assert_eq!(tf.transform_point(p), Point::new(1, 2));
+    let tf = Matrix3dTransform::rotate90(Angle::R90);
+    assert_eq!(tf.transform_point(p), Point::new(-2, 1));
+    let tf = Matrix3dTransform::rotate90(Angle::R180);
+    assert_eq!(tf.transform_point(p), Point::new(-1, -2));
+    let tf = Matrix3dTransform::rotate90(Angle::R270);
+    assert_eq!(tf.transform_point(p), Point::new(2, -1));
+}
+
+#[test]
+fn test_scale() {
+    let p = Point::new(1, 2);
+    let tf = Matrix3dTransform::scale(2);
+    assert_eq!(tf.transform_point(p), Point::new(2, 4));
+}
+
+impl<T: CoordinateType + Float> Matrix3dTransform<T> {
+    /// Create a rotation by an arbitrary angle (in radians).
+    pub fn rotation(phi: T) -> Self {
+        let zero = T::zero();
+        let cos = phi.cos();
+        let sin = phi.sin();
+        Self::new(
+            cos, sin,
+            zero - sin, cos,
+            T::zero(), T::zero(),
+        )
+    }
+}
+
+#[test]
+fn test_rotate() {
+    let p = Point::new(1.0, 0.0);
+    let pi = std::f64::consts::PI;
+    let tf = Matrix3dTransform::rotation(pi);
+    assert!(
+        (tf.transform_point(p) - Point::new(-1.0, 0.0)).norm2_squared() < 1e-6
+    );
+    let tf = Matrix3dTransform::rotation(pi*0.5);
+    assert!(
+        (tf.transform_point(p) - Point::new(0.0, 1.0)).norm2_squared() < 1e-6
+    );
 }
