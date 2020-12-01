@@ -87,6 +87,7 @@ impl<T: CoordinateType> From<[Point<T>; 2]> for Edge<T> {
 
 /// An edge (line segment) is represented by its starting point and end point.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Edge<T: Copy> {
     pub start: Point<T>,
     pub end: Point<T>,

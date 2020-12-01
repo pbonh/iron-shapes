@@ -24,6 +24,7 @@ use crate::CoordinateType;
 
 /// A orthogonal rectangle is represented by its lower left and upper right corner.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rect<T>
     where T: CoordinateType {
     pub lower_left: Point<T>,

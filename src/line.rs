@@ -26,6 +26,7 @@ use std::f64;
 
 /// Represents a line of infinite length in Hesse normal form.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Line<T>
     where T: CoordinateType {
     pub n: Vector<T>

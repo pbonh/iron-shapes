@@ -32,6 +32,7 @@ use std::slice::Iter;
 use num_traits::{Float, NumCast};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PointString<T: CoordinateType> {
     pub points: Vec<Point<T>>
 }

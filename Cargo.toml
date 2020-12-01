@@ -10,6 +10,7 @@ description = "Data types and routines for computational geometry."
 num-traits = "0.2"
 num-rational = "0.2"
 itertools = "0.8.0"
+serde = { version = "1", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 rand = "0.7"

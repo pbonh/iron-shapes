@@ -32,6 +32,7 @@ use std::iter::FromIterator;
 use std::cmp::{Ord, PartialEq};
 
 #[derive(Clone, Hash, Debug, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Polygon<T>
     where T: CoordinateType {
     pub exterior: SimplePolygon<T>,

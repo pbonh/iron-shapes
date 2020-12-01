@@ -118,6 +118,7 @@ pub trait WindingNumber<T>
 }
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Angle {
     R0,
     R90,

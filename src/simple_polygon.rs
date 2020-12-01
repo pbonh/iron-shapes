@@ -32,6 +32,7 @@ use std::cmp::{Ord, PartialEq};
 use std::slice::Iter;
 
 #[derive(Clone, Debug, Hash, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimplePolygon<T>
     where T: CoordinateType {
     pub points: Vec<Point<T>>

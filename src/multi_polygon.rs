@@ -27,6 +27,7 @@ pub use crate::traits::{DoubledOrientedArea, BoundingBox, Transform, WindingNumb
 use std::iter::FromIterator;
 
 #[derive(Clone, Debug, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MultiPolygon<T>
     where T: CoordinateType {
     pub polygons: Vec<Polygon<T>>

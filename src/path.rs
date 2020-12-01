@@ -37,6 +37,7 @@ use std::convert::TryInto;
 
 /// Encoding for the type of the beginning and end of the path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum PathEndType<T: CoordinateType> {
     /// Beginning and end of path are not extended.
     Flat,
@@ -48,6 +49,7 @@ pub enum PathEndType<T: CoordinateType> {
 
 ///
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Path<T: CoordinateType> {
     pub points: PointString<T>,
     pub width: T,

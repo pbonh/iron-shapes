@@ -29,6 +29,7 @@ use crate::types::FloatType;
 
 
 #[derive(Clone, Hash, PartialEq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MatrixTransform<T: CoordinateType> {
     matrix: Matrix2d<T>
 }
@@ -115,6 +116,7 @@ fn test_matrix_transform_rotations() {
 
 
 #[derive(Clone, Hash, PartialEq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rot90Transform {
     angle: Angle
 }
@@ -174,6 +176,7 @@ impl Rot90Transform {
 /// followed by a rotation by a multiple of 90 degrees
 /// followed by a displacement.
 #[derive(Clone, Default, PartialEq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimpleTransform<T: CoordinateType> {
     pub mirror: bool,
     pub rotation: Angle,
@@ -203,6 +206,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
 
 
 #[derive(Clone, PartialEq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ComplexTransform<T: CoordinateType> {
     mirror: bool,
     rotation: FloatType,

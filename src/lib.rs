@@ -22,6 +22,10 @@ extern crate num_traits;
 extern crate num_rational;
 extern crate itertools;
 
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde;
+
 use num_traits::Num;
 
 /// Trait for types that can be used as coordinates in the euclidean plane.

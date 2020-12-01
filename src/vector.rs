@@ -29,6 +29,7 @@ pub use crate::traits::{Angle, Mirror, RotateOrtho};
 
 /// [`Vector`] defines a two dimensional vector with x and y components in the Euclidean plane.
 #[derive(Copy, Clone, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Vector<T> {
     pub x: T,
     pub y: T,

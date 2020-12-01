@@ -21,6 +21,7 @@ use crate::CoordinateType;
 use crate::cmp::{max, min};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Interval<T>(Option<(T, T)>)
     where T: CoordinateType;
 
