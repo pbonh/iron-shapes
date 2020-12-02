@@ -543,3 +543,14 @@ fn test_invert() {
 
     assert_eq!(tf2.try_invert().unwrap().try_invert(), Some(tf2));
 }
+
+#[test]
+fn test_invert_float() {
+    let tf = Matrix3dTransform::rotation(1.234)
+        .then_scale(12345.6)
+        .then_translate((1.2, 34.5));
+    let tf_inv = tf.try_invert().unwrap();
+    let p = Point::new(42.42, -1.0);
+    let p2 = tf_inv.transform_point(tf.transform_point(p));
+    assert!((p - p2).norm2_squared() < 1e-6); // Test for approximate equality.
+}
