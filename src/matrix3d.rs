@@ -92,7 +92,7 @@ impl<T> Matrix3d<T>
     }
 
     /// Compute multiplication with a column vector `A*rhs`.
-    pub fn mul_vector(&self, rhs: &(T, T, T)) -> (T, T, T) {
+    pub fn mul_column_vector(&self, rhs: &(T, T, T)) -> (T, T, T) {
         (
             self.m11 * rhs.0 + self.m12 * rhs.1 + self.m13 * rhs.2,
             self.m21 * rhs.0 + self.m22 * rhs.1 + self.m23 * rhs.2,
@@ -113,7 +113,7 @@ impl<T> Matrix3d<T>
         let c31 = a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31;
         let c32 = a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32;
         let c33 = a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33;
-        Matrix3d::new(
+        Self::new(
             c11, c12, c13,
             c21, c22, c23,
             c31, c32, c33,
@@ -127,6 +127,16 @@ impl<T> Matrix3d<T>
             self.m12, self.m22, self.m32,
             self.m13, self.m23, self.m33,
         )
+    }
+
+    /// Test if this matrix is the identity matrix.
+    pub fn is_identity(&self) -> bool {
+        self == &Self::identity()
+    }
+
+    /// Test if this matrix is unitary.
+    pub fn is_unitary(&self) -> bool {
+        self.mul_matrix(&self.transpose()).is_identity()
     }
 
     /// Compute the determinant of this matrix.
@@ -190,10 +200,10 @@ fn test_matrix_multiplication() {
 }
 
 #[test]
-fn test_mul_vector() {
+fn test_mul_column_vector() {
     let id: Matrix3d<i32> = Matrix3d::identity();
     let v = (1, 2, 3);
-    assert_eq!(id.mul_vector(&v), v);
+    assert_eq!(id.mul_column_vector(&v), v);
 }
 
 #[test]

@@ -91,7 +91,7 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
 
     /// Apply the transformation to a single point.
     pub fn transform_point(&self, p: Point<T>) -> Point<T> {
-        self.matrix.mul_vector(p)
+        self.matrix.mul_column_vector(p)
     }
 
     /// Return the matrix describing this transformation.
@@ -251,7 +251,8 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
     }
 
     /// Create a translation by a vector.
-    pub fn translate(t: Vector<T>) -> Self {
+    pub fn translate<V: Into<Vector<T>>>(v: V) -> Self {
+        let t = v.into();
         Self::new(
             T::one(), T::zero(),
             T::zero(), T::one(),
@@ -296,7 +297,7 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
         let minus_one = zero - one;
         Self::new(
             minus_one, zero,
-            zero, zero,
+            zero, one,
             zero, zero,
         )
     }
@@ -322,7 +323,7 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
     }
 
 
-    /// Return the matrix describing this transformation.
+    /// Return the 3x3 matrix describing this transformation.
     pub fn to_matrix3d(&self) -> Matrix3d<T> {
         Matrix3d::new(
             self.m11, self.m12, T::zero(),
@@ -331,9 +332,114 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
         )
     }
 
+    /// Return the 2x2 matrix that describes this transformation
+    /// without any translation.
+    pub fn to_matrix2d(&self) -> Matrix2d<T> {
+        Matrix2d::new(
+            self.m11, self.m12,
+            self.m21, self.m22,
+        )
+    }
+
+    /// Compute the determinant of the 3x3 matrix that describes this transformation.
+    pub fn determinant(&self) -> T {
+        /*
+         ```python
+         import sympy as sp
+         m = sp.Matrix([[sp.Symbol(f"self.m{i}{j}") for j in range(1,4)] for i in range(1,4)])
+         m[0,2] = 0
+         m[1,2] = 0
+         m[2,2] = 1
+         print(m.det())
+         ```
+          */
+        self.m11 * self.m22 - self.m12 * self.m21
+    }
+
     /// Get the inverse transformation if it exists.
     pub fn try_invert(&self) -> Option<Self> {
-        unimplemented!()
+        /*
+         ```python
+         import sympy as sp
+         m = sp.Matrix([[sp.Symbol(f"a.m{i}{j}") for j in range(1,4)] for i in range(1,4)])
+         m[0,2] = 0
+         m[1,2] = 0
+         m[2,2] = 1
+         det = sp.Symbol('det')
+
+         # Compute inverse multiplied with determinant.
+         inv_det = m.inv() * m.det()
+         inv = inv_det / det
+         # Print inverse with factored-out determinant.
+         print(repr(inv).replace('[', '').replace(']', ''))
+         ```
+          */
+        let a = self;
+
+        // Compute determinant.
+        let det = a.determinant();
+        if !det.is_zero() {
+            let z = T::zero();
+            Some(Self::new(
+                a.m22 / det, T::zero()-a.m12 / det,
+                T::zero()-a.m21 / det, a.m11 / det,
+                (a.m21 * a.m32 - a.m22 * a.m31) / det, (a.m12 * a.m31 - a.m11 * a.m32) / det,
+            ))
+        } else {
+            None
+        }
+    }
+
+    /// Return a new transformation that is equal to applying
+    /// first `self` then `t`.
+    pub fn then(&self, t: &Self) -> Self {
+        Self::new(
+            self.m11 * t.m11 + self.m12 * t.m21,
+            self.m11 * t.m12 + self.m12 * t.m22,
+            self.m21 * t.m11 + self.m22 * t.m21,
+            self.m21 * t.m12 + self.m22 * t.m22,
+            self.m31 * t.m11 + self.m32 * t.m21 + t.m31,
+            self.m31 * t.m12 + self.m32 * t.m22 + t.m32,
+        )
+    }
+
+    /// Create a new transformation with an additional scaling.
+    pub fn then_scale(&self, factor: T) -> Self {
+        self.then(&Self::scale(factor))
+    }
+
+    /// Create a new transformation with an additional translation.
+    pub fn then_translate<V: Into<Vector<T>>>(&self, v: V) -> Self {
+        self.then(&Self::translate(v))
+    }
+
+    /// Create a new transformation with an additional rotation by a multiple of 90 degrees.
+    pub fn then_rotate90(&self, angle: Angle) -> Self {
+        self.then(&Self::rotate90(angle))
+    }
+
+    /// Create a new transformation with an additional mirroring at the x-axis.
+    pub fn then_mirror_x(&self) -> Self {
+        self.then(&Self::mirror_x())
+    }
+
+    /// Create a new transformation with an additional mirroring at the y-axis.
+    pub fn then_mirror_y(&self) -> Self {
+        self.then(&Self::mirror_y())
+    }
+
+    /// Get the translation part of this affine transformation.
+    pub fn get_translation(&self) -> Vector<T> {
+        Vector::new(self.m31, self.m32)
+    }
+}
+
+impl<T: CoordinateType> Mul for Matrix3dTransform<T> {
+    type Output = Matrix3dTransform<T>;
+
+    /// Shortcut for `self.then(&rhs)`.
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.then(&rhs)
     }
 }
 
@@ -346,9 +452,10 @@ fn test_identity() {
 
 #[test]
 fn test_translate() {
-    let p = Point::new(1, 2);
+    let p = Vector::new(1, 2);
     let tf = Matrix3dTransform::translate(Vector::new(10, 100));
     assert_eq!(tf.transform_point(p), Point::new(11, 102));
+    assert_eq!(tf.get_translation(), Vector::new(10, 100));
 }
 
 #[test]
@@ -383,6 +490,11 @@ impl<T: CoordinateType + Float> Matrix3dTransform<T> {
             T::zero(), T::zero(),
         )
     }
+
+    /// Create a new transformation with an additional rotation.
+    pub fn then_rotate(&self, phi: T) -> Self {
+        self.then(&Self::rotation(phi))
+    }
 }
 
 #[test]
@@ -393,8 +505,41 @@ fn test_rotate() {
     assert!(
         (tf.transform_point(p) - Point::new(-1.0, 0.0)).norm2_squared() < 1e-6
     );
-    let tf = Matrix3dTransform::rotation(pi*0.5);
+    let tf = Matrix3dTransform::rotation(pi * 0.5);
     assert!(
         (tf.transform_point(p) - Point::new(0.0, 1.0)).norm2_squared() < 1e-6
     );
+}
+
+#[test]
+fn test_then() {
+    let tf1 = Matrix3dTransform::translate((1, 2));
+    let id: Matrix3dTransform<i32> = Matrix3dTransform::identity();
+    assert_eq!(tf1.then(&id), tf1);
+
+    let tf1_tf1 = Matrix3dTransform::translate((2, 4));
+    assert_eq!(tf1.then(&tf1), tf1_tf1);
+
+    let tf3 = Matrix3dTransform::rotate90(Angle::R90);
+    assert_eq!(tf3.then(&tf3).then(&tf3).then(&tf3), id);
+}
+
+#[test]
+fn test_invert() {
+    let id: Matrix3dTransform<i32> = Matrix3dTransform::identity();
+    assert_eq!(id.try_invert(), Some(id));
+
+    let tf1 = Matrix3dTransform::translate((1, 2));
+    let tf1_inv = tf1.try_invert().unwrap();
+    assert_eq!(tf1.then(&tf1_inv), Matrix3dTransform::identity());
+
+    let tf2 = Matrix3dTransform::translate((1, 2))
+        .then_rotate90(Angle::R90)
+        .then_mirror_x();
+    assert!(tf2.to_matrix2d().is_unitary());
+
+    let tf2_inv = tf2.try_invert().unwrap();
+    assert_eq!(tf2.then(&tf2_inv), Matrix3dTransform::identity());
+
+    assert_eq!(tf2.try_invert().unwrap().try_invert(), Some(tf2));
 }
