@@ -22,7 +22,7 @@ use crate::CoordinateType;
 use crate::point::Point;
 use crate::polygon::Polygon;
 
-pub use crate::traits::{DoubledOrientedArea, BoundingBox, Transform, WindingNumber};
+pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
 
 use std::iter::FromIterator;
 
@@ -56,7 +56,7 @@ impl<T> WindingNumber<T> for MultiPolygon<T>
     }
 }
 
-impl<T> Transform<T> for MultiPolygon<T>
+impl<T> MapPointwise<T> for MultiPolygon<T>
     where T: CoordinateType {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         MultiPolygon::new(

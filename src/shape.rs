@@ -64,7 +64,7 @@ impl<T: CoordinateType> BoundingBox<T> for Geometry<T> {
     }
 }
 
-impl<T: CoordinateType> Transform<T> for Geometry<T> {
+impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
     /// Point wise transformation.
     fn transform<F>(&self, transformation: F) -> Self
         where F: Fn(Point<T>) -> Point<T> {

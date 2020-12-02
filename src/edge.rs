@@ -26,8 +26,9 @@ use crate::CoordinateType;
 use num_traits::Float;
 use num_traits::cast::NumCast;
 
-use crate::traits::Transform;
-pub use crate::traits::{BoundingBox, RotateOrtho, Angle};
+use crate::traits::MapPointwise;
+pub use crate::traits::{BoundingBox, RotateOrtho};
+pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
 
@@ -799,7 +800,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     }
 }
 
-impl<T: CoordinateType> Transform<T> for Edge<T> {
+impl<T: CoordinateType> MapPointwise<T> for Edge<T> {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         Edge {
             start: tf(self.start),

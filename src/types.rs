@@ -22,6 +22,22 @@ pub const PREC_DISTANCE: DistanceType = 1e-5;
 pub type FloatType = f64;
 pub type DistanceType = FloatType;
 
+
+#[derive(Copy, Clone, Hash, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum Angle {
+    R0,
+    R90,
+    R180,
+    R270,
+}
+
+impl Default for Angle {
+    fn default() -> Self {
+        Angle::R0
+    }
+}
+
 #[derive(Clone, Copy, Hash, PartialEq, Debug)]
 pub enum Side {
     Left,

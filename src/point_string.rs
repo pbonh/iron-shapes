@@ -23,7 +23,7 @@ use crate::rect::Rect;
 
 use crate::CoordinateType;
 
-use crate::traits::Transform;
+use crate::traits::MapPointwise;
 pub use crate::traits::TryBoundingBox;
 
 use std::iter::FromIterator;
@@ -178,7 +178,7 @@ impl<T, P> FromIterator<P> for PointString<T>
     }
 }
 
-impl<T> Transform<T> for PointString<T>
+impl<T> MapPointwise<T> for PointString<T>
     where T: CoordinateType {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         let points = self.points.iter().map(|&p| tf(p)).collect();

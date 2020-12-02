@@ -23,7 +23,7 @@ use crate::point::Point;
 use crate::edge::Edge;
 use crate::rect::Rect;
 
-pub use crate::traits::{DoubledOrientedArea, BoundingBox, Transform, WindingNumber};
+pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
 
 use crate::types::*;
 
@@ -428,7 +428,7 @@ impl<T> BoundingBox<T> for SimplePolygon<T>
     }
 }
 
-impl<T> Transform<T> for SimplePolygon<T>
+impl<T> MapPointwise<T> for SimplePolygon<T>
     where T: CoordinateType {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         let points = self.points.iter().map(|&p| tf(p)).collect();

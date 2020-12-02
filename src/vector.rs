@@ -25,7 +25,8 @@ pub use num_traits::Zero;
 
 pub use crate::CoordinateType;
 pub use crate::types::Orientation;
-pub use crate::traits::{Angle, Mirror, RotateOrtho};
+pub use crate::traits::{Mirror, RotateOrtho};
+pub use crate::types::Angle;
 
 /// [`Vector`] defines a two dimensional vector with x and y components in the Euclidean plane.
 #[derive(Copy, Clone, Default, PartialEq, Eq, Hash)]

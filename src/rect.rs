@@ -175,7 +175,7 @@ impl<T: CoordinateType> BoundingBox<T> for Rect<T> {
 }
 
 /// Point wise transformation of the two corner points.
-impl<T> Transform<T> for Rect<T>
+impl<T> MapPointwise<T> for Rect<T>
     where T: CoordinateType
 {
     /// Point wise transformation.

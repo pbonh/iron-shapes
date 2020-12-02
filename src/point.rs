@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::vector::Vector;
-use crate::traits::Transform;
+use crate::traits::MapPointwise;
 use crate::CoordinateType;
 
 use std::cmp::{Ord, Ordering};
@@ -137,7 +137,7 @@ impl<T: CoordinateType + Ord> Ord for Point<T> {
 
 
 /// Point wise transformation for a single point.
-impl<T> Transform<T> for Vector<T>
+impl<T> MapPointwise<T> for Vector<T>
     where T: CoordinateType
 {
     /// Point wise transformation.

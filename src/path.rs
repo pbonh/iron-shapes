@@ -25,7 +25,8 @@ use crate::rect::Rect;
 use crate::CoordinateType;
 
 use crate::traits::{Scale, Translate};
-pub use crate::traits::{BoundingBox, RotateOrtho, Angle};
+pub use crate::traits::{BoundingBox, RotateOrtho};
+pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
 

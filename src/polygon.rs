@@ -23,7 +23,7 @@ use crate::point::Point;
 use crate::edge::Edge;
 use crate::rect::Rect;
 
-pub use crate::traits::{DoubledOrientedArea, BoundingBox, Transform, WindingNumber};
+pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
 
 use crate::types::*;
 pub use crate::simple_polygon::*;
@@ -258,7 +258,7 @@ impl<T> WindingNumber<T> for Polygon<T>
     }
 }
 
-impl<T> Transform<T> for Polygon<T>
+impl<T> MapPointwise<T> for Polygon<T>
     where T: CoordinateType {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         Polygon {
