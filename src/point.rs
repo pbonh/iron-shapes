@@ -49,6 +49,7 @@ macro_rules! point {
 
 /// A point is defined by a x and y coordinate in the euclidean plane.
 #[derive(Copy, Clone, Hash, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Point<T>
     where T: CoordinateType {
     location: Vector<T>
