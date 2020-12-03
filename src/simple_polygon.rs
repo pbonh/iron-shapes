@@ -39,6 +39,7 @@ pub struct SimplePolygon<T>
 }
 
 /// Shorthand notation for creating a simple polygon.
+#[macro_export]
 macro_rules! simple_polygon {
  ($($x:expr),*) => {SimplePolygon::new((vec![$($x),*]))}
 }

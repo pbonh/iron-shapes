@@ -20,7 +20,6 @@
 use crate::vector::Vector;
 use crate::point::Point;
 use crate::point_string::PointString;
-use crate::rect::Rect;
 
 use crate::CoordinateType;
 
@@ -34,7 +33,6 @@ use num_traits::{Float, NumCast};
 use crate::simple_polygon::SimplePolygon;
 use std::iter::FromIterator;
 use crate::edge::*;
-use std::convert::TryInto;
 
 /// Encoding for the type of the beginning and end of the path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]

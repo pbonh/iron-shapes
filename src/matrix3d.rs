@@ -19,8 +19,6 @@
  */
 use crate::CoordinateType;
 
-use crate::vector::Vector;
-
 /// 3x3 matrix of the form.
 /// ```txt
 /// [[ m11, m12, m13 ],
@@ -175,7 +173,6 @@ impl<T> Matrix3d<T>
         // Compute determinant.
         let det = a.determinant();
         if !det.is_zero() {
-            let z = T::zero();
             Some(Self::new(
                 (a.m22 * a.m33 - a.m23 * a.m32) / det, (a.m13 * a.m32 - a.m12 * a.m33) / det, (a.m12 * a.m23 - a.m13 * a.m22) / det,
                 (a.m23 * a.m31 - a.m21 * a.m33) / det, (a.m11 * a.m33 - a.m13 * a.m31) / det, (a.m13 * a.m21 - a.m11 * a.m23) / det,

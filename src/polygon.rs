@@ -40,6 +40,7 @@ pub struct Polygon<T>
 }
 
 /// Shorthand notation for creating a polygon.
+#[macro_export]
 macro_rules! polygon {
  ($($x:expr),*) => {Polygon::new((vec![$($x),*]))}
 }
@@ -317,10 +318,9 @@ impl<T> PartialEq for Polygon<T>
     }
 }
 
+#[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::polygon::Polygon;
-    use crate::point::Point;
+    use crate::prelude::*;
 
     #[test]
     fn test_create_polygon() {

@@ -181,7 +181,9 @@ impl<T, P> FromIterator<P> for PointString<T>
 impl<T> MapPointwise<T> for PointString<T>
     where T: CoordinateType {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
-        let points = self.points.iter().map(|&p| tf(p)).collect();
+        let points = self.points.iter()
+            .map(|&p| tf(p))
+            .collect();
 
         PointString {
             points

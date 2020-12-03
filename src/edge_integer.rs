@@ -19,7 +19,6 @@
  */
 //! Edge intersection functions for integer coordinates.
 
-use crate::vector::Vector;
 use crate::point::Point;
 pub use crate::edge::{Edge, EdgeIntersection, LineIntersection};
 
@@ -89,8 +88,8 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
                 let ac = other.start - self.start;
                 let ac_cross_cd = ac.cross_prod(cd);
 
-                let two = T::one() + T::one();
-                let one_vector = Vector::new(T::one(), T::one());
+                // let two = T::one() + T::one();
+                // let one_vector = Vector::new(T::one(), T::one());
 
                 // Compute exact solution but scaled by s.
                 let exact_scaled_s = self.start * s + ab * ac_cross_cd;

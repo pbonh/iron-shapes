@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Div};
 
@@ -37,6 +38,7 @@ pub struct Vector<T> {
 }
 
 /// Shorthand notation for creating a vector.
+#[macro_export]
 macro_rules! vector {
  ($x:expr, $y:expr) => {Vector::new($x, $y)}
 }

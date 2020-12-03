@@ -21,8 +21,6 @@ use crate::CoordinateType;
 
 use crate::vector::Vector;
 
-use std::ops::Mul;
-
 #[derive(Clone, Hash, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix2d<T: CoordinateType> {

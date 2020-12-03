@@ -22,7 +22,7 @@ use crate::CoordinateType;
 use crate::vector::Vector;
 use crate::point::Point;
 use crate::matrix2d::*;
-use crate::traits::{RotateOrtho, MapPointwise, Mirror, Translate, Scale};
+use crate::traits::{RotateOrtho, Mirror, Translate, Scale};
 use crate::types::Angle;
 
 use std::ops::Mul;
@@ -369,7 +369,6 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
         // Compute determinant.
         let det = a.determinant();
         if !det.is_zero() {
-            let z = T::zero();
             Some(Self::new(
                 a.m22 / det, T::zero() - a.m12 / det,
                 T::zero() - a.m21 / det, a.m11 / det,

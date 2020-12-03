@@ -29,6 +29,7 @@ use num_traits::{Float, NumCast};
 pub type Point<T> = Vector<T>;
 
 /// Shorthand notation for creating a point.
+#[macro_export]
 macro_rules! point {
  ($x:expr, $y:expr) => {Point::new($x, $y)}
 }

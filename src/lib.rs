@@ -37,7 +37,6 @@ impl<T: Num + Copy + PartialOrd> CoordinateType for T {}
 pub mod prelude;
  
 mod cmp;
-mod interval;
 pub mod types;
 pub mod traits;
 pub mod vector;
