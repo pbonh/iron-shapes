@@ -29,6 +29,17 @@ use num_traits::{Float, NumCast};
 pub type Point<T> = Vector<T>;
 
 /// Shorthand notation for creating a point.
+///
+/// # Example
+/// ```
+/// # #[macro_use]
+/// # extern crate iron_shapes;
+/// # fn main() {
+/// use iron_shapes::prelude::*;
+/// let p = point!(1, 2);
+/// assert_eq!(p, Point::new(1, 2));
+/// # }
+/// ```
 #[macro_export]
 macro_rules! point {
  ($x:expr, $y:expr) => {Point::new($x, $y)}

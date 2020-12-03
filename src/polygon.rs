@@ -40,6 +40,17 @@ pub struct Polygon<T>
 }
 
 /// Shorthand notation for creating a polygon.
+///
+/// # Example
+/// ```
+/// # #[macro_use]
+/// # extern crate iron_shapes;
+/// # fn main() {
+/// use iron_shapes::prelude::*;
+/// let p = polygon!((0, 0), (1, 0), (1, 1));
+/// assert_eq!(p, Polygon::new(vec![(0, 0), (1, 0), (1, 1)]));
+/// # }
+/// ```
 #[macro_export]
 macro_rules! polygon {
  ($($x:expr),*) => {Polygon::new((vec![$($x),*]))}

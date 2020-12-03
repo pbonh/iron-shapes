@@ -38,6 +38,17 @@ pub struct Vector<T> {
 }
 
 /// Shorthand notation for creating a vector.
+///
+/// # Example
+/// ```
+/// # #[macro_use]
+/// # extern crate iron_shapes;
+/// # fn main() {
+/// use iron_shapes::prelude::*;
+/// let v = vector!(1, 2);
+/// assert_eq!(v, Vector::new(1, 2));
+/// # }
+/// ```
 #[macro_export]
 macro_rules! vector {
  ($x:expr, $y:expr) => {Vector::new($x, $y)}
