@@ -426,7 +426,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     /// assert_eq!(e1.line_intersection_approx(&e2, 1e-6),
     ///     LineIntersection::Point(Point::new(1., 1.), (4, 4, 8)));
     ///
-    /// assert_eq!(e1.vector().cast() * 0.5, Point::new(1., 1.));
+    /// assert_eq!(Point::zero() + e1.vector().cast() * 0.5, Point::new(1., 1.));
     /// ```
     ///
     pub fn line_intersection_approx<F: Float>(&self, other: &Edge<T>, tolerance: F) -> LineIntersection<F, T> {
