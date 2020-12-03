@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::vector::Vector;
-use crate::traits::MapPointwise;
+use crate::traits::{MapPointwise, TryCastCoord};
 use crate::CoordinateType;
 
 
@@ -29,7 +29,6 @@ use num_traits::{Float, NumCast};
 pub use num_traits::Zero;
 use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add};
 pub use std::ops::Deref;
-use crate::types::Orientation;
 
 /// Shorthand notation for creating a point.
 ///
@@ -263,61 +262,6 @@ impl<T> fmt::Display for Point<T>
 
 
 impl<T: CoordinateType + NumCast> Point<T> {
-    /// Try to cast to Point of target data type.
-    ///
-    /// Conversion from float to int can fail and will return `None`.
-    /// Float values like infinity or non-a-number
-    /// have no integer representation.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::point::Point;
-    ///
-    /// let v_int = Point::new(1,2);
-    /// let maybe_v_float: Option<Point<f64>> = v_int.try_cast();
-    ///
-    /// assert_eq!(maybe_v_float, Some(Point::new(1.0, 2.0)));
-    ///
-    /// // Conversion from float to int can fail.
-    ///
-    /// let w_float = Point::new(42.0, 0. / 0.);
-    /// let maybe_w_int: Option<Point<i32>> = w_float.try_cast();
-    ///
-    /// assert_eq!(maybe_w_int, None);
-    /// ```
-    pub fn try_cast<Target>(&self) -> Option<Point<Target>>
-        where Target: CoordinateType + NumCast {
-        match (Target::from(self.x), Target::from(self.y)) {
-            (Some(x), Some(y)) => Some(Point::new(x, y)),
-            _ => None
-        }
-    }
-
-    /// Cast to Point of target data type.
-    ///
-    /// Conversion from float to int can fail and panic because float values
-    /// like infinity or non-a-number have no integer representation.
-    ///
-    /// # Panics
-    /// Panics if casting of the coordinate values fails. For instance when trying to cast a 'NaN' float into a integer.
-    /// Use `try_cast` to detect and handle this failure.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::point::Point;
-    ///
-    /// let v_int = Point::new(1,2);
-    /// let v_float: Point<f64> = v_int.cast();
-    ///
-    /// assert_eq!(v_float, Point::new(1.0, 2.0));
-    /// ```
-    pub fn cast<S>(&self) -> Point<S>
-        where S: CoordinateType + NumCast {
-        self.try_cast().unwrap()
-    }
-
     /// Convert Point into a Point with floating point data type.
     pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Point<F> {
         // TODO: find conversion that does not panic for sure.
@@ -325,6 +269,17 @@ impl<T: CoordinateType + NumCast> Point<T> {
             F::from(self.x).unwrap(),
             F::from(self.y).unwrap(),
         )
+    }
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Point<T> {
+    type Output = Point<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        match (Dst::from(self.x), Dst::from(self.y)) {
+            (Some(x), Some(y)) => Some(Point::new(x, y)),
+            _ => None
+        }
     }
 }
 

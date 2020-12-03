@@ -168,3 +168,29 @@ impl<S, T> Mirror<T> for S
 //    type EachPoints: Iterator<Item=&'a Point<T>>;
 //    fn each_point(&self) -> Self::EachPoints;
 //}
+
+
+pub trait TryCastCoord<Src, Dst>
+    where Src: CoordinateType + NumCast,
+          Dst: CoordinateType + NumCast {
+    type Output;
+
+    /// Try to cast to target data type.
+    ///
+    /// Conversion from float to int can fail and will return `None`.
+    /// Float values like infinity or non-a-number
+    /// have no integer representation.
+    fn try_cast(&self) -> Option<Self::Output>;
+
+    /// Cast to target data type.
+    ///
+    /// Conversion from float to int can fail and panic because float values
+    /// like infinity or non-a-number have no integer representation.
+    ///
+    /// # Panics
+    /// Panics if casting of the coordinate values fails. For instance when trying to cast a 'NaN' float into a integer.
+    /// Use `try_cast` to detect and handle this failure.
+    fn cast(&self) -> Self::Output {
+        self.try_cast().unwrap()
+    }
+}

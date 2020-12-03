@@ -145,6 +145,7 @@ impl<T: CoordinateType + NumCast> Path<T> {
         }
     }
 
+
     /// Convert the path into a polygon.
     /// The polygon can be self-intersecting.
     ///
@@ -191,7 +192,7 @@ impl<T: CoordinateType + NumCast> Path<T> {
                 (start_ext, end_ext)
             }
             PathEndType::Flat => (0., 0.),
-            _ => unimplemented!()
+            PathEndType::Round => unimplemented!("Not implemented for round path ends.")
         };
 
         // Path width.
@@ -252,6 +253,20 @@ impl<T: CoordinateType + NumCast> Path<T> {
     }
 }
 
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Path<T> {
+    type Output = Path<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        if let Some(new_width) = Dst::from(self.width) {
+            self.points.try_cast()
+                .map(|ps| Path::new(ps, new_width))
+        } else {
+            // Failed to cast the width.
+            None
+        }
+    }
+}
 
 // impl<T> Translate<T> for Path<T>
 //     where T: CoordinateType {

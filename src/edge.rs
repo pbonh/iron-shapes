@@ -27,7 +27,7 @@ use num_traits::Float;
 use num_traits::cast::NumCast;
 
 use crate::traits::MapPointwise;
-pub use crate::traits::{BoundingBox, RotateOrtho};
+pub use crate::traits::{BoundingBox, RotateOrtho, TryCastCoord};
 pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
@@ -812,6 +812,17 @@ impl<T: CoordinateType> MapPointwise<T> for Edge<T> {
 impl<T: CoordinateType> BoundingBox<T> for Edge<T> {
     fn bounding_box(&self) -> Rect<T> {
         Rect::new(self.start, self.end)
+    }
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Edge<T> {
+    type Output = Edge<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        match (self.start.try_cast(), self.end.try_cast()) {
+            (Some(s), Some(e)) => Some(Edge::new(s, e)),
+            _ => None
+        }
     }
 }
 

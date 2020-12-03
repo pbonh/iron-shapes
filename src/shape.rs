@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::prelude::*;
+use num_traits::NumCast;
 
 /// Abstracted geometrical shape.
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
@@ -116,6 +117,21 @@ impl<T: CoordinateType> Into<Polygon<T>> for Geometry<T> {
     /// Convert a geometry into a polygon.
     fn into(self) -> Polygon<T> {
         self.to_polygon()
+    }
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Geometry<T> {
+    type Output = Geometry<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        match self {
+            Geometry::Point(p) => p.try_cast().map(|s| s.into()),
+            Geometry::Edge(e) => e.try_cast().map(|s| s.into()),
+            Geometry::Rect(r) => r.try_cast().map(|s| s.into()),
+            Geometry::SimplePolygon(p) => p.try_cast().map(|s| s.into()),
+            Geometry::Polygon(p) => p.try_cast().map(|s| s.into()),
+            Geometry::Path(p) => p.try_cast().map(|s| s.into()),
+        }
     }
 }
 

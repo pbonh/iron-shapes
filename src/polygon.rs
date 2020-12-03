@@ -30,6 +30,9 @@ pub use crate::simple_polygon::*;
 
 use std::iter::FromIterator;
 use std::cmp::{Ord, PartialEq};
+use crate::traits::TryCastCoord;
+use num_traits::NumCast;
+use itertools::Itertools;
 
 #[derive(Clone, Hash, Debug, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -327,6 +330,29 @@ impl<T> PartialEq for Polygon<T>
                 "Equality check for polygons with holes not yet implemented.");
 
         self.exterior == rhs.exterior
+    }
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Polygon<T> {
+    type Output = Polygon<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+
+        if let Some(new_hull) = self.exterior.try_cast() {
+            let new_holes : Vec<_> = self.interiors.iter()
+                .map(|hole| hole.try_cast())
+                .while_some()
+                .collect();
+            if new_holes.len() == self.interiors.len() {
+                Some(Polygon::new_with_holes(new_hull, new_holes))
+            } else {
+                // Some wholes could not be casted.
+                None
+            }
+        } else {
+            // The hull could not be casted.
+            None
+        }
     }
 }
 

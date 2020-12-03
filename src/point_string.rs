@@ -23,13 +23,14 @@ use crate::rect::Rect;
 
 use crate::CoordinateType;
 
-use crate::traits::MapPointwise;
+use crate::traits::{MapPointwise, TryCastCoord};
 pub use crate::traits::TryBoundingBox;
 
 use std::iter::FromIterator;
 use std::slice::Iter;
 
 use num_traits::{Float, NumCast};
+use itertools::Itertools;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -117,6 +118,22 @@ impl<T: CoordinateType + NumCast> PointString<T> {
     }
 }
 
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for PointString<T> {
+    type Output = PointString<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        let new_points: Vec<_> = self.points.iter()
+            .map(|p| p.try_cast())
+            .while_some()
+            .collect();
+        if new_points.len() == self.points.len() {
+            Some(PointString::new(new_points))
+        } else {
+            // Some points could not be casted.
+            None
+        }
+    }
+}
 
 /// Create a point string from something that can be turned into an iterator of values convertible to [`Point`]s.
 impl<I, T, P> From<I> for PointString<T>
@@ -217,7 +234,7 @@ impl<T> TryBoundingBox<T> for PointString<T>
             let mut y_max = y_min;
 
             for p in self.iter().skip(1) {
-                let (x,y) = p.into();
+                let (x, y) = p.into();
                 if x < x_min {
                     x_min = x;
                 }

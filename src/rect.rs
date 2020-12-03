@@ -21,6 +21,7 @@ use crate::point::Point;
 use crate::traits::*;
 use crate::cmp::{min, max};
 use crate::CoordinateType;
+use num_traits::NumCast;
 
 /// A orthogonal rectangle is represented by its lower left and upper right corner.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -198,6 +199,18 @@ impl<'a, T> IntoIterator for &'a Rect<T>
     fn into_iter(self) -> Self::IntoIter {
         vec![self.lower_left(), self.lower_right(),
              self.upper_right(), self.upper_left()].into_iter()
+    }
+}
+
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Rect<T> {
+    type Output = Rect<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        match (self.lower_left.try_cast(), self.upper_right.try_cast()) {
+            (Some(ll), Some(ur)) => Some(Rect::new(ll, ur)),
+            _ => None
+        }
     }
 }
 

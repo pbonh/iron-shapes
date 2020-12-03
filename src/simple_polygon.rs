@@ -30,6 +30,9 @@ use crate::types::*;
 use std::iter::FromIterator;
 use std::cmp::{Ord, PartialEq};
 use std::slice::Iter;
+use num_traits::NumCast;
+use crate::traits::TryCastCoord;
+use itertools::Itertools;
 
 #[derive(Clone, Debug, Hash, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -506,6 +509,23 @@ impl<T> PartialEq for SimplePolygon<T>
             false
         } else {
             false
+        }
+    }
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for SimplePolygon<T> {
+    type Output = SimplePolygon<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        let new_points: Vec<_> = self.points.iter()
+            .map(|p| p.try_cast())
+            .while_some()
+            .collect();
+        if new_points.len() == self.points.len() {
+            Some(SimplePolygon::new(new_points))
+        } else {
+            // Some points could not be casted.
+            None
         }
     }
 }

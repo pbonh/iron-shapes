@@ -28,7 +28,7 @@ pub use crate::CoordinateType;
 pub use crate::types::Orientation;
 pub use crate::traits::{Mirror, RotateOrtho};
 pub use crate::types::Angle;
-use crate::traits::MapPointwise;
+use crate::traits::{MapPointwise, TryCastCoord};
 use crate::point::Point;
 
 /// [`Vector`] defines a two dimensional vector with x and y components in the Euclidean plane.
@@ -215,6 +215,19 @@ impl<T: CoordinateType> Vector<T> {
 }
 
 impl<T: CoordinateType + NumCast> Vector<T> {
+    /// Convert vector into a vector with floating point data type.
+    pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Vector<F> {
+        // TODO: find conversion that does not panic for sure.
+        Vector {
+            x: F::from(self.x).unwrap(),
+            y: F::from(self.y).unwrap(),
+        }
+    }
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Vector<T> {
+    type Output = Vector<Dst>;
+
     /// Try to cast to vector of target data type.
     ///
     /// Conversion from float to int can fail and will return `None`.
@@ -238,44 +251,10 @@ impl<T: CoordinateType + NumCast> Vector<T> {
     ///
     /// assert_eq!(maybe_w_int, None);
     /// ```
-    pub fn try_cast<Target>(&self) -> Option<Vector<Target>>
-        where Target: CoordinateType + NumCast {
-        match (Target::from(self.x), Target::from(self.y)) {
-            (Some(x), Some(y)) => Some(Vector { x, y }),
+    fn try_cast(&self) -> Option<Self::Output> {
+        match (Dst::from(self.x), Dst::from(self.y)) {
+            (Some(x), Some(y)) => Some(Vector::new(x, y)),
             _ => None
-        }
-    }
-
-    /// Cast to vector of target data type.
-    ///
-    /// Conversion from float to int can fail and panic because float values
-    /// like infinity or non-a-number have no integer representation.
-    ///
-    /// # Panics
-    /// Panics if casting of the coordinate values fails. For instance when trying to cast a 'NaN' float into a integer.
-    /// Use `try_cast` to detect and handle this failure.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::vector::Vector;
-    ///
-    /// let v_int = Vector::new(1,2);
-    /// let v_float: Vector<f64> = v_int.cast();
-    ///
-    /// assert_eq!(v_float, Vector::new(1.0, 2.0));
-    /// ```
-    pub fn cast<S>(&self) -> Vector<S>
-        where S: CoordinateType + NumCast {
-        self.try_cast().unwrap()
-    }
-
-    /// Convert vector into a vector with floating point data type.
-    pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Vector<F> {
-        // TODO: find conversion that does not panic for sure.
-        Vector {
-            x: F::from(self.x).unwrap(),
-            y: F::from(self.y).unwrap(),
         }
     }
 }
@@ -427,7 +406,6 @@ impl<T> Div<T> for Vector<T>
 
 impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
     fn transform<F>(&self, transformation: F) -> Self where F: Fn(Point<T>) -> Point<T> {
-        use super::point::Point;
         *transformation(Point::from(self))
     }
 }
