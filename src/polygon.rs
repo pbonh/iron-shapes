@@ -150,6 +150,7 @@ impl<T> From<&Rect<T>> for Polygon<T>
 
 pub trait ToPolygon<T>
     where T: CoordinateType {
+    /// Convert the geometric object into a polygon.
     fn to_polygon(&self) -> Polygon<T>;
 }
 
