@@ -4,7 +4,7 @@ version = "0.0.0"
 authors = ["Thomas Kramer <code@tkramer.ch>"]
 edition = "2018"
 license = "AGPLv3"
-description = "Data types and routines for computational geometry."
+description = "Basic data types and routines for computational geometry."
 
 [dependencies]
 num-traits = "0.2"
