@@ -420,18 +420,18 @@ impl<T> BoundingBox<T> for SimplePolygon<T>
         let mut y_min = self.points[0].y;
         let mut y_max = y_min;
 
-        for &Point { x, y } in self.iter().skip(1) {
-            if x < x_min {
-                x_min = x;
+        for p in self.iter().skip(1) {
+            if p.x < x_min {
+                x_min = p.x;
             }
-            if x > x_max {
-                x_max = x;
+            if p.x > x_max {
+                x_max = p.x;
             }
-            if y < y_min {
-                y_min = y;
+            if p.y < y_min {
+                y_min = p.y;
             }
-            if y > y_max {
-                y_max = y;
+            if p.y > y_max {
+                y_max = p.y;
             }
         }
 

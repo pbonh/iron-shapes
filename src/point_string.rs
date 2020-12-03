@@ -216,7 +216,8 @@ impl<T> TryBoundingBox<T> for PointString<T>
             let mut y_min = self.points[0].y;
             let mut y_max = y_min;
 
-            for &Point { x, y } in self.iter().skip(1) {
+            for p in self.iter().skip(1) {
+                let (x,y) = p.into();
                 if x < x_min {
                     x_min = x;
                 }

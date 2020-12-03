@@ -21,12 +21,15 @@ use crate::vector::Vector;
 use crate::traits::MapPointwise;
 use crate::CoordinateType;
 
+
 use std::cmp::{Ord, Ordering};
+use std::fmt;
 
 use num_traits::{Float, NumCast};
-
-/// A point is defined by a x and y coordinate in the euclidean plane.
-pub type Point<T> = Vector<T>;
+pub use num_traits::Zero;
+use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add};
+pub use std::ops::Deref;
+use crate::types::Orientation;
 
 /// Shorthand notation for creating a point.
 ///
@@ -45,30 +48,41 @@ macro_rules! point {
  ($x:expr, $y:expr) => {Point::new($x, $y)}
 }
 
-//#[derive(Copy, Clone, Hash, PartialEq, Eq, Debug)]
-//pub struct Point<T>
-//    where T: CoordinateType {
-//    pub x: T,
-//    pub y: T,
-//}
+/// A point is defined by a x and y coordinate in the euclidean plane.
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+pub struct Point<T>
+    where T: CoordinateType {
+    location: Vector<T>
+}
 
-//impl<T: CoordinateType> From<Vector<T>> for Point<T> {
-//    fn from(v: Vector<T>) -> Self {
-//        Point {
-//            x: v.x,
-//            y: v.y,
-//        }
-//    }
-//}
+impl<T> Deref for Point<T>
+    where T: CoordinateType {
+    type Target = Vector<T>;
 
-//impl<T: CoordinateType> Into<Vector<T>> for Point<T> {
-//    fn into(self) -> Vector<T> {
-//        Vector {
-//            x: self.x,
-//            y: self.y,
-//        }
-//    }
-//}
+    fn deref(&self) -> &Self::Target {
+        &self.location
+    }
+}
+
+impl<T: CoordinateType> From<Vector<T>> for Point<T> {
+    fn from(v: Vector<T>) -> Self {
+        Point {
+            location: v
+        }
+    }
+}
+
+impl<T: CoordinateType> From<&Vector<T>> for Point<T> {
+    fn from(v: &Vector<T>) -> Self {
+        Self::from(*v)
+    }
+}
+
+impl<T: CoordinateType> Into<Vector<T>> for Point<T> {
+    fn into(self) -> Vector<T> {
+        self.location
+    }
+}
 
 ///// Convert a type into a point by converting it into a vector first.
 //impl<S, T: CoordinateType> From<S> for Point<T>
@@ -80,8 +94,39 @@ macro_rules! point {
 //}
 
 impl<T: CoordinateType> Point<T> {
+    /// Create a new point with `x` and `y` coordinates.
+    pub fn new(x: T, y: T) -> Self {
+        Point { location: Vector::new(x, y) }
+    }
+
+    /// Get zero-Point.
+    ///
+    /// # Examples
+    /// ```
+    /// use iron_shapes::point::Point;
+    ///
+    /// let a = Point::zero();
+    /// let b = Point::new(0, 0);
+    ///
+    /// assert_eq!(a, b);
+    /// ```
+    pub fn zero() -> Self { Vector::zero().into() }
+
+    /// Check if this is the zero-Point.
+    ///
+    /// # Examples
+    /// ```
+    /// use iron_shapes::point::*;
+    ///
+    /// assert!(Point::<usize>::zero().is_zero());
+    /// ```
+    pub fn is_zero(&self) -> bool {
+        self.x.is_zero() && self.y.is_zero()
+    }
+
+    /// Compute the squared distance to the `other` point.
     pub fn distance_sq(self, other: &Point<T>) -> T {
-        let diff: Vector<T> = self - *other;
+        let diff = self - *other;
         diff.norm2_squared()
     }
 
@@ -107,6 +152,11 @@ impl<T: CoordinateType> Point<T> {
     /// ```
     pub fn cross_prod3(&self, b: Point<T>, c: Point<T>) -> T {
         (b.x - self.x) * (c.y - b.y) - (b.y - self.y) * (c.x - b.x)
+    }
+
+    /// Return the location of this point as a vector.
+    pub fn v(&self) -> Vector<T> {
+        self.location
     }
 }
 
@@ -149,7 +199,7 @@ impl<T: CoordinateType + Ord> Ord for Point<T> {
 
 
 /// Point wise transformation for a single point.
-impl<T> MapPointwise<T> for Vector<T>
+impl<T> MapPointwise<T> for Point<T>
     where T: CoordinateType
 {
     /// Point wise transformation.
@@ -158,3 +208,237 @@ impl<T> MapPointwise<T> for Vector<T>
         transformation(*self)
     }
 }
+
+
+impl<T: CoordinateType> Into<(T, T)> for Point<T> {
+    fn into(self) -> (T, T) {
+        (self.x, self.y)
+    }
+}
+
+impl<T: CoordinateType> Into<(T, T)> for &Point<T> {
+    fn into(self) -> (T, T) {
+        (self.x, self.y)
+    }
+}
+
+impl<T: CoordinateType> From<(T, T)> for Point<T> {
+    fn from(coords: (T, T)) -> Self {
+        Point::new(coords.0, coords.1)
+    }
+}
+
+impl<'a, T: CoordinateType> From<&'a (T, T)> for Point<T> {
+    fn from(coords: &'a (T, T)) -> Self {
+        Point::new(coords.0, coords.1)
+    }
+}
+
+impl<'a, T: CoordinateType> From<&'a Point<T>> for Point<T> {
+    fn from(v: &'a Point<T>) -> Self {
+        Point::new(v.x, v.y)
+    }
+}
+
+impl<T: CoordinateType> From<[T; 2]> for Point<T> {
+    fn from(coords: [T; 2]) -> Self {
+        Point::new(coords[0], coords[1])
+    }
+}
+
+impl<T> fmt::Debug for Point<T>
+    where T: fmt::Debug + CoordinateType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Point({:?}, {:?})", self.x, self.y)
+    }
+}
+
+impl<T> fmt::Display for Point<T>
+    where T: fmt::Display + CoordinateType
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+
+impl<T: CoordinateType + NumCast> Point<T> {
+    /// Try to cast to Point of target data type.
+    ///
+    /// Conversion from float to int can fail and will return `None`.
+    /// Float values like infinity or non-a-number
+    /// have no integer representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::point::Point;
+    ///
+    /// let v_int = Point::new(1,2);
+    /// let maybe_v_float: Option<Point<f64>> = v_int.try_cast();
+    ///
+    /// assert_eq!(maybe_v_float, Some(Point::new(1.0, 2.0)));
+    ///
+    /// // Conversion from float to int can fail.
+    ///
+    /// let w_float = Point::new(42.0, 0. / 0.);
+    /// let maybe_w_int: Option<Point<i32>> = w_float.try_cast();
+    ///
+    /// assert_eq!(maybe_w_int, None);
+    /// ```
+    pub fn try_cast<Target>(&self) -> Option<Point<Target>>
+        where Target: CoordinateType + NumCast {
+        match (Target::from(self.x), Target::from(self.y)) {
+            (Some(x), Some(y)) => Some(Point::new(x, y)),
+            _ => None
+        }
+    }
+
+    /// Cast to Point of target data type.
+    ///
+    /// Conversion from float to int can fail and panic because float values
+    /// like infinity or non-a-number have no integer representation.
+    ///
+    /// # Panics
+    /// Panics if casting of the coordinate values fails. For instance when trying to cast a 'NaN' float into a integer.
+    /// Use `try_cast` to detect and handle this failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::point::Point;
+    ///
+    /// let v_int = Point::new(1,2);
+    /// let v_float: Point<f64> = v_int.cast();
+    ///
+    /// assert_eq!(v_float, Point::new(1.0, 2.0));
+    /// ```
+    pub fn cast<S>(&self) -> Point<S>
+        where S: CoordinateType + NumCast {
+        self.try_cast().unwrap()
+    }
+
+    /// Convert Point into a Point with floating point data type.
+    pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Point<F> {
+        // TODO: find conversion that does not panic for sure.
+        Point::new(
+            F::from(self.x).unwrap(),
+            F::from(self.y).unwrap(),
+        )
+    }
+}
+
+/// Point addition.
+impl<T, V> Add<V> for Point<T>
+    where T: CoordinateType + Add<Output=T>,
+          V: Into<Point<T>>
+{
+    type Output = Self;
+
+    fn add(self, rhs: V) -> Self {
+        let rhs = rhs.into();
+        Point::new(
+            self.x + rhs.x,
+            self.y + rhs.y,
+        )
+    }
+}
+
+impl<T, V> AddAssign<V> for Point<T>
+    where T: CoordinateType + AddAssign<T>,
+          V: Into<Vector<T>>
+{
+    fn add_assign(&mut self, rhs: V) {
+        let rhs = rhs.into();
+        self.location += rhs;
+    }
+}
+
+/// Subtract a point.
+impl<T> Sub<Point<T>> for Point<T>
+    where T: CoordinateType + Sub<Output=T>
+{
+    type Output = Vector<T>;
+
+    fn sub(self, rhs: Point<T>) -> Self::Output {
+        Vector::new(
+            self.x - rhs.x,
+            self.y - rhs.y,
+        )
+    }
+}
+
+/// Subtract a vector.
+impl<T> Sub<Vector<T>> for Point<T>
+    where T: CoordinateType + Sub<Output=T>
+{
+    type Output = Point<T>;
+
+    fn sub(self, rhs: Vector<T>) -> Self::Output {
+        Point::new(
+            self.x - rhs.x,
+            self.y - rhs.y,
+        )
+    }
+}
+
+impl<T, V> SubAssign<V> for Point<T>
+    where T: CoordinateType + SubAssign<T>,
+          V: Into<Vector<T>>
+{
+    fn sub_assign(&mut self, rhs: V) {
+        let rhs = rhs.into();
+        self.location -= rhs;
+    }
+}
+
+impl<T> Neg for Point<T>
+    where T: CoordinateType
+{
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Point::new(
+            T::zero() - self.x,
+            T::zero() - self.y,
+        )
+    }
+}
+
+/// Scalar multiplication.
+impl<T> Mul<T> for Point<T>
+    where T: CoordinateType + Mul<Output=T>
+{
+    type Output = Self;
+
+    fn mul(self, rhs: T) -> Self {
+        Point::new(
+            self.x * rhs,
+            self.y * rhs,
+        )
+    }
+}
+
+/// In-place scalar multiplication.
+impl<T> MulAssign<T> for Point<T>
+    where T: CoordinateType + MulAssign<T>
+{
+    fn mul_assign(&mut self, rhs: T) {
+        self.location *= rhs;
+    }
+}
+
+/// Scalar division.
+impl<T> Div<T> for Point<T>
+    where T: CoordinateType + Div<Output=T>
+{
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self {
+        Point::new(
+            self.x / rhs,
+            self.y / rhs,
+        )
+    }
+}
+

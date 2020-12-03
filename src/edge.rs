@@ -89,7 +89,7 @@ impl<T: CoordinateType> From<[Point<T>; 2]> for Edge<T> {
 /// An edge (line segment) is represented by its starting point and end point.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Edge<T: Copy> {
+pub struct Edge<T: CoordinateType> {
     pub start: Point<T>,
     pub end: Point<T>,
 }
@@ -758,7 +758,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     /// Find the mirror image of `point`.
     pub fn reflection_approx<F: Float>(&self, point: Point<T>) -> Point<F> {
         let proj = self.projection_approx(point);
-        proj + proj - point.cast()
+        proj + proj - point.cast().v()
     }
 
     /// Calculate the absolute distance from the point onto the unbounded line coincident with this edge.

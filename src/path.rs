@@ -173,13 +173,13 @@ impl<T: CoordinateType + NumCast> Path<T> {
             if extension == 0. {
                 let p1 = p - n * w_half;
                 let p2 = p + n * w_half;
-                vec![p1, p2]
+                vec![p1.into(), p2]
             } else {
                 let p1 = p - n * w_half;
                 let p2 = p1 + d * extension;
                 let p4 = p + n * w_half;
                 let p3 = p4 + d * extension;
-                vec![p1, p2, p3, p4]
+                vec![p1.into(), p2.into(), p3, p4]
             }
         };
 

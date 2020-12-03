@@ -130,15 +130,15 @@ impl<S, T> RotateOrtho<T> for S
         self.transform(|p: Point<T>|
             match a {
                 Angle::R0 => p,
-                Angle::R90 => Point {
-                    x: T::zero() - p.y,
-                    y: p.x,
-                },
+                Angle::R90 => Point::new(
+                    T::zero() - p.y,
+                    p.x,
+                ),
                 Angle::R180 => -p,
-                Angle::R270 => Point {
-                    x: p.y,
-                    y: T::zero() - p.x,
-                }
+                Angle::R270 => Point::new(
+                    p.y,
+                    T::zero() - p.x,
+                )
             }
         )
     }
@@ -153,13 +153,12 @@ pub trait Mirror<T: CoordinateType> {
 
 impl<S, T> Mirror<T> for S
     where T: CoordinateType, S: MapPointwise<T> {
-
     fn mirror_x(&self) -> S {
-        self.transform(|p| Point::new(T::zero()-p.x, p.y))
+        self.transform(|p| Point::new(T::zero() - p.x, p.y))
     }
 
     fn mirror_y(&self) -> S {
-        self.transform(|p| Point::new(p.x, T::zero()-p.y))
+        self.transform(|p| Point::new(p.x, T::zero() - p.y))
     }
 }
 

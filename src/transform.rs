@@ -92,7 +92,7 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
 
     /// Apply the transformation to a single point.
     pub fn transform_point(&self, p: Point<T>) -> Point<T> {
-        self.matrix.mul_column_vector(p)
+        self.matrix.mul_column_vector(p.into()).into()
     }
 
     /// Return the matrix describing this transformation.

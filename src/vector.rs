@@ -28,6 +28,8 @@ pub use crate::CoordinateType;
 pub use crate::types::Orientation;
 pub use crate::traits::{Mirror, RotateOrtho};
 pub use crate::types::Angle;
+use crate::traits::MapPointwise;
+use crate::point::Point;
 
 /// [`Vector`] defines a two dimensional vector with x and y components in the Euclidean plane.
 #[derive(Copy, Clone, Default, PartialEq, Eq, Hash)]
@@ -422,6 +424,13 @@ impl<T> Div<T> for Vector<T>
     }
 }
 
+
+impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
+    fn transform<F>(&self, transformation: F) -> Self where F: Fn(Point<T>) -> Point<T> {
+        use super::point::Point;
+        *transformation(Point::from(self))
+    }
+}
 
 #[cfg(test)]
 mod tests {
