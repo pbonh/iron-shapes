@@ -109,12 +109,16 @@ impl<T: CoordinateType> ToPolygon<T> for Geometry<T> {
     /// # Examples
     /// ```
     /// use iron_shapes::prelude::*;
+    /// let rect = Rect::new((0, 0), (1, 2));
+    /// // Convert the rectangle to a `Geometry`.
+    /// let g: Geometry<_> = rect.into();
+    /// assert_eq!(g.to_polygon(), rect.to_polygon())
     /// ```
     fn to_polygon(&self) -> Polygon<T> {
         match self {
             Geometry::Point(_) => Polygon::empty(),
             Geometry::Edge(_) => Polygon::empty(),
-            Geometry::Rect(e) => e.into(),
+            Geometry::Rect(e) => e.to_polygon(),
             Geometry::SimplePolygon(e) => Polygon::from(e),
             Geometry::Polygon(e) => e.clone(),
             Geometry::Path(p) => unimplemented!()

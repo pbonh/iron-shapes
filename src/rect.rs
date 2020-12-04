@@ -22,6 +22,7 @@ use crate::traits::*;
 use crate::cmp::{min, max};
 use crate::CoordinateType;
 use num_traits::NumCast;
+use crate::polygon::{ToPolygon, Polygon};
 
 /// A orthogonal rectangle is represented by its lower left and upper right corner.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -202,6 +203,11 @@ impl<'a, T> IntoIterator for &'a Rect<T>
     }
 }
 
+impl<T: CoordinateType> ToPolygon<T> for Rect<T> {
+    fn to_polygon(&self) -> Polygon<T> {
+        Polygon::from(self)
+    }
+}
 
 impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Rect<T> {
     type Output = Rect<Dst>;
