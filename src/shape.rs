@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Abstractions for geometrical shapes.
+
+
 use crate::prelude::*;
 use num_traits::NumCast;
 
@@ -51,7 +55,7 @@ geometry_from!(SimplePolygon);
 geometry_from!(Polygon);
 geometry_from!(Path);
 
-impl<T: CoordinateType> BoundingBox<T> for Geometry<T> {
+impl<T: CoordinateType + NumCast> BoundingBox<T> for Geometry<T> {
     /// Calculate the bounding box of this geometrical shape by calling the bounding box method of the concrete type.
     fn bounding_box(&self) -> Rect<T> {
         match self {
@@ -60,7 +64,7 @@ impl<T: CoordinateType> BoundingBox<T> for Geometry<T> {
             Geometry::Rect(e) => e.bounding_box(),
             Geometry::SimplePolygon(e) => e.bounding_box(),
             Geometry::Polygon(e) => e.bounding_box(),
-            Geometry::Path(p) => unimplemented!()
+            Geometry::Path(p) => p.bounding_box()
         }
     }
 }
@@ -80,7 +84,7 @@ impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
     }
 }
 
-impl<T: CoordinateType> DoubledOrientedArea<T> for Geometry<T> {
+impl<T: CoordinateType + NumCast> DoubledOrientedArea<T> for Geometry<T> {
     /// Area calculation.
     fn area_doubled_oriented(&self) -> T {
         match self {
@@ -89,7 +93,12 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for Geometry<T> {
             Geometry::Rect(e) => e.area_doubled_oriented(),
             Geometry::SimplePolygon(e) => e.area_doubled_oriented(),
             Geometry::Polygon(e) => e.area_doubled_oriented(),
-            Geometry::Path(p) => unimplemented!()
+            Geometry::Path(p) => {
+                // TODO: Find a way without type conversions.
+                T::from(FloatType::round(
+                    p.area_approx::<FloatType>() * (2.0 as FloatType)
+                )).unwrap()
+            }
         }
     }
 }

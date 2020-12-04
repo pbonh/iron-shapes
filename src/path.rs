@@ -33,6 +33,8 @@ use num_traits::{Float, NumCast};
 use crate::simple_polygon::SimplePolygon;
 use std::iter::FromIterator;
 use crate::edge::*;
+use crate::rect::Rect;
+use crate::types::FloatType;
 
 /// Encoding for the type of the beginning and end of the path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -265,6 +267,20 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
             // Failed to cast the width.
             None
         }
+    }
+}
+
+impl<T: CoordinateType + NumCast> BoundingBox<T> for Path<T> {
+    /// Compute the bounding box of this path.
+    fn bounding_box(&self) -> Rect<T> {
+        // Compute the bounding box by first converting the path into a polygon
+        // and then computing the bounding box of the polygon.
+        // Since integer Paths do not support conversion to a polygon the path needs
+        // to be converted to a float coordinate type.
+        // TODO: Make this more efficient and preferably without type conversions.
+        let float_path: Path<FloatType> = self.cast();
+        let bbox = float_path.to_polygon_approx().bounding_box();
+        bbox.cast()
     }
 }
 
