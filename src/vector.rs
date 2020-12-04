@@ -238,6 +238,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     ///
     /// ```
     /// use iron_shapes::vector::Vector;
+    /// use iron_shapes::traits::TryCastCoord;
     ///
     /// let v_int = Vector::new(1,2);
     /// let maybe_v_float: Option<Vector<f64>> = v_int.try_cast();
