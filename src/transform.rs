@@ -441,7 +441,7 @@ fn test_identity() {
 
 #[test]
 fn test_translate() {
-    let p = Vector::new(1, 2);
+    let p = Point::new(1, 2);
     let tf = Matrix3dTransform::translate(Vector::new(10, 100));
     assert_eq!(tf.transform_point(p), Point::new(11, 102));
     assert_eq!(tf.get_translation(), Vector::new(10, 100));

@@ -1150,20 +1150,20 @@ mod tests {
 
         // Intersection on endpoint with floats.
         let e1 = Edge {
-            start: Vector { x: 20.90725737794763, y: 65.33301386746126 },
-            end: Vector { x: 32.799556599584776, y: 63.13131890182373 },
+            start: Point::new(20.90725737794763, 65.33301386746126),
+            end: Point::new(32.799556599584776, 63.13131890182373),
         };
         let e2 = Edge {
-            start: Vector { x: 22.217533978705163, y: 70.84660296990562 },
-            end: Vector { x: 32.799556599584776, y: 63.13131890182373 },
+            start: Point::new(22.217533978705163, 70.84660296990562),
+            end: Point::new(32.799556599584776, 63.13131890182373),
         };
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e2.edges_intersect(&e1).inclusive_bounds());
 
         assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::EndPoint(Vector { x: 32.799556599584776, y: 63.13131890182373 }));
+                   EdgeIntersection::EndPoint(Point::new(32.799556599584776, 63.13131890182373)));
         assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::EndPoint(Vector { x: 32.799556599584776, y: 63.13131890182373 }));
+                   EdgeIntersection::EndPoint(Point::new(32.799556599584776, 63.13131890182373)));
     }
 
     #[test]
