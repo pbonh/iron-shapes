@@ -58,25 +58,29 @@ impl<T: CoordinateType> Rect<T> {
         }
     }
 
+    #[inline]
     pub fn lower_left(&self) -> Point<T> {
         self.lower_left
     }
+    #[inline]
     pub fn upper_left(&self) -> Point<T> {
         Point::new(self.lower_left.x, self.upper_right.y)
     }
+    #[inline]
     pub fn upper_right(&self) -> Point<T> {
         self.upper_right
     }
+    #[inline]
     pub fn lower_right(&self) -> Point<T> {
         Point::new(self.upper_right.x, self.lower_left.y)
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn width(&self) -> T {
         self.upper_right.x - self.lower_left.x
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn height(&self) -> T {
         self.upper_right.y - self.lower_left.y
     }

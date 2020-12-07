@@ -23,7 +23,7 @@ use crate::point_string::PointString;
 
 use crate::CoordinateType;
 
-use crate::traits::{Scale, Translate};
+use crate::traits::{Scale, Translate, TryBoundingBox};
 pub use crate::traits::{BoundingBox, RotateOrtho};
 pub use crate::types::Angle;
 
@@ -34,7 +34,6 @@ use crate::simple_polygon::SimplePolygon;
 use std::iter::FromIterator;
 use crate::edge::*;
 use crate::rect::Rect;
-use crate::types::FloatType;
 
 /// Encoding for the type of the beginning and end of the path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -270,17 +269,36 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     }
 }
 
-impl<T: CoordinateType + NumCast> BoundingBox<T> for Path<T> {
+impl<T: CoordinateType> TryBoundingBox<T> for Path<T> {
+    // /// Compute the bounding box of this path.
+    // fn bounding_box(&self) -> Rect<T> {
+    //     // Compute the bounding box by first converting the path into a polygon
+    //     // and then computing the bounding box of the polygon.
+    //     // Since integer Paths do not support conversion to a polygon the path needs
+    //     // to be converted to a float coordinate type.
+    //     // TODO: Make this more efficient and preferably without type conversions.
+    //     let float_path: Path<FloatType> = self.cast();
+    //     let bbox = float_path.to_polygon_approx().bounding_box();
+    //     bbox.cast()
+    // }
+
     /// Compute the bounding box of this path.
-    fn bounding_box(&self) -> Rect<T> {
-        // Compute the bounding box by first converting the path into a polygon
-        // and then computing the bounding box of the polygon.
-        // Since integer Paths do not support conversion to a polygon the path needs
-        // to be converted to a float coordinate type.
-        // TODO: Make this more efficient and preferably without type conversions.
-        let float_path: Path<FloatType> = self.cast();
-        let bbox = float_path.to_polygon_approx().bounding_box();
-        bbox.cast()
+    /// The returned bounding box is not necessarily the smallest bounding box.
+    ///
+    /// TODO: Find a better approximation.
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        // Find the bounding box of a zero-width path.
+        let bbox = self.points.try_bounding_box();
+        let _1 = T::one();
+        let _2 = _1 + _1;
+        bbox.map(|bbox| {
+            // Enlarge it by width/2 in all directions to make sure the path is fully contained
+            // in the bounding box.
+            let (p1, p2) = (bbox.lower_left(), bbox.upper_right());
+            let w_half = (self.width+_1)/_2;
+            let width = Vector::new(w_half, w_half);
+            Rect::new(p1 - width, p2 + width)
+        })
     }
 }
 

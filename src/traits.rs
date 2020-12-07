@@ -31,18 +31,16 @@ pub trait BoundingBox<T>
     where T: CoordinateType {
     /// Return the bounding box of this geometry.
     fn bounding_box(&self) -> Rect<T>;
+
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        Some(self.bounding_box())
+    }
 }
 
 pub trait TryBoundingBox<T>
     where T: CoordinateType {
     /// Return the bounding box of this geometry if a bounding box is defined..
     fn try_bounding_box(&self) -> Option<Rect<T>>;
-}
-
-impl<T: CoordinateType + NumCast> TryBoundingBox<T> for dyn BoundingBox<T> {
-    fn try_bounding_box(&self) -> Option<Rect<T>> {
-        Some(self.bounding_box())
-    }
 }
 
 pub trait DoubledOrientedArea<T>

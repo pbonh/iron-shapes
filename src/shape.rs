@@ -22,6 +22,7 @@
 
 
 use crate::prelude::*;
+use crate::traits::TryBoundingBox;
 use num_traits::NumCast;
 
 /// Abstracted geometrical shape.
@@ -55,16 +56,16 @@ geometry_from!(SimplePolygon);
 geometry_from!(Polygon);
 geometry_from!(Path);
 
-impl<T: CoordinateType + NumCast> BoundingBox<T> for Geometry<T> {
+impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
     /// Calculate the bounding box of this geometrical shape by calling the bounding box method of the concrete type.
-    fn bounding_box(&self) -> Rect<T> {
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
         match self {
-            Geometry::Point(p) => Rect::new(p, p),
-            Geometry::Edge(e) => Rect::new(e.start, e.end),
-            Geometry::Rect(e) => e.bounding_box(),
-            Geometry::SimplePolygon(e) => e.bounding_box(),
-            Geometry::Polygon(e) => e.bounding_box(),
-            Geometry::Path(p) => p.bounding_box()
+            Geometry::Point(p) => Some(Rect::new(p, p)),
+            Geometry::Edge(e) => e.try_bounding_box(),
+            Geometry::Rect(e) => e.try_bounding_box(),
+            Geometry::SimplePolygon(e) => e.try_bounding_box(),
+            Geometry::Polygon(e) => e.try_bounding_box(),
+            Geometry::Path(p) => p.try_bounding_box()
         }
     }
 }
