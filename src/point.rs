@@ -59,12 +59,15 @@ impl<T> Deref for Point<T>
     where T: CoordinateType {
     type Target = Vector<T>;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.location
     }
 }
 
 impl<T: CoordinateType> From<Vector<T>> for Point<T> {
+
+    #[inline]
     fn from(v: Vector<T>) -> Self {
         Point {
             location: v
@@ -73,12 +76,14 @@ impl<T: CoordinateType> From<Vector<T>> for Point<T> {
 }
 
 impl<T: CoordinateType> From<&Vector<T>> for Point<T> {
+    #[inline]
     fn from(v: &Vector<T>) -> Self {
         Self::from(*v)
     }
 }
 
 impl<T: CoordinateType> Into<Vector<T>> for Point<T> {
+    #[inline]
     fn into(self) -> Vector<T> {
         self.location
     }
@@ -95,6 +100,7 @@ impl<T: CoordinateType> Into<Vector<T>> for Point<T> {
 
 impl<T: CoordinateType> Point<T> {
     /// Create a new point with `x` and `y` coordinates.
+    #[inline]
     pub fn new(x: T, y: T) -> Self {
         Point { location: Vector::new(x, y) }
     }
@@ -110,6 +116,7 @@ impl<T: CoordinateType> Point<T> {
     ///
     /// assert_eq!(a, b);
     /// ```
+    #[inline]
     pub fn zero() -> Self { Vector::zero().into() }
 
     /// Check if this is the zero-Point.
@@ -120,11 +127,13 @@ impl<T: CoordinateType> Point<T> {
     ///
     /// assert!(Point::<usize>::zero().is_zero());
     /// ```
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.x.is_zero() && self.y.is_zero()
     }
 
     /// Compute the squared distance to the `other` point.
+    #[inline]
     pub fn distance_sq(self, other: &Point<T>) -> T {
         let diff = self - *other;
         diff.norm2_squared()
@@ -150,17 +159,20 @@ impl<T: CoordinateType> Point<T> {
     ///
     /// assert_eq!(p, (b-a).cross_prod(c - b));
     /// ```
+    #[inline]
     pub fn cross_prod3(&self, b: Point<T>, c: Point<T>) -> T {
         (b.x - self.x) * (c.y - b.y) - (b.y - self.y) * (c.x - b.x)
     }
 
     /// Return the location of this point as a vector.
+    #[inline]
     pub fn v(&self) -> Vector<T> {
         self.location
     }
 }
 
 impl<T: CoordinateType + NumCast> Point<T> {
+    #[inline]
     pub fn distance<F: Float>(self, other: &Point<T>) -> F {
         let diff = self - *other;
         diff.length()
@@ -174,6 +186,7 @@ impl<T: CoordinateType + NumCast> Point<T> {
 ///
 /// Point `a` > Point `b` iff `a.x > b.x || (a.x == b.x && a.y > b.y)`.
 impl<T: CoordinateType> PartialOrd for Point<T> {
+    #[inline]
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         match self.x.partial_cmp(&rhs.x) {
             Some(Ordering::Equal) => self.y.partial_cmp(&rhs.y),
@@ -189,6 +202,7 @@ impl<T: CoordinateType> PartialOrd for Point<T> {
 ///
 /// Point `a` > Point `b` iff `a.x > b.x || (a.x == b.x && a.y > b.y)`.
 impl<T: CoordinateType + Ord> Ord for Point<T> {
+    #[inline]
     fn cmp(&self, rhs: &Self) -> Ordering {
         match self.x.cmp(&rhs.x) {
             Ordering::Equal => self.y.cmp(&rhs.y),
@@ -203,6 +217,7 @@ impl<T> MapPointwise<T> for Point<T>
     where T: CoordinateType
 {
     /// Point wise transformation.
+    #[inline]
     fn transform<F>(&self, transformation: F) -> Self
         where F: Fn(Point<T>) -> Point<T> {
         transformation(*self)
@@ -211,36 +226,42 @@ impl<T> MapPointwise<T> for Point<T>
 
 
 impl<T: CoordinateType> Into<(T, T)> for Point<T> {
+    #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
 impl<T: CoordinateType> Into<(T, T)> for &Point<T> {
+    #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
 impl<T: CoordinateType> From<(T, T)> for Point<T> {
+    #[inline]
     fn from(coords: (T, T)) -> Self {
         Point::new(coords.0, coords.1)
     }
 }
 
 impl<'a, T: CoordinateType> From<&'a (T, T)> for Point<T> {
+    #[inline]
     fn from(coords: &'a (T, T)) -> Self {
         Point::new(coords.0, coords.1)
     }
 }
 
 impl<'a, T: CoordinateType> From<&'a Point<T>> for Point<T> {
+    #[inline]
     fn from(v: &'a Point<T>) -> Self {
         Point::new(v.x, v.y)
     }
 }
 
 impl<T: CoordinateType> From<[T; 2]> for Point<T> {
+    #[inline]
     fn from(coords: [T; 2]) -> Self {
         Point::new(coords[0], coords[1])
     }
@@ -264,6 +285,7 @@ impl<T> fmt::Display for Point<T>
 
 impl<T: CoordinateType + NumCast> Point<T> {
     /// Convert Point into a Point with floating point data type.
+    #[inline]
     pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Point<F> {
         // TODO: find conversion that does not panic for sure.
         Point::new(
@@ -276,6 +298,7 @@ impl<T: CoordinateType + NumCast> Point<T> {
 impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Point<T> {
     type Output = Point<Dst>;
 
+    #[inline]
     fn try_cast(&self) -> Option<Self::Output> {
         match (Dst::from(self.x), Dst::from(self.y)) {
             (Some(x), Some(y)) => Some(Point::new(x, y)),
@@ -291,6 +314,7 @@ impl<T, V> Add<V> for Point<T>
 {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: V) -> Self {
         let rhs = rhs.into();
         Point::new(
@@ -304,6 +328,7 @@ impl<T, V> AddAssign<V> for Point<T>
     where T: CoordinateType + AddAssign<T>,
           V: Into<Vector<T>>
 {
+    #[inline]
     fn add_assign(&mut self, rhs: V) {
         let rhs = rhs.into();
         self.location += rhs;
@@ -316,6 +341,7 @@ impl<T> Sub<Point<T>> for Point<T>
 {
     type Output = Vector<T>;
 
+    #[inline]
     fn sub(self, rhs: Point<T>) -> Self::Output {
         Vector::new(
             self.x - rhs.x,
@@ -330,6 +356,7 @@ impl<T> Sub<Vector<T>> for Point<T>
 {
     type Output = Point<T>;
 
+    #[inline]
     fn sub(self, rhs: Vector<T>) -> Self::Output {
         Point::new(
             self.x - rhs.x,
@@ -342,6 +369,7 @@ impl<T, V> SubAssign<V> for Point<T>
     where T: CoordinateType + SubAssign<T>,
           V: Into<Vector<T>>
 {
+    #[inline]
     fn sub_assign(&mut self, rhs: V) {
         let rhs = rhs.into();
         self.location -= rhs;
@@ -353,6 +381,7 @@ impl<T> Neg for Point<T>
 {
     type Output = Self;
 
+    #[inline]
     fn neg(self) -> Self {
         Point::new(
             T::zero() - self.x,
@@ -367,6 +396,7 @@ impl<T> Mul<T> for Point<T>
 {
     type Output = Self;
 
+    #[inline]
     fn mul(self, rhs: T) -> Self {
         Point::new(
             self.x * rhs,
@@ -379,6 +409,7 @@ impl<T> Mul<T> for Point<T>
 impl<T> MulAssign<T> for Point<T>
     where T: CoordinateType + MulAssign<T>
 {
+    #[inline]
     fn mul_assign(&mut self, rhs: T) {
         self.location *= rhs;
     }
@@ -390,6 +421,7 @@ impl<T> Div<T> for Point<T>
 {
     type Output = Self;
 
+    #[inline]
     fn div(self, rhs: T) -> Self {
         Point::new(
             self.x / rhs,
