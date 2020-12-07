@@ -45,6 +45,7 @@ impl FastInvSqrt for f64 {
 }
 
 /// Fast approximate computation of 1/sqrt(x).
+/// The error should be below 0.2%.
 ///
 /// See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
 /// And: http://www.lomont.org/papers/2003/InvSqrt.pdf
@@ -58,6 +59,7 @@ pub fn fast_invsqrt_32(x: f32) -> f32 {
 }
 
 /// Fast approximate computation of 1/sqrt(x).
+/// The error should be below 0.2%.
 ///
 /// See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
 /// And: http://www.lomont.org/papers/2003/InvSqrt.pdf
@@ -74,10 +76,10 @@ pub fn fast_invsqrt_64(x: f64) -> f64 {
 fn test_fast_invsqrt_32() {
     for i in 1..1000000 {
         let x = i as f32;
-        let inv_sqrt = fast_invsqrt_32(x);
-        let x_approx = 1. / (inv_sqrt * inv_sqrt);
-        let abs_diff = (x - x_approx).abs();
-        assert!(abs_diff/x < 0.01, "Error should be below 1%.")
+        let inv_sqrt_approx = fast_invsqrt_32(x);
+        let inv_sqrt = 1. / x.sqrt();
+        let abs_diff = (inv_sqrt - inv_sqrt_approx).abs();
+        assert!(abs_diff/inv_sqrt < 0.002, "Error should be below 0.2%.")
     }
 }
 
@@ -85,9 +87,9 @@ fn test_fast_invsqrt_32() {
 fn test_fast_invsqrt_64() {
     for i in 1..1000000 {
         let x = i as f64;
-        let inv_sqrt = fast_invsqrt_64(x);
-        let x_approx = 1. / (inv_sqrt * inv_sqrt);
-        let abs_diff = (x - x_approx).abs();
-        assert!(abs_diff/x < 0.01, "Error should be below 1%.")
+        let inv_sqrt_approx = fast_invsqrt_64(x);
+        let inv_sqrt = 1. / x.sqrt();
+        let abs_diff = (inv_sqrt - inv_sqrt_approx).abs();
+        assert!(abs_diff/inv_sqrt < 0.002, "Error should be below 0.2%.")
     }
 }
