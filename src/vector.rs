@@ -57,36 +57,42 @@ macro_rules! vector {
 }
 
 impl<T: CoordinateType> Into<(T, T)> for Vector<T> {
+    #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
 impl<T: CoordinateType> Into<(T, T)> for &Vector<T> {
+    #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
 impl<T: CoordinateType> From<(T, T)> for Vector<T> {
+    #[inline]
     fn from(coords: (T, T)) -> Self {
         Vector::new(coords.0, coords.1)
     }
 }
 
 impl<'a, T: CoordinateType> From<&'a (T, T)> for Vector<T> {
+    #[inline]
     fn from(coords: &'a (T, T)) -> Self {
         Vector::new(coords.0, coords.1)
     }
 }
 
 impl<'a, T: CoordinateType> From<&'a Vector<T>> for Vector<T> {
+    #[inline]
     fn from(v: &'a Vector<T>) -> Self {
         Vector::new(v.x, v.y)
     }
 }
 
 impl<T: CoordinateType> From<[T; 2]> for Vector<T> {
+    #[inline]
     fn from(coords: [T; 2]) -> Self {
         Vector::new(coords[0], coords[1])
     }
@@ -119,6 +125,7 @@ impl<T: CoordinateType> Zero for Vector<T> {
     ///
     /// assert_eq!(a, b);
     /// ```
+    #[inline]
     fn zero() -> Self { Vector { x: T::zero(), y: T::zero() } }
 
     /// Check if this is the zero-vector.
@@ -129,6 +136,7 @@ impl<T: CoordinateType> Zero for Vector<T> {
     ///
     /// assert!(Vector::<usize>::zero().is_zero());
     /// ```
+    #[inline]
     fn is_zero(&self) -> bool {
         self.x.is_zero() && self.y.is_zero()
     }
@@ -147,6 +155,7 @@ impl<T: CoordinateType> Vector<T> {
     /// let a = Vector::new(2, 3);
     /// assert_eq!(a.norm2_squared(), 2*2+3*3);
     /// ```
+    #[inline]
     pub fn norm2_squared(&self) -> T {
         self.x * self.x + self.y * self.y
     }
@@ -180,6 +189,7 @@ impl<T: CoordinateType> Vector<T> {
     /// assert_eq!(a.cross_prod(b), 4);
     /// assert_eq!(b.cross_prod(a), -4);
     /// ```
+    #[inline]
     pub fn cross_prod(&self, other: Self) -> T {
         self.x * other.y - other.x * self.y
     }
@@ -216,6 +226,7 @@ impl<T: CoordinateType> Vector<T> {
 
 impl<T: CoordinateType + NumCast> Vector<T> {
     /// Convert vector into a vector with floating point data type.
+    #[inline]
     pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Vector<F> {
         // TODO: find conversion that does not panic for sure.
         Vector {
@@ -252,6 +263,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     ///
     /// assert_eq!(maybe_w_int, None);
     /// ```
+    #[inline]
     fn try_cast(&self) -> Option<Self::Output> {
         match (Dst::from(self.x), Dst::from(self.y)) {
             (Some(x), Some(y)) => Some(Vector::new(x, y)),
@@ -274,14 +286,16 @@ impl<T: CoordinateType + Float> Vector<T>
     /// assert!(norm2_sq < expected + 1e-12);
     /// assert!(norm2_sq > expected - 1e-12);
     /// ```
+    #[inline]
     pub fn norm2(&self) -> T {
-        (self.x * self.x + self.y * self.y).sqrt()
+        (self.norm2_squared()).sqrt()
     }
 
     /// Return a vector with the same direction but length 1.
     ///
     /// # Panics
     /// Panics if the vector has length 0.
+    #[inline]
     pub fn normalized(&self) -> Self {
         *self / self.norm2()
     }
@@ -291,6 +305,7 @@ impl<T: CoordinateType + Float> Vector<T>
     ///
     /// # Panics
     /// Panics if the vector has length 0.
+    #[inline]
     pub fn normal(&self) -> Self {
         self.normalized().rotate_ortho(Angle::R90)
     }
@@ -299,6 +314,20 @@ impl<T: CoordinateType + Float> Vector<T>
 impl<T: CoordinateType + NumCast> Vector<T>
 {
     /// Calculate length of vector.
+    ///
+    /// Similar to `Vector::norm2` but does potentially return another data type for the length.
+    ///
+    /// # Examples
+    /// ```
+    /// use iron_shapes::vector::Vector;
+    /// let a = Vector::new(2.0, 3.0);
+    /// let length: f64 = a.length();
+    /// let norm2_sq = length * length;
+    /// let expected = a.norm2_squared();
+    /// assert!(norm2_sq < expected + 1e-12);
+    /// assert!(norm2_sq > expected - 1e-12);
+    /// ```
+    #[inline]
     pub fn length<F: Float>(&self) -> F {
         let x = F::from(self.x).unwrap();
         let y = F::from(self.y).unwrap();
@@ -313,6 +342,7 @@ impl<T> Add for Vector<T>
 {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self {
         Vector {
             x: self.x + rhs.x,
@@ -324,6 +354,7 @@ impl<T> Add for Vector<T>
 impl<T> AddAssign for Vector<T>
     where T: CoordinateType + AddAssign
 {
+    #[inline]
     fn add_assign(&mut self, rhs: Self) {
         self.x += rhs.x;
         self.y += rhs.y;
@@ -336,6 +367,7 @@ impl<T> Sub for Vector<T>
 {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self {
         Vector {
             x: self.x - rhs.x,
@@ -347,6 +379,7 @@ impl<T> Sub for Vector<T>
 impl<T> SubAssign for Vector<T>
     where T: CoordinateType + SubAssign
 {
+    #[inline]
     fn sub_assign(&mut self, rhs: Self) {
         self.x -= rhs.x;
         self.y -= rhs.y;
@@ -358,6 +391,7 @@ impl<T> Neg for Vector<T>
 {
     type Output = Self;
 
+    #[inline]
     fn neg(self) -> Self {
         Vector {
             x: T::zero() - self.x,
@@ -384,6 +418,7 @@ impl<T> Mul<T> for Vector<T>
 impl<T> MulAssign<T> for Vector<T>
     where T: CoordinateType + MulAssign<T>
 {
+    #[inline]
     fn mul_assign(&mut self, rhs: T) {
         self.x *= rhs;
         self.y *= rhs;
@@ -396,6 +431,7 @@ impl<T> Div<T> for Vector<T>
 {
     type Output = Self;
 
+    #[inline]
     fn div(self, rhs: T) -> Self {
         Vector {
             x: self.x / rhs,
@@ -406,6 +442,7 @@ impl<T> Div<T> for Vector<T>
 
 
 impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
+    #[inline]
     fn transform<F>(&self, transformation: F) -> Self where F: Fn(Point<T>) -> Point<T> {
         *transformation(Point::from(self))
     }
