@@ -20,29 +20,30 @@
 
 //! Math helper functions.
 
-use std::io::BufRead;
-use num_traits::Num;
+use num_traits::PrimInt;
 
 pub trait FastInvSqrt {
     /// Fast approximate computation of 1/sqrt(x).
     ///
     /// See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
     /// And: http://www.lomont.org/papers/2003/InvSqrt.pdf
-    #[inline]
     fn fast_invsqrt(x: Self) -> Self;
 }
 
 impl FastInvSqrt for f32 {
+    #[inline]
     fn fast_invsqrt(x: Self) -> Self {
         fast_invsqrt_32(x)
     }
 }
 
 impl FastInvSqrt for f64 {
+    #[inline]
     fn fast_invsqrt(x: Self) -> Self {
         fast_invsqrt_64(x)
     }
 }
+
 
 /// Fast approximate computation of 1/sqrt(x).
 /// The error should be below 0.2%.
@@ -79,7 +80,7 @@ fn test_fast_invsqrt_32() {
         let inv_sqrt_approx = fast_invsqrt_32(x);
         let inv_sqrt = 1. / x.sqrt();
         let abs_diff = (inv_sqrt - inv_sqrt_approx).abs();
-        assert!(abs_diff/inv_sqrt < 0.002, "Error should be below 0.2%.")
+        assert!(abs_diff / inv_sqrt < 0.002, "Error should be below 0.2%.")
     }
 }
 
@@ -90,6 +91,50 @@ fn test_fast_invsqrt_64() {
         let inv_sqrt_approx = fast_invsqrt_64(x);
         let inv_sqrt = 1. / x.sqrt();
         let abs_diff = (inv_sqrt - inv_sqrt_approx).abs();
-        assert!(abs_diff/inv_sqrt < 0.002, "Error should be below 0.2%.")
+        assert!(abs_diff / inv_sqrt < 0.002, "Error should be below 0.2%.")
+    }
+}
+
+/// Compute square root of integers using Newtons method.
+/// Returns the biggest integer which is smaller or equal to the actual square root of `n`.
+/// Similar to `(i as f64).sqrt().floor() as T` but without type conversions.
+///
+/// See: https://en.wikipedia.org/wiki/Integer_square_root
+///
+/// # Panics
+/// Panics when given a negative number.
+///
+/// # Example
+/// ```
+/// use iron_shapes::math::int_sqrt_floor;
+/// assert_eq!(int_sqrt_floor(16), 4);
+/// assert_eq!(int_sqrt_floor(17), 4);
+/// assert_eq!(int_sqrt_floor(24), 4);
+/// assert_eq!(int_sqrt_floor(25), 5);
+/// ```
+pub fn int_sqrt_floor<T: PrimInt>(n: T) -> T {
+    assert!(n >= T::zero(), "Cannot compute the square root of a negative number.");
+    let _1 = T::one();
+    let _2 = _1 + _1;
+    let mut x = n;
+    let mut y = (x + _1) / _2;
+    while y < x {
+        x = y;
+        y = (x + (n / x)) / _2;
+    }
+    x
+}
+
+
+#[test]
+pub fn test_int_sqrt_floor_i32() {
+    for i in 0..100000i32 {
+        let sqrt = int_sqrt_floor(i);
+        let sqrt_reference = (i as f64).sqrt().floor() as i32;
+        assert_eq!(sqrt, sqrt_reference);
+
+        let i_lower = sqrt * sqrt;
+        let i_upper = (sqrt + 1) * (sqrt + 1);
+        assert!(i_lower <= i && i < i_upper);
     }
 }
