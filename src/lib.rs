@@ -18,6 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO: Documentation for everything.
+// #![deny(missing_docs)]
+
 extern crate num_traits;
 extern crate num_rational;
 extern crate itertools;
