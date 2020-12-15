@@ -21,9 +21,6 @@
 // TODO: Documentation for everything.
 // #![deny(missing_docs)]
 
-extern crate num_traits;
-extern crate num_rational;
-extern crate itertools;
 
 #[cfg(feature = "serde")]
 #[macro_use]
