@@ -18,8 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO: Documentation for everything.
-// #![deny(missing_docs)]
+//! This crate provides basic data structures for Euclidean geometry in the plane.
+
+// Enforce documentation.
+#![deny(missing_docs)]
 
 
 #[cfg(feature = "serde")]

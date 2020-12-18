@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! The prelude can be used to conveniently import the commonly used data types.
+
 pub use crate::vector::*;
 pub use crate::point::*;
 pub use crate::edge::*;

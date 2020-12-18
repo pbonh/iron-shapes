@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! This module contains data types and functions for polygons with holes.
+
 use crate::CoordinateType;
 
 use crate::point::Point;
@@ -34,11 +37,15 @@ use crate::traits::TryCastCoord;
 use num_traits::NumCast;
 use itertools::Itertools;
 
+/// A polygon possibly with holes. The polygon is defined by a hull and a list of holes
+/// which are both `SimplePolygon`s.
 #[derive(Clone, Hash, Debug, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Polygon<T>
     where T: CoordinateType {
+    /// The outer hull of the polygon.
     pub exterior: SimplePolygon<T>,
+    /// A list of holes in the polygon.
     pub interiors: Vec<SimplePolygon<T>>,
 }
 
@@ -151,6 +158,7 @@ impl<T> From<&Rect<T>> for Polygon<T>
     }
 }
 
+/// Trait for the conversion of a geometric shape to a polygon.
 pub trait ToPolygon<T>
     where T: CoordinateType {
     /// Convert the geometric object into a polygon.

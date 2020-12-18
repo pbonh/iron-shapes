@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Multi-polygons are a set of multiple polygons.
+
 use crate::CoordinateType;
 
 use crate::point::Point;
@@ -26,14 +29,19 @@ pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingN
 
 use std::iter::FromIterator;
 
+/// A `MultiPolygon` is a list of polygons. There is no restrictions on the polygons (they can be
+/// intersecting, empty, etc.).
 #[derive(Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MultiPolygon<T>
     where T: CoordinateType {
+    /// The list of polygons which defines the content of this multi polygon.
     pub polygons: Vec<Polygon<T>>
 }
 
 impl<T: CoordinateType> MultiPolygon<T> {
+
+    /// Create a `MultiPolygon` from a vector of `Polygon`s.
     pub fn new(polygons: Vec<Polygon<T>>) -> Self {
         MultiPolygon {
             polygons

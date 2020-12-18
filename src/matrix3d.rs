@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Data structures and functions for 3x3 matrices.
+
 use crate::CoordinateType;
 
 /// 3x3 matrix of the form.
@@ -28,14 +31,23 @@ use crate::CoordinateType;
 #[derive(Clone, Hash, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix3d<T: CoordinateType> {
+    /// m11
     pub m11: T,
+    /// m12
     pub m12: T,
+    /// m13
     pub m13: T,
+    /// m21
     pub m21: T,
+    /// m22
     pub m22: T,
+    /// m23
     pub m23: T,
+    /// m31
     pub m31: T,
+    /// m32
     pub m32: T,
+    /// m33
     pub m33: T,
 }
 

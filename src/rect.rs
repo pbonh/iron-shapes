@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Data structures and functions for dealing with rectangles which consist of
+//! vertical and horizontal edges.
+
 use crate::point::Point;
 use crate::traits::*;
 use crate::cmp::{min, max};
@@ -29,7 +33,9 @@ use crate::polygon::{ToPolygon, Polygon};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rect<T>
     where T: CoordinateType {
+    /// Lower left corner of the rectangle.
     pub lower_left: Point<T>,
+    /// Upper right corner of the rectangle.
     pub upper_right: Point<T>,
 }
 
@@ -58,28 +64,37 @@ impl<T: CoordinateType> Rect<T> {
         }
     }
 
+    /// Get the lower left corner.
     #[inline]
     pub fn lower_left(&self) -> Point<T> {
         self.lower_left
     }
+
+    /// Get the upper left corner.
     #[inline]
     pub fn upper_left(&self) -> Point<T> {
         Point::new(self.lower_left.x, self.upper_right.y)
     }
+
+    /// Get the upper right corner.
     #[inline]
     pub fn upper_right(&self) -> Point<T> {
         self.upper_right
     }
+
+    /// Get the lower right corner.
     #[inline]
     pub fn lower_right(&self) -> Point<T> {
         Point::new(self.upper_right.x, self.lower_left.y)
     }
 
+    /// Compute the width of the rectangle.
     #[inline]
     pub fn width(&self) -> T {
         self.upper_right.x - self.lower_left.x
     }
 
+    /// Compute the height of the rectangle.
     #[inline]
     pub fn height(&self) -> T {
         self.upper_right.y - self.lower_left.y
@@ -121,6 +136,7 @@ impl<T: CoordinateType> Rect<T> {
         )
     }
 
+    /// Compute the boolean intersection of two rectangles.
     pub fn intersection(&self, other: &Self) -> Option<Self> {
         let llx = max(self.lower_left.x, other.lower_left.x);
         let lly = max(self.lower_left.y, other.lower_left.y);

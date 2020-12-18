@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! A point string is a finite sequence of points.
+
 use crate::point::Point;
 use crate::edge::Edge;
 use crate::rect::Rect;
@@ -32,12 +35,14 @@ use std::slice::Iter;
 use num_traits::{Float, NumCast};
 use itertools::Itertools;
 
+/// A point string is a finite sequence of points.
+/// TODO: Implement `Deref` for accessing the list of points.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PointString<T: CoordinateType> {
+    /// The points defining this point string.
     pub points: Vec<Point<T>>
 }
-
 
 impl<T: CoordinateType> PointString<T> {
     /// Create new point string by taking vertices from a type that implements `Into<PointString<T>>`.

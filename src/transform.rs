@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Transforms are used to describe the location, rotation, scaling and mirroring
+//! of geometric shapes.
+
 use crate::CoordinateType;
 
 use crate::vector::Vector;
@@ -30,6 +34,8 @@ use crate::types::FloatType;
 use crate::matrix3d::Matrix3d;
 use num_traits::{Zero, Float};
 
+/// Description of a transformation in the euclidean plane by a 2x2 matrix `A`.
+/// Transforming a point `p` is computed by the matrix product `A*p`.
 #[derive(Clone, Hash, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix2dTransform<T: CoordinateType> {
@@ -37,6 +43,7 @@ pub struct Matrix2dTransform<T: CoordinateType> {
 }
 
 impl<T: CoordinateType> Matrix2dTransform<T> {
+    /// Create a new transform based on a matrix.
     pub fn new(matrix: Matrix2d<T>) -> Self {
         Matrix2dTransform { matrix }
     }
@@ -117,7 +124,8 @@ fn test_matrix_transform_rotations() {
     assert_eq!(Matrix2dTransform::new_rotation90(Angle::R270).transform_point(p), Point::new(0, -1));
 }
 
-
+/// Transformation that consists only of a rotation by a multiple of 90 degrees
+/// around the origin `(0, 0)`.
 #[derive(Clone, Hash, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rot90Transform {
@@ -125,9 +133,11 @@ pub struct Rot90Transform {
 }
 
 impl Rot90Transform {
+    /// Create a new rotation transformation.
     pub fn new(angle: Angle) -> Self {
         Rot90Transform { angle }
     }
+    /// This transformation is always unitary. Returns always `true`.
     pub fn is_unitary(&self) -> bool {
         true
     }
@@ -136,9 +146,12 @@ impl Rot90Transform {
         p.rotate_ortho(self.angle)
     }
 
+    /// Get the magnification of this transformation. Always `1`.
     pub fn magnification<T: CoordinateType>(&self) -> T {
         T::one()
     }
+
+    /// Get the magnification of this transformation. Always `Some(1)`.
     pub fn try_magnification<T: CoordinateType>(&self) -> Option<T> {
         Some(self.magnification())
     }
@@ -150,13 +163,18 @@ impl Rot90Transform {
 #[derive(Clone, Default, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimpleTransform<T: CoordinateType> {
+    /// Mirror on the x-axis?
     pub mirror: bool,
+    /// Rotation by a multiple of 90 degrees.
     pub rotation: Angle,
+    /// Enlargement.
     pub magnification: T,
+    /// Translation.
     pub displacement: Vector<T>,
 }
 
 impl<T: CoordinateType> SimpleTransform<T> {
+    /// Create a new transformation.
     pub fn new(mirror: bool, rotation: Angle, magnification: T, displacement: Vector<T>) -> Self {
         SimpleTransform {
             mirror,
@@ -196,13 +214,19 @@ impl<T: CoordinateType> SimpleTransform<T> {
     }
 }
 
-
+/// Transformation described by a mirroring at the `x` axis,
+/// then a rotation around the origin, then a scaling, then a translation.
+/// This transformation allows rotations by arbitrary angles.
 #[derive(Clone, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ComplexTransform<T: CoordinateType> {
+    /// Mirror at `x`-axis?
     mirror: bool,
+    /// Rotation by an arbitrary angle (radians).
     rotation: FloatType,
+    /// Scaling.
     magnification: FloatType,
+    /// Translation.
     displacement: Vector<T>,
 }
 
@@ -215,15 +239,22 @@ pub struct ComplexTransform<T: CoordinateType> {
 #[derive(Clone, Hash, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix3dTransform<T: CoordinateType> {
+    /// m11
     pub m11: T,
+    /// m12
     pub m12: T,
+    /// m21
     pub m21: T,
+    /// m22
     pub m22: T,
+    /// m31. Used to express the `x` component of the translation.
     pub m31: T,
+    /// m32. Used to express the `y` component of the translation.
     pub m32: T,
 }
 
 impl<T: CoordinateType> Matrix3dTransform<T> {
+    /// Create a new transform based on the matrix elements.
     pub fn new(m11: T, m12: T, m21: T, m22: T, m31: T, m32: T) -> Self {
         Matrix3dTransform {
             m11,

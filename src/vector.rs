@@ -18,6 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+//! Two dimensional vectors are a core data type for Euclidean geometry in the plane.
+//! `Vector`s consist of an `x` and `y` coordinate value and describe a translation in the plane.
+
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Div};
 
@@ -35,7 +38,9 @@ use crate::point::Point;
 #[derive(Copy, Clone, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Vector<T> {
+    /// `x` coordinate.
     pub x: T,
+    /// `y` coordinate.
     pub y: T,
 }
 
@@ -143,6 +148,14 @@ impl<T: CoordinateType> Zero for Vector<T> {
 }
 
 impl<T: CoordinateType> Vector<T> {
+    /// Create a new vector with `x` and `y` coordinates.
+    /// # Examples
+    /// ```
+    /// use iron_shapes::vector::Vector;
+    /// let a = Vector::new(2, 3);
+    /// assert_eq!(a.x, 2);
+    /// assert_eq!(a.y, 3);
+    /// ```
     pub fn new(x: T, y: T) -> Self {
         Vector { x, y }
     }

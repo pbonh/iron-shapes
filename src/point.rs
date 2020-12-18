@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Points represent a location in the two dimensional plane by an `x` and `y` coordinate.
+
 use crate::vector::Vector;
 use crate::traits::{MapPointwise, TryCastCoord};
 use crate::CoordinateType;
@@ -52,6 +55,7 @@ macro_rules! point {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Point<T>
     where T: CoordinateType {
+    /// Store the location as a translation from the origin.
     location: Vector<T>
 }
 
@@ -66,7 +70,6 @@ impl<T> Deref for Point<T>
 }
 
 impl<T: CoordinateType> From<Vector<T>> for Point<T> {
-
     #[inline]
     fn from(v: Vector<T>) -> Self {
         Point {
@@ -133,6 +136,15 @@ impl<T: CoordinateType> Point<T> {
     }
 
     /// Compute the squared distance to the `other` point.
+    ///
+    /// # Examples
+    /// ```
+    /// use iron_shapes::point::*;
+    ///
+    /// let a = Point::new(0, 0);
+    /// let b = Point::new(2, 0);
+    /// assert_eq!(a.distance_sq(&b), 2*2);
+    /// ```
     #[inline]
     pub fn distance_sq(self, other: &Point<T>) -> T {
         let diff = self - *other;
@@ -172,6 +184,7 @@ impl<T: CoordinateType> Point<T> {
 }
 
 impl<T: CoordinateType + NumCast> Point<T> {
+    /// Compute the Euclidean distance betwen two points.
     #[inline]
     pub fn distance<F: Float>(self, other: &Point<T>) -> F {
         let diff = self - *other;

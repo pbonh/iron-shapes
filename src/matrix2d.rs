@@ -17,16 +17,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! Data structures and functions for 2x2 matrices.
+
 use crate::CoordinateType;
 
 use crate::vector::Vector;
 
+/// A 2x2 matrix of the form:
+/// ```txt
+/// [[ m11, m12 ],
+///  [ m21, m22 ]]
+/// ```
 #[derive(Clone, Hash, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix2d<T: CoordinateType> {
+    /// m11
     pub(crate) m11: T,
+    /// m12
     pub(crate) m12: T,
+    /// m21
     pub(crate) m21: T,
+    /// m22
     pub(crate) m22: T,
 }
 

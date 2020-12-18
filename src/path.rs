@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! `Path` is essentially a chain of line segments but with a possibly a non-zero width.
+//! It can be thought of the shape resulting by a stroke of a thick pen along the line segments.
+
 use crate::vector::Vector;
 use crate::point::Point;
 use crate::point_string::PointString;
@@ -47,12 +51,16 @@ pub enum PathEndType<T: CoordinateType> {
     Round,
 }
 
-///
+/// `Path` is essentially a chain of line segments but with a possibly a non-zero width.
+/// It can be thought of the shape resulting by a stroke of a thick pen along the line segments.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Path<T: CoordinateType> {
+    /// The vertices of the path which define the sequence of line segments.
     pub points: PointString<T>,
+    /// Width of the path.
     pub width: T,
+    /// Type of the path endings.
     pub path_type: PathEndType<T>,
 }
 
@@ -101,6 +109,7 @@ impl<T: CoordinateType> Path<T> {
         self.points.len()
     }
 
+    /// Scale the path. Scaling center is the origin `(0, 0)`.
     pub fn scale(&self, factor: T) -> Self {
         Path {
             points: self.points.scale(factor),
@@ -109,6 +118,7 @@ impl<T: CoordinateType> Path<T> {
         }
     }
 
+    /// Rotate the path by a multiple of 90 degrees around the origin `(0, 0)`.
     pub fn rothate_ortho(&self, angle: Angle) -> Self {
         Path {
             points: self.points.rotate_ortho(angle),

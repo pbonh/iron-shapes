@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! An edge is a line segment from a start-point to a end-point.
+
 use crate::vector::Vector;
 use crate::point::Point;
 use crate::rect::Rect;
@@ -32,7 +35,8 @@ pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
 
-
+/// Return type for the edge-edge intersection functions.
+/// Stores all possible results of a edge to edge intersection.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum EdgeIntersection<TP: CoordinateType, TO: CoordinateType> {
     /// No intersection.
@@ -45,7 +49,8 @@ pub enum EdgeIntersection<TP: CoordinateType, TO: CoordinateType> {
     Overlap(Edge<TO>),
 }
 
-/// Store all possible results of a line to line intersection.
+/// Return type for the line-line intersection functions.
+/// Stores all possible results of a line to line intersection.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum LineIntersection<TP: CoordinateType, TE: CoordinateType> {
     /// No intersection at all.
@@ -90,7 +95,9 @@ impl<T: CoordinateType> From<[Point<T>; 2]> for Edge<T> {
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Edge<T: CoordinateType> {
+    /// Start-point of the edge.
     pub start: Point<T>,
+    /// End-point of the edge.
     pub end: Point<T>,
 }
 

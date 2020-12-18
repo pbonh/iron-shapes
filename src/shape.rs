@@ -20,7 +20,6 @@
 
 //! Abstractions for geometrical shapes.
 
-
 use crate::prelude::*;
 use crate::traits::TryBoundingBox;
 use num_traits::NumCast;
@@ -29,11 +28,17 @@ use num_traits::NumCast;
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Geometry<T: CoordinateType> {
+    /// Point.
     Point(Point<T>),
+    /// Edge.
     Edge(Edge<T>),
+    /// Rect.
     Rect(Rect<T>),
+    /// SimplePolygon.
     SimplePolygon(SimplePolygon<T>),
+    /// Polygon.
     Polygon(Polygon<T>),
+    /// Path.
     Path(Path<T>),
 }
 

@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//! This module contains data types and functions for basic polygons without holes.
+
 use crate::CoordinateType;
 
 use crate::point::Point;
@@ -34,10 +37,15 @@ use num_traits::NumCast;
 use crate::traits::TryCastCoord;
 use itertools::Itertools;
 
+/// A `SimplePolygon` is a polygon defined by vertices. It does not contain holes but can be
+/// self-intersecting.
+///
+/// TODO: Implement `Deref` for accessing the vertices.
 #[derive(Clone, Debug, Hash, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimplePolygon<T>
     where T: CoordinateType {
+    /// Vertices of the polygon.
     pub points: Vec<Point<T>>
 }
 
@@ -366,6 +374,7 @@ impl<I, T, P> From<I> for SimplePolygon<T>
         SimplePolygon { points }
     }
 }
+
 //
 // /// Create a polygon from a `Vec` of values convertible to `Point`s.
 // impl<'a, T, P> From<&'a Vec<P>> for SimplePolygon<T>

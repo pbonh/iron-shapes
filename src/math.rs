@@ -22,6 +22,7 @@
 
 use num_traits::PrimInt;
 
+/// Implement the fast approximate computation of '1/sqrt(x)' for a type.
 pub trait FastInvSqrt {
     /// Fast approximate computation of 1/sqrt(x).
     ///
