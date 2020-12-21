@@ -20,6 +20,8 @@
 
 use std::cmp::PartialOrd;
 
+/// Return the smallest argument. If both are equal return `a`.
+#[inline]
 pub fn min<T: PartialOrd>(a: T, b: T) -> T {
     if a <= b {
         a
@@ -28,6 +30,8 @@ pub fn min<T: PartialOrd>(a: T, b: T) -> T {
     }
 }
 
+/// Return the largest argument. If both are equal return `a`.
+#[inline]
 pub fn max<T: PartialOrd>(a: T, b: T) -> T {
     if a >= b {
         a
