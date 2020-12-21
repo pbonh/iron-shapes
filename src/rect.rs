@@ -164,10 +164,10 @@ impl<T: CoordinateType> Rect<T> {
     ///
     /// let outer = Rect::new((0, 0), (2, 2));
     /// let inner = Rect::new((0, 0), (1, 1));
-    /// assert!(outer.contains_rectangle(inner));
-    /// assert!(!inner.contains_rectangle(outer));
+    /// assert!(outer.contains_rectangle(&inner));
+    /// assert!(!inner.contains_rectangle(&outer));
     /// ```
-    pub fn contains_rectangle(&self, other: Rect<T>) -> bool {
+    pub fn contains_rectangle(&self, other: &Self) -> bool {
         self.contains_point(other.lower_left) && self.contains_point(other.upper_right)
     }
 
@@ -181,13 +181,13 @@ impl<T: CoordinateType> Rect<T> {
     ///
     /// let outer = Rect::new((0, 0), (3, 3));
     /// let inner = Rect::new((1, 1), (2, 2));
-    /// assert!(outer.contains_rectangle_exclusive(inner));
-    /// assert!(!inner.contains_rectangle_exclusive(outer));
+    /// assert!(outer.contains_rectangle_exclusive(&inner));
+    /// assert!(!inner.contains_rectangle_exclusive(&outer));
     ///
     /// let not_inner = Rect::new((0, 0), (1, 1)); // This shares the boundary with `outer`.
-    /// assert!(!outer.contains_rectangle_exclusive(not_inner));
+    /// assert!(!outer.contains_rectangle_exclusive(&not_inner));
     /// ```
-    pub fn contains_rectangle_exclusive(&self, other: Rect<T>) -> bool {
+    pub fn contains_rectangle_exclusive(&self, other: &Self) -> bool {
         self.contains_point_exclusive(other.lower_left) && self.contains_point_exclusive(other.upper_right)
     }
 
@@ -267,12 +267,12 @@ impl<T: CoordinateType> Rect<T> {
     /// let r1 = Rect::new((0,0), (1,2));
     /// let r2 = Rect::new((4,5), (6,7));
     ///
-    /// let r3 = r1.add_rect(r2);
+    /// let r3 = r1.add_rect(&r2);
     ///
     /// assert_eq!(r3, Rect::new((0,0), (6,7)));
     ///
     /// ```
-    pub fn add_rect(&self, rect: Rect<T>) -> Self {
+    pub fn add_rect(&self, rect: &Self) -> Self {
         self.add_point(rect.lower_left)
             .add_point(rect.upper_right)
     }

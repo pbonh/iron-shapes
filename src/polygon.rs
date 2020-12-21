@@ -258,7 +258,7 @@ impl<T> BoundingBox<T> for Polygon<T>
 
         debug_assert!(
             self.interiors.iter()
-                .all(|p| bbox.contains_rectangle(p.bounding_box())),
+                .all(|p| bbox.contains_rectangle(&p.bounding_box())),
             "Bounding boxes of interior polygons exceed the bounding box of the exterior polygon."
         );
 
