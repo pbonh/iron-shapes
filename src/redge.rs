@@ -216,7 +216,7 @@ impl<T: CoordinateType> REdge<T> {
     }
 
 
-    /// Returns the vector from `self.start` to `self.end`.
+    /// Returns the vector from `self.start()` to `self.end()`.
     pub fn vector(&self) -> Vector<T> {
         match self.orientation {
             REdgeOrientation::Horizontal => Vector::new(self.end - self.start, T::zero()),
