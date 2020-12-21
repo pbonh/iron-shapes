@@ -40,7 +40,23 @@ pub struct Rect<T>
 }
 
 impl<T: CoordinateType> Rect<T> {
+
     /// Construct the bounding box of the two points. Order does not matter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// // Create a rectangle based on two corner points.
+    /// let rect1 = Rect::new(Point::new(0, 0), Point::new(1, 2));
+    /// // Any type that implements `Into<Point<T>>` can be used for the corner points.
+    /// let rect2 = Rect::new((1, 2), (0, 0));
+    /// // Ordering of the corner points does not matter.
+    /// assert_eq!(rect1, rect2);
+    /// // Even though `(0, 0)` was passed as second argument it is recognized as lower left corner.
+    /// assert_eq!(rect2.lower_left(), Point::new(0, 0));
+    /// ```
     pub fn new<C>(c1: C, c2: C) -> Self
         where C: Into<Point<T>> {
         let p1 = c1.into();
@@ -102,6 +118,18 @@ impl<T: CoordinateType> Rect<T> {
 
     /// Check if rectangle contains the point.
     /// Inclusive boundaries.
+    ///
+    /// # Example
+    /// ```
+    /// use iron_shapes::prelude::*;
+    /// let rect = Rect::new((0, 0), (10, 20));
+    /// // Contains point somewhere in the center.
+    /// assert!(rect.contains_point(Point::new(5, 5)));
+    /// // Also contains point on the boundaries.
+    /// assert!(rect.contains_point(Point::new(0, 0)));
+    /// // Does not contain point outside of the rectangle.
+    /// assert!(!rect.contains_point(Point::new(10, 21)));
+    /// ```
     pub fn contains_point(&self, p: Point<T>) -> bool {
         self.lower_left.x <= p.x && p.x <= self.upper_right.x &&
             self.lower_left.y <= p.y && p.y <= self.upper_right.y
@@ -109,6 +137,18 @@ impl<T: CoordinateType> Rect<T> {
 
     /// Check if rectangle contains the point.
     /// Exclusive boundaries.
+    ///
+    /// # Example
+    /// ```
+    /// use iron_shapes::prelude::*;
+    /// let rect = Rect::new((0, 0), (10, 20));
+    /// // Contains point somewhere in the center.
+    /// assert!(rect.contains_point_exclusive(Point::new(5, 5)));
+    /// // Does not contain points on boundaries.
+    /// assert!(!rect.contains_point_exclusive(Point::new(0, 0)));
+    /// // Does not contain point outside of the rectangle.
+    /// assert!(!rect.contains_point_exclusive(Point::new(10, 21)));
+    /// ```
     pub fn contains_point_exclusive(&self, p: Point<T>) -> bool {
         self.lower_left.x < p.x && p.x < self.upper_right.x &&
             self.lower_left.y < p.y && p.y < self.upper_right.y
@@ -116,17 +156,42 @@ impl<T: CoordinateType> Rect<T> {
 
     /// Check if rectangle contains other rectangle.
     /// Inclusive boundaries.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// let outer = Rect::new((0, 0), (2, 2));
+    /// let inner = Rect::new((0, 0), (1, 1));
+    /// assert!(outer.contains_rectangle(inner));
+    /// assert!(!inner.contains_rectangle(outer));
+    /// ```
     pub fn contains_rectangle(&self, other: Rect<T>) -> bool {
         self.contains_point(other.lower_left) && self.contains_point(other.upper_right)
     }
 
     /// Check if rectangle contains other rectangle.
     /// Exclusive boundaries.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// let outer = Rect::new((0, 0), (3, 3));
+    /// let inner = Rect::new((1, 1), (2, 2));
+    /// assert!(outer.contains_rectangle_exclusive(inner));
+    /// assert!(!inner.contains_rectangle_exclusive(outer));
+    ///
+    /// let not_inner = Rect::new((0, 0), (1, 1)); // This shares the boundary with `outer`.
+    /// assert!(!outer.contains_rectangle_exclusive(not_inner));
+    /// ```
     pub fn contains_rectangle_exclusive(&self, other: Rect<T>) -> bool {
         self.contains_point_exclusive(other.lower_left) && self.contains_point_exclusive(other.upper_right)
     }
 
-    /// Test if the both rectangles touch each other.
+    /// Test if the both rectangles touch each other, i.e. if they either share a boundary or are overlapping.
     pub fn touches(&self, other: &Self) -> bool {
         !(
             self.lower_left.x > other.upper_right.x ||
@@ -137,6 +202,24 @@ impl<T: CoordinateType> Rect<T> {
     }
 
     /// Compute the boolean intersection of two rectangles.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// // Create two overlapping rectangles.
+    /// let a = Rect::new((0, 0), (2, 2));
+    /// let b = Rect::new((1, 1), (3, 3));
+    ///
+    /// // Compute the intersection.
+    /// assert_eq!(a.intersection(&b), Some(Rect::new((1, 1), (2, 2))));
+    ///
+    /// // Create a non-overlapping rectangle.
+    /// let c = Rect::new((100, 100), (200, 200));
+    /// // The intersection with a non-overlapping rectangle is `None`.
+    /// assert_eq!(a.intersection(&c), None);
+    /// ```
     pub fn intersection(&self, other: &Self) -> Option<Self> {
         let llx = max(self.lower_left.x, other.lower_left.x);
         let lly = max(self.lower_left.y, other.lower_left.y);
@@ -152,6 +235,19 @@ impl<T: CoordinateType> Rect<T> {
     }
 
     /// Create the smallest `Rect` that contains the original `Rect` and the `point`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// let r1 = Rect::new((0,0), (1,2));
+    ///
+    /// let r2 = r1.add_point(Point::new(10, 11));
+    ///
+    /// assert_eq!(r2, Rect::new((0,0), (10,11)));
+    ///
+    /// ```
     pub fn add_point(&self, point: Point<T>) -> Self {
         Rect::new(
             Point::new(min(self.lower_left.x, point.x),
@@ -162,10 +258,11 @@ impl<T: CoordinateType> Rect<T> {
     }
 
     /// Get the smallest `Rect` that contains both rectangles `self` and `rect`.
-    /// # Examples
+    ///
+    /// # Example
     ///
     /// ```
-    /// use iron_shapes::rect::Rect;
+    /// use iron_shapes::prelude::*;
     ///
     /// let r1 = Rect::new((0,0), (1,2));
     /// let r2 = Rect::new((4,5), (6,7));
