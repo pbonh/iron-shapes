@@ -26,6 +26,8 @@
 //     where T: CoordinateType;
 //
 // impl<T: CoordinateType> Interval<T> {
+//
+//     /// Create a new interval.
 //     pub fn new(lower: T, upper: T) -> Self {
 //         if lower <= upper {
 //             Interval(Some((lower, upper)))
@@ -34,6 +36,7 @@
 //         }
 //     }
 //
+//     /// Compute the intersection of two intervals.
 //     pub fn intersection(&self, other: &Self) -> Self {
 //         match self {
 //             Interval(None) => Interval(None),
@@ -43,6 +46,11 @@
 //                     Interval::new(max(*l1, *l2), min(*u1, *u2))
 //             }
 //         }
+//     }
+//
+//     /// Test if the interval is empty.
+//     pub fn is_empty(&self) -> bool {
+//         self.0.is_none()
 //     }
 // }
 //

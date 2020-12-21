@@ -57,3 +57,4 @@ pub mod multi_polygon;
 pub mod path;
 pub mod shape;
 pub mod transform;
+pub mod redge;
