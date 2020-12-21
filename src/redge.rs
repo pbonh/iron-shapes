@@ -29,11 +29,11 @@ use crate::CoordinateType;
 use num_traits::Float;
 use num_traits::cast::NumCast;
 
-use crate::traits::MapPointwise;
 pub use crate::traits::{BoundingBox, RotateOrtho, TryCastCoord};
 pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
+use crate::edge::Edge;
 
 /// Return type for the edge-edge intersection functions.
 /// Stores all possible results of a edge to edge intersection.
@@ -76,6 +76,12 @@ impl<T: CoordinateType> Into<(Point<T>, Point<T>)> for REdge<T> {
 impl<T: CoordinateType> Into<(Point<T>, Point<T>)> for &REdge<T> {
     fn into(self) -> (Point<T>, Point<T>) {
         (self.start(), self.end())
+    }
+}
+
+impl<T: CoordinateType> Into<Edge<T>> for &REdge<T> {
+    fn into(self) -> Edge<T> {
+        Edge::new(self.start(), self.end())
     }
 }
 
