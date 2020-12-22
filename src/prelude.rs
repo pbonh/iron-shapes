@@ -35,4 +35,5 @@ pub use crate::shape::*;
 
 pub use crate::traits::*;
 pub use crate::types::*;
+pub use crate::text::*;
 pub use crate::transform::*;

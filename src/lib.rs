@@ -56,5 +56,6 @@ pub mod matrix3d;
 pub mod multi_polygon;
 pub mod path;
 pub mod shape;
+pub mod text;
 pub mod transform;
 pub mod redge;

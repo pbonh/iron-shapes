@@ -40,6 +40,8 @@ pub enum Geometry<T: CoordinateType> {
     Polygon(Polygon<T>),
     /// Path.
     Path(Path<T>),
+    /// Text.
+    Text(Text<T>)
 }
 
 /// Implement `From` for `Geometry`.
@@ -60,6 +62,7 @@ geometry_from!(Rect);
 geometry_from!(SimplePolygon);
 geometry_from!(Polygon);
 geometry_from!(Path);
+geometry_from!(Text);
 
 impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
     /// Calculate the bounding box of this geometrical shape by calling the bounding box method of the concrete type.
@@ -70,7 +73,8 @@ impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
             Geometry::Rect(e) => e.try_bounding_box(),
             Geometry::SimplePolygon(e) => e.try_bounding_box(),
             Geometry::Polygon(e) => e.try_bounding_box(),
-            Geometry::Path(p) => p.try_bounding_box()
+            Geometry::Path(p) => p.try_bounding_box(),
+            Geometry::Text(t) => t.try_bounding_box()
         }
     }
 }
@@ -85,7 +89,8 @@ impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
             Geometry::Rect(e) => e.transform(transformation).into(),
             Geometry::SimplePolygon(e) => e.transform(transformation).into(),
             Geometry::Polygon(e) => e.transform(transformation).into(),
-            Geometry::Path(p) => unimplemented!()
+            Geometry::Path(p) => unimplemented!(),
+            Geometry::Text(t) => t.transform(transformation).into(),
         }
     }
 }
@@ -105,6 +110,7 @@ impl<T: CoordinateType + NumCast> DoubledOrientedArea<T> for Geometry<T> {
                     p.area_approx::<FloatType>() * (2.0 as FloatType)
                 )).unwrap()
             }
+            Geometry::Text(_) => T::zero(),
         }
     }
 }
@@ -127,7 +133,8 @@ impl<T: CoordinateType> ToPolygon<T> for Geometry<T> {
             Geometry::Rect(e) => e.to_polygon(),
             Geometry::SimplePolygon(e) => Polygon::from(e),
             Geometry::Polygon(e) => e.clone(),
-            Geometry::Path(p) => unimplemented!()
+            Geometry::Path(p) => unimplemented!(),
+            Geometry::Text(_) => Polygon::empty(),
         }
     }
 }
@@ -150,6 +157,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
             Geometry::SimplePolygon(p) => p.try_cast().map(|s| s.into()),
             Geometry::Polygon(p) => p.try_cast().map(|s| s.into()),
             Geometry::Path(p) => p.try_cast().map(|s| s.into()),
+            Geometry::Text(t) => t.try_cast().map(|s| s.into()),
         }
     }
 }
