@@ -35,11 +35,6 @@ pub trait BoundingBox<T>
     where T: CoordinateType {
     /// Return the bounding box of this geometry.
     fn bounding_box(&self) -> Rect<T>;
-
-    /// Return the bounding box of this geometry if a bounding box is defined..
-    fn try_bounding_box(&self) -> Option<Rect<T>> {
-        Some(self.bounding_box())
-    }
 }
 
 /// Try the calculation of the 'bounding box', i.e. the smallest rectangle that contains the geometrical object.
@@ -47,9 +42,10 @@ pub trait BoundingBox<T>
 /// For instance a set of polygons does not have a bounding box if the set is empty.
 pub trait TryBoundingBox<T>
     where T: CoordinateType {
-    /// Return the bounding box of this geometry if a bounding box is defined..
+    /// Return the bounding box of this geometry if a bounding box is defined.
     fn try_bounding_box(&self) -> Option<Rect<T>>;
 }
+
 
 /// Calculate the doubled oriented area of a geometry.
 /// Using the doubled area allows to compute the area without using fractions. This is especially

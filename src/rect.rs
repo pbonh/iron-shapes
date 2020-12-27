@@ -293,6 +293,13 @@ impl<T: CoordinateType> BoundingBox<T> for Rect<T> {
     }
 }
 
+impl<T: CoordinateType> TryBoundingBox<T> for Rect<T> {
+    /// Get bounding box of rectangle (always exists).
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        Some(self.clone())
+    }
+}
+
 /// Point wise transformation of the two corner points.
 impl<T> MapPointwise<T> for Rect<T>
     where T: CoordinateType

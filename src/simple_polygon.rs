@@ -26,7 +26,7 @@ use crate::point::Point;
 use crate::edge::Edge;
 use crate::rect::Rect;
 
-pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
+pub use crate::traits::{DoubledOrientedArea, TryBoundingBox, MapPointwise, WindingNumber};
 
 use crate::types::*;
 
@@ -423,31 +423,34 @@ impl<T, P> FromIterator<P> for SimplePolygon<T>
 }
 
 
-impl<T> BoundingBox<T> for SimplePolygon<T>
+impl<T> TryBoundingBox<T> for SimplePolygon<T>
     where T: CoordinateType {
-    fn bounding_box(&self) -> Rect<T> {
-        debug_assert!(self.len() > 0, "Can't work with polygon with zero points.");
-        let mut x_min = self.points[0].x;
-        let mut x_max = x_min;
-        let mut y_min = self.points[0].y;
-        let mut y_max = y_min;
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        if self.len() > 0 {
+            let mut x_min = self.points[0].x;
+            let mut x_max = x_min;
+            let mut y_min = self.points[0].y;
+            let mut y_max = y_min;
 
-        for p in self.iter().skip(1) {
-            if p.x < x_min {
-                x_min = p.x;
+            for p in self.iter().skip(1) {
+                if p.x < x_min {
+                    x_min = p.x;
+                }
+                if p.x > x_max {
+                    x_max = p.x;
+                }
+                if p.y < y_min {
+                    y_min = p.y;
+                }
+                if p.y > y_max {
+                    y_max = p.y;
+                }
             }
-            if p.x > x_max {
-                x_max = p.x;
-            }
-            if p.y < y_min {
-                y_min = p.y;
-            }
-            if p.y > y_max {
-                y_max = p.y;
-            }
+
+            Some(Rect::new((x_min, y_min), (x_max, y_max)))
+        } else {
+            None
         }
-
-        Rect::new((x_min, y_min), (x_max, y_max))
     }
 }
 
@@ -554,5 +557,5 @@ fn test_partial_eq() {
 #[test]
 fn test_bounding_box() {
     let p = simple_polygon!((0, 0), (0, 1), (1, 1));
-    assert_eq!(p.bounding_box(), Rect::new((0, 0), (1, 1)));
+    assert_eq!(p.try_bounding_box(), Some(Rect::new((0, 0), (1, 1))));
 }

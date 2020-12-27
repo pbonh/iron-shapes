@@ -34,6 +34,7 @@ pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
 use crate::edge::Edge;
+use std::convert::TryFrom;
 
 /// Return type for the edge-edge intersection functions.
 /// Stores all possible results of a edge to edge intersection.
@@ -82,6 +83,19 @@ impl<T: CoordinateType> Into<(Point<T>, Point<T>)> for &REdge<T> {
 impl<T: CoordinateType> Into<Edge<T>> for &REdge<T> {
     fn into(self) -> Edge<T> {
         Edge::new(self.start(), self.end())
+    }
+}
+
+impl<T: CoordinateType> TryFrom<&Edge<T>> for REdge<T> {
+    type Error = ();
+
+    /// Try to convert an edge into a rectilinear edge.
+    /// Returns none if the edge is not rectilinear.
+    fn try_from(value: &Edge<T>) -> Result<Self, Self::Error> {
+       match REdge::try_from_points(value.start, value.end) {
+           None => Err(()),
+           Some(e) => Ok(e)
+       }
     }
 }
 

@@ -250,17 +250,28 @@ impl<T: CoordinateType> Polygon<T> {
     }
 }
 
-impl<T> BoundingBox<T> for Polygon<T>
+impl<T> TryBoundingBox<T> for Polygon<T>
     where T: CoordinateType {
-    fn bounding_box(&self) -> Rect<T> {
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
         // TODO: What if holes exceed the exterior boundary?
-        let bbox = self.exterior.bounding_box();
+        let bbox = self.exterior.try_bounding_box();
 
-        debug_assert!(
-            self.interiors.iter()
-                .all(|p| bbox.contains_rectangle(&p.bounding_box())),
-            "Bounding boxes of interior polygons exceed the bounding box of the exterior polygon."
-        );
+        if let Some(bbox) = &bbox {
+            debug_assert!(
+                self.interiors.iter()
+                    .filter_map(|p| p.try_bounding_box())
+                    .all(|internal_bbox| bbox.contains_rectangle(&internal_bbox)),
+                "Bounding boxes of interior polygons exceed the bounding box of the exterior polygon."
+            );
+        } else {
+            // If the bounding box of the hull is not defined there should also be no
+            // defined bounding boxes for the holes.
+            let num_internal_bboxes = self.interiors.iter()
+                .filter_map(|p| p.try_bounding_box())
+                .count();
+            debug_assert_eq!(num_internal_bboxes, 0,
+                             "Polygon with empty zero-vertex hull cannot contain holes.");
+        }
 
         bbox
     }
@@ -345,9 +356,8 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     type Output = Polygon<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-
         if let Some(new_hull) = self.exterior.try_cast() {
-            let new_holes : Vec<_> = self.interiors.iter()
+            let new_holes: Vec<_> = self.interiors.iter()
                 .map(|hole| hole.try_cast())
                 .while_some()
                 .collect();
@@ -398,13 +408,13 @@ mod tests {
 
     #[test]
     fn test_bounding_box() {
-        use crate::traits::BoundingBox;
+        use crate::traits::TryBoundingBox;
         use crate::rect::Rect;
         let coords = vec![(1, 0), (-1, -2), (1, 0), (42, 37)];
 
         let poly: Polygon<i32> = (&coords).into();
 
-        assert_eq!(poly.bounding_box(), Rect::new((-1, -2), (42, 37)))
+        assert_eq!(poly.try_bounding_box(), Some(Rect::new((-1, -2), (42, 37))))
     }
 
     #[test]
