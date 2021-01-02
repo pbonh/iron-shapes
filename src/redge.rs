@@ -114,7 +114,7 @@ impl<T: CoordinateType> TryFrom<&Edge<T>> for REdge<T> {
 /// Orientation of a rectilinear edge.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-enum REdgeOrientation {
+pub enum REdgeOrientation {
     /// Horizontal edge.
     Horizontal,
     /// Vertical edge.
@@ -145,6 +145,20 @@ impl<T: CoordinateType> REdge<T> {
         where C: Into<Point<T>>
     {
         Self::try_from_points(start, end).expect("Points must be on a vertical or horizontal line.")
+    }
+
+    /// Create a new rectilinear edge.
+    ///
+    /// # Parameters
+    ///
+    /// * `start`: Start-coordinate of the edge.
+    /// * `end`: End-coordinate of the edge.
+    /// * `offset`: Distance to to the origin (0, 0).
+    /// * `orientation`: Orientation: Either horizontal or vertical.
+    pub fn new_raw(start: T, end: T, offset: T, orientation: REdgeOrientation) -> Self {
+        Self {
+            start, end, offset, orientation
+        }
     }
 
     /// Create a new `REdge` from two arguments that implement `Into<Point>`.

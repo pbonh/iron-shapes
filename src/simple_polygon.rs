@@ -479,10 +479,11 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimplePolygon<T> {
     /// # Examples
     ///
     /// ```
-    /// use iron_shapes::polygon::{Polygon, DoubledOrientedArea};
+    /// use iron_shapes::traits::DoubledOrientedArea;
+    /// use iron_shapes::simple_polygon::SimplePolygon;
     /// let coords = vec![(0, 0), (3, 0), (3, 1)];
     ///
-    /// let poly = Polygon::new(coords);
+    /// let poly = SimplePolygon::new(coords);
     ///
     /// assert_eq!(poly.area_doubled_oriented(), 3);
     ///

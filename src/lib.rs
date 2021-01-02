@@ -50,6 +50,7 @@ pub mod edge_rational;
 pub mod edge_integer;
 pub mod rect;
 pub mod simple_polygon;
+pub mod simple_rpolygon;
 pub mod polygon;
 pub mod matrix2d;
 pub mod matrix3d;
