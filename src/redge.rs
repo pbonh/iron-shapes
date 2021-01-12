@@ -92,10 +92,10 @@ impl<T: CoordinateType> TryFrom<&Edge<T>> for REdge<T> {
     /// Try to convert an edge into a rectilinear edge.
     /// Returns none if the edge is not rectilinear.
     fn try_from(value: &Edge<T>) -> Result<Self, Self::Error> {
-       match REdge::try_from_points(value.start, value.end) {
-           None => Err(()),
-           Some(e) => Ok(e)
-       }
+        match REdge::try_from_points(value.start, value.end) {
+            None => Err(()),
+            Some(e) => Ok(e)
+        }
     }
 }
 
@@ -126,13 +126,13 @@ pub enum REdgeOrientation {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct REdge<T: CoordinateType> {
     /// Start-coordinate of the edge.
-    start: T,
+    pub start: T,
     /// End-coordinate of the edge.
-    end: T,
+    pub end: T,
     /// Distance to to the origin (0, 0).
-    offset: T,
+    pub offset: T,
     /// Orientation: Either horizontal or vertical.
-    orientation: REdgeOrientation,
+    pub orientation: REdgeOrientation,
 }
 
 impl<T: CoordinateType> REdge<T> {
@@ -157,7 +157,10 @@ impl<T: CoordinateType> REdge<T> {
     /// * `orientation`: Orientation: Either horizontal or vertical.
     pub fn new_raw(start: T, end: T, offset: T, orientation: REdgeOrientation) -> Self {
         Self {
-            start, end, offset, orientation
+            start,
+            end,
+            offset,
+            orientation,
         }
     }
 
