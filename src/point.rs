@@ -443,3 +443,10 @@ impl<T> Div<T> for Point<T>
     }
 }
 
+impl<T: CoordinateType> std::iter::Sum for Point<T> {
+    /// Compute the sum of all points in the iterator.
+    /// If the iterator is empty, (0, 0) is returned.
+    fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
+        iter.fold(Self::zero(), |acc, p| acc + p)
+    }
+}

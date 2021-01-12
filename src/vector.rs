@@ -461,6 +461,14 @@ impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
     }
 }
 
+/// Compute the sum of all vectors in the iterator.
+/// If the iterator is empty, (0, 0) is returned.
+impl<T: CoordinateType> std::iter::Sum for Vector<T> {
+    fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
+        iter.fold(Self::zero(), |acc, v| acc + v)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
