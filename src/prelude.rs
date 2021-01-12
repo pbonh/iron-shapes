@@ -31,7 +31,7 @@ pub use crate::simple_polygon::*;
 pub use crate::simple_rpolygon::*;
 pub use crate::multi_polygon::*;
 pub use crate::path::*;
-
+pub use crate::redge::*;
 pub use crate::shape::*;
 
 pub use crate::traits;
