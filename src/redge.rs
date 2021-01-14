@@ -121,6 +121,16 @@ pub enum REdgeOrientation {
     Vertical,
 }
 
+impl REdgeOrientation {
+    /// Return the other orientation then `self`.
+    pub fn other(&self) -> Self {
+        match self {
+            Self::Horizontal => Self::Vertical,
+            Self::Vertical => Self::Horizontal,
+        }
+    }
+}
+
 /// An rectilinear edge (horizontal or vertical line segment) is represented by its starting point and end point.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -555,8 +565,35 @@ impl<T: CoordinateType> REdge<T> {
             }
         }
     }
+
+    /// Rotate the edge by a multiple of 90 degrees around `(0, 0)`.
+    pub fn rotate_ortho(&self, a: Angle) -> Self {
+        match a {
+            Angle::R0 => *self,
+            Angle::R90 => REdge::new_raw(T::zero() - self.start,
+                                         T::zero() - self.end,
+                                         self.offset,
+                                         self.orientation.other()),
+            Angle::R180 => REdge::new_raw(T::zero() - self.start,
+                                          T::zero() - self.end,
+                                          T::zero() - self.offset,
+                                          self.orientation),
+            Angle::R270 => REdge::new_raw(self.start,
+                                          self.end,
+                                          T::zero() - self.offset,
+                                          self.orientation.other())
+        }
+    }
 }
 
+#[test]
+fn test_rotate_ortho() {
+    let e = REdge::new((1, 0), (1, 2));
+    assert_eq!(e.rotate_ortho(Angle::R0), e);
+    assert_eq!(e.rotate_ortho(Angle::R90), REdge::new((0, 1), (-2, 1)));
+    assert_eq!(e.rotate_ortho(Angle::R180), REdge::new((-1, 0), (-1, -2)));
+    assert_eq!(e.rotate_ortho(Angle::R270), REdge::new((0, -1), (2, -1)));
+}
 
 impl<T: CoordinateType> BoundingBox<T> for REdge<T> {
     fn bounding_box(&self) -> Rect<T> {
