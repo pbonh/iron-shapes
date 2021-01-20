@@ -160,6 +160,25 @@ impl<T: CoordinateType> Vector<T> {
         Vector { x, y }
     }
 
+    /// Get 1-norm of vector, i.e. the sum of the absolute values of its components.
+    ///
+    /// # Examples
+    /// ```
+    /// use iron_shapes::vector::Vector;
+    /// let a = Vector::new(-2, 3);
+    /// assert_eq!(a.norm1(), 5);
+    /// ```
+    #[inline]
+    pub fn norm1(&self) -> T {
+        let xabs = if self.x < T::zero() {
+            T::zero() - self.x
+        } else { self.x };
+        let yabs = if self.y < T::zero() {
+            T::zero() - self.y
+        } else { self.y };
+        xabs + yabs
+    }
+
     /// Get squared 2-norm of vector.
     ///
     /// # Examples
