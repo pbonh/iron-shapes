@@ -28,7 +28,8 @@ use crate::CoordinateType;
 use num_traits::NumCast;
 use crate::polygon::{ToPolygon, Polygon};
 
-/// A orthogonal rectangle is represented by its lower left and upper right corner.
+/// A rectangle which is oriented along the x an y axis and
+/// represented by its lower left and upper right corner.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rect<T>
