@@ -428,6 +428,23 @@ impl<T> WindingNumber<T> for SimpleRPolygon<T>
     }
 }
 
+impl<T: CoordinateType> From<Rect<T>> for SimpleRPolygon<T> {
+    fn from(r: Rect<T>) -> Self {
+        Self {
+            half_points: vec![r.lower_left.y, r.upper_right.x, r.upper_right.y, r.lower_left.x]
+        }
+    }
+}
+
+#[test]
+fn test_from_rect() {
+    use super::rect::Rect;
+    let r = Rect::new((0, 1), (2, 3));
+    let p = SimpleRPolygon::from(r);
+    assert_eq!(p.points().collect::<Vec<_>>(),
+               [Point::new(0, 1), Point::new(2, 1), Point::new(2, 3), Point::new(0, 3)]);
+}
+
 // /// Create a polygon from a type that is convertible into an iterator of values convertible to `Point`s.
 // impl<I, T, P> TryFrom<I> for SimpleRPolygon<T>
 //     where T: CoordinateType,
