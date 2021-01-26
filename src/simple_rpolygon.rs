@@ -347,30 +347,37 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         (idx, point.clone().into())
     }
 
-    // /// Get the orientation of the polygon,
-    // /// i.e. check if it is wound clock-wise or counter-clock-wise.
-    // ///
-    // /// # Examples
-    // ///
-    // /// ```
-    // /// use iron_shapes::simple_rpolygon::SimpleRPolygon;
-    // /// use iron_shapes::point::Point;
-    // /// use iron_shapes::types::Orientation;
-    // /// let coords = vec![(0, 0), (1, 0), (1, 1), (0, 1)];
-    // ///
-    // /// let poly = SimpleRPolygon::try_new(coords).unwrap();
-    // ///
-    // /// assert_eq!(poly.orientation(), Orientation::CounterClockWise);
-    // ///
-    // /// ```
-    // pub fn orientation(&self) -> Orientation {
-    //     // // The orientation can be checked at an extreme vertex.
-    //     // // Here the lowest left vertex is used.
-    //
-    //     // let (i, ll) = self.lower_left_vertex_with_index();
-    //
-    //     unimplemented!()
-    // }
+    /// Get the orientation of the polygon,
+    /// i.e. check if it is wound clock-wise or counter-clock-wise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::simple_rpolygon::SimpleRPolygon;
+    /// use iron_shapes::point::Point;
+    /// use iron_shapes::types::Orientation;
+    /// let coords = vec![(0, 0), (1, 0), (1, 1), (0, 1)];
+    ///
+    /// let poly = SimpleRPolygon::try_new(coords).unwrap();
+    ///
+    /// assert_eq!(poly.orientation(), Orientation::CounterClockWise);
+    ///
+    /// ```
+    pub fn orientation(&self) -> Orientation {
+
+        // Find the orientation by the polygon area.
+
+        let area2 = self.area_doubled_oriented();
+
+        if area2 > T::zero() {
+            Orientation::CounterClockWise
+        } else if area2 < T::zero() {
+            Orientation::ClockWise
+        } else {
+            debug_assert!(area2 == T::zero());
+            Orientation::Straight
+        }
+    }
 
 
     /// Get index of previous half-point.
@@ -551,14 +558,13 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimpleRPolygon<T> {
         let area: T = (0..self.num_points())
             .step_by(2)
             .map(move |i| {
-
                 let start = self.half_points[self.prev(i)];
                 let end = self.half_points[self.next(i)];
                 let offset = self.half_points[i];
 
                 let sub_area = (start - end) * offset;
                 sub_area
-        })
+            })
             .fold(T::zero(), |acc, area| acc + area);
 
         area + area

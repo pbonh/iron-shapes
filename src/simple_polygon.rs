@@ -277,29 +277,17 @@ impl<T: CoordinateType> SimplePolygon<T> {
     ///
     /// ```
     pub fn orientation(&self) -> Orientation {
-        // The orientation can be checked at an extreme vertex.
-        // Here the lowest left vertex is used.
+        // Find the orientation by the polygon area.
 
-        let (i, ll) = self.lower_left_vertex_with_index();
+        let area2 = self.area_doubled_oriented();
 
-        // Get segments connected to lowest left vertex.
-        let e1 = self.points[self.prev(i)] - ll;
-        let e2 = ll - self.points[self.next(i)];
-
-        match e1.orientation_of(e2) {
-            Orientation::Straight => {
-                // Failed to determine orientation by this simple check.
-                // Find orientation by calculating the oriented area.
-                let area = self.area_doubled_oriented();
-                if area.is_zero() {
-                    Orientation::Straight
-                } else if area > T::zero() {
-                    Orientation::CounterClockWise
-                } else {
-                    Orientation::ClockWise
-                }
-            }
-            other => other
+        if area2 > T::zero() {
+            Orientation::CounterClockWise
+        } else if area2 < T::zero() {
+            Orientation::ClockWise
+        } else {
+            debug_assert!(area2 == T::zero());
+            Orientation::Straight
         }
     }
 
