@@ -21,7 +21,7 @@
 //! Abstractions for geometrical shapes.
 
 use crate::prelude::*;
-use crate::traits::TryBoundingBox;
+use crate::traits::{TryBoundingBox, MapPointwise};
 use num_traits::NumCast;
 
 /// Abstracted geometrical shape.
@@ -41,7 +41,23 @@ pub enum Geometry<T: CoordinateType> {
     /// Path.
     Path(Path<T>),
     /// Text.
-    Text(Text<T>)
+    Text(Text<T>),
+}
+
+impl<T: CoordinateType> Geometry<T> {
+    /// Create a transformed copy of the geometric object.
+    pub fn transformed(&self, tf: &SimpleTransform<T>) -> Self {
+        let trans = |p| tf.transform_point(p);
+        match self {
+            Geometry::Point(p) => tf.transform_point(*p).into(),
+            Geometry::Edge(g) => g.transform(trans).into(),
+            Geometry::Rect(g) => g.transform(trans).into(),
+            Geometry::SimplePolygon(g) => g.transform(trans).into(),
+            Geometry::Polygon(g) => g.transform(trans).into(),
+            Geometry::Path(p) => unimplemented!(),
+            Geometry::Text(g) => g.transform(trans).into(),
+        }
+    }
 }
 
 /// Implement `From` for `Geometry`.
