@@ -57,19 +57,28 @@ pub struct SimplePolygon<T>
 /// # fn main() {
 /// use iron_shapes::prelude::*;
 /// let p = simple_polygon!((0, 0), (1, 0), (1, 1));
-/// assert_eq!(p, SimplePolygon::new(vec![(0, 0), (1, 0), (1, 1)]));
+/// assert_eq!(p, SimplePolygon::from(vec![(0, 0), (1, 0), (1, 1)]));
 /// # }
 /// ```
 #[macro_export]
 macro_rules! simple_polygon {
- ($($x:expr),*) => {SimplePolygon::new((vec![$($x),*]))}
+ ($($x:expr),*) => {SimplePolygon::new((vec![$($x.into()),*]))}
 }
 
 impl<T: CoordinateType> SimplePolygon<T> {
-    /// Create new polygon by taking vertices from a type that implements `Into<SimplePolygon<T>>`.
-    pub fn new<I>(i: I) -> Self
-        where I: Into<Self> {
-        i.into()
+
+    /// Create a new polygon from a list of points.
+    pub fn new(points: Vec<Point<T>>) -> Self {
+             Self::new_raw(points)
+    }
+
+    /// Create a new polygon from a list of points.
+    /// The points are taken as they are, without reordering
+    /// or simplification.
+    pub fn new_raw(points: Vec<Point<T>>) -> Self {
+        Self {
+            points
+        }
     }
 
     /// Create empty polygon without any vertices.
@@ -211,7 +220,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// use iron_shapes::edge::Edge;
     /// let coords = vec![(0, 0), (1, 0)];
     ///
-    /// let poly = SimplePolygon::new(coords);
+    /// let poly = SimplePolygon::from(coords);
     ///
     /// assert_eq!(poly.edges(), vec![Edge::new((0, 0), (1, 0)), Edge::new((1, 0), (0, 0))]);
     ///
@@ -233,7 +242,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// use iron_shapes::point::Point;
     /// let coords = vec![(0, 0), (1, 0), (-1, 2), (-1, 1)];
     ///
-    /// let poly = SimplePolygon::new(coords);
+    /// let poly = SimplePolygon::from(coords);
     ///
     /// assert_eq!(poly.lower_left_vertex(), Point::new(-1, 1));
     ///
@@ -271,7 +280,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// use iron_shapes::types::Orientation;
     /// let coords = vec![(0, 0), (3, 0), (3, 1)];
     ///
-    /// let poly = SimplePolygon::new(coords);
+    /// let poly = SimplePolygon::from(coords);
     ///
     /// assert_eq!(poly.orientation(), Orientation::CounterClockWise);
     ///
@@ -471,7 +480,7 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimplePolygon<T> {
     /// use iron_shapes::simple_polygon::SimplePolygon;
     /// let coords = vec![(0, 0), (3, 0), (3, 1)];
     ///
-    /// let poly = SimplePolygon::new(coords);
+    /// let poly = SimplePolygon::from(coords);
     ///
     /// assert_eq!(poly.area_doubled_oriented(), 3);
     ///

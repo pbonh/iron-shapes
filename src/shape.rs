@@ -185,7 +185,7 @@ fn test_convert_to_polygon() {
         Point::new(0, 0).into(),
         Edge::new((0, 0), (1, 1)).into(),
         Rect::new((0, 0), (1, 1)).into(),
-        SimplePolygon::new(vec![(0, 0), (1, 0), (1, 1)]).into(),
+        SimplePolygon::from(vec![(0, 0), (1, 0), (1, 1)]).into(),
         Polygon::new(vec![(0, 0), (1, 0), (1, 1)]).into()
     ];
 

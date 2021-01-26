@@ -166,7 +166,7 @@ impl<T: CoordinateType + NumCast> Path<T> {
     /// use iron_shapes::prelude::*;
     /// let path = Path::new(&[(0, 0), (10, 0), (10, 20)], 2);
     /// let polygon = path.to_polygon_approx();
-    /// assert_eq!(polygon, SimplePolygon::new(&[(0., 1.), (0., -1.), (11., -1.), (11., 20.), (9., 20.), (9., 1.)]));
+    /// assert_eq!(polygon, SimplePolygon::from(&[(0., 1.), (0., -1.), (11., -1.), (11., 20.), (9., 20.), (9., 1.)]));
     /// ```
     pub fn to_polygon_approx(&self) -> SimplePolygon<f64> {
         let mut points_forward: Vec<Point<f64>> = Vec::new();
