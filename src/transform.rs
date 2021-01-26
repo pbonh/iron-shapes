@@ -212,6 +212,35 @@ impl<T: CoordinateType> SimpleTransform<T> {
             .then_scale(self.magnification)
             .then_translate(self.displacement)
     }
+
+    /// Return a new transformation that is equal to applying
+    /// first `self` then `t`.
+    pub fn then(&self, t: &Self) -> Self {
+        let d = t.transform_point(self.displacement.into());
+        let r = if t.mirror {
+            - self.rotation
+        } else {
+            self.rotation
+        };
+        Self {
+            mirror: self.mirror ^ t.mirror,
+            rotation: r + t.rotation,
+            magnification: self.magnification * t.magnification,
+            displacement: d.v()
+        }
+    }
+}
+
+#[test]
+fn test_simple_transform_combine() {
+    let t1 = SimpleTransform::new(false, Angle::R90,
+                                  1, (1, 2).into());
+    let t2 = SimpleTransform::new(true, Angle::R90,
+                                  1, (3, 4).into());
+
+    let p = Point::new(10, 11);
+    assert_eq!(t2.transform_point(t1.transform_point(p)), t1.then(&t2).transform_point(p));
+    assert_eq!(t1.transform_point(t2.transform_point(p)), t2.then(&t1).transform_point(p));
 }
 
 /// Transformation described by a mirroring at the `x` axis,

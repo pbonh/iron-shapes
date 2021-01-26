@@ -20,6 +20,8 @@
 
 //! Commonly used type definitions and constants.
 
+use std::ops::{Add, Neg};
+
 /// Precision for distance related decisions.
 pub const PREC_DISTANCE: DistanceType = 1e-5;
 
@@ -41,6 +43,46 @@ pub enum Angle {
     R180,
     /// 270 Degrees.
     R270,
+}
+
+impl Angle {
+    /// Describe the angle as a integer multiple of 90 degrees.
+    pub fn as_int(&self) -> u32 {
+        match self {
+            Angle::R0 => 0,
+            Angle::R90 => 1,
+            Angle::R180 => 2,
+            Angle::R270 => 3,
+        }
+    }
+
+    /// Convert an integer to an angle.
+    /// The integer specifies the number of 90 degree rotations.
+    pub fn from_u32(a: u32) -> Self {
+        match a % 4 {
+            0 => Angle::R0,
+            1 => Angle::R90,
+            2 => Angle::R180,
+            3 => Angle::R270,
+            _ => panic!()
+        }
+    }
+}
+
+impl Add for Angle {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::from_u32(self.as_int() + rhs.as_int())
+    }
+}
+
+impl Neg for Angle {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self::from_u32(4 - self.as_int())
+    }
 }
 
 impl Default for Angle {
