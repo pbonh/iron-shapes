@@ -461,6 +461,7 @@ impl<T> MapPointwise<T> for SimplePolygon<T>
         };
 
         // Make sure the polygon is oriented the same way as before.
+        // TODO: Could be done more efficiently if the magnification/mirroring of the transformation is known.
         if new.orientation() != self.orientation() {
             new.points.reverse()
         }
