@@ -456,9 +456,16 @@ impl<T> MapPointwise<T> for SimplePolygon<T>
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         let points = self.points.iter().map(|&p| tf(p)).collect();
 
-        SimplePolygon {
+        let mut new = SimplePolygon {
             points
+        };
+
+        // Make sure the polygon is oriented the same way as before.
+        if new.orientation() != self.orientation() {
+            new.points.reverse()
         }
+
+        new
     }
 }
 
