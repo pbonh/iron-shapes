@@ -27,6 +27,7 @@ pub use crate::edge_integer::*;
 pub use crate::edge_rational::*;
 pub use crate::rect::*;
 pub use crate::polygon::*;
+pub use crate::point_string::*;
 pub use crate::simple_polygon::*;
 pub use crate::simple_rpolygon::*;
 pub use crate::multi_polygon::*;
