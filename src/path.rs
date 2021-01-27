@@ -164,15 +164,16 @@ impl<T: CoordinateType + NumCast> Path<T> {
     ///
     /// ```rust
     /// use iron_shapes::prelude::*;
-    /// let path = Path::new(&[(0, 0), (10, 0), (10, 20)], 2);
+    /// let path = Path::new(&[(0, 0), (10, 0), (10, 20)], 4);
     /// let polygon = path.to_polygon_approx();
-    /// assert_eq!(polygon, SimplePolygon::from(&[(0., 1.), (0., -1.), (11., -1.), (11., 20.), (9., 20.), (9., 1.)]));
+    /// assert_eq!(polygon, SimplePolygon::from(&[(0., 2.), (0., -2.), (12., -2.), (12., 20.), (8., 20.), (8., 2.)]));
     /// ```
     pub fn to_polygon_approx(&self) -> SimplePolygon<f64> {
         let mut points_forward: Vec<Point<f64>> = Vec::new();
         let mut points_backward: Vec<Point<f64>> = Vec::new();
 
         let edges: Vec<Edge<f64>> = self.points.edges()
+            .filter(|e| e.start != e.end) // Skip zero-length edges.
             .map(|e| e.cast_to_float()).collect();
 
 
@@ -185,13 +186,13 @@ impl<T: CoordinateType + NumCast> Path<T> {
             if extension == 0. {
                 let p1 = p - n * w_half;
                 let p2 = p + n * w_half;
-                vec![p1.into(), p2]
+                vec![p1, p2]
             } else {
                 let p1 = p - n * w_half;
-                let p2 = p1 + d * extension;
                 let p4 = p + n * w_half;
+                let p2 = p1 + d * extension;
                 let p3 = p4 + d * extension;
-                vec![p1.into(), p2.into(), p3, p4]
+                vec![p1, p2, p3, p4]
             }
         };
 
@@ -208,6 +209,7 @@ impl<T: CoordinateType + NumCast> Path<T> {
 
         // Path width.
         let width = NumCast::from(self.width).unwrap();
+        let half_width = width * 0.5;
 
         // Create caps.
         let start_cap = edges.first()
@@ -217,9 +219,9 @@ impl<T: CoordinateType + NumCast> Path<T> {
             .map(|e| create_flat_cap(*e, width, end_ext))
             .unwrap_or_else(|| Vec::new());
 
-        // Pre-compute normals.
+        // Pre-compute normals (scaled by half the width).
         let normals: Vec<Vector<f64>> = edges.iter()
-            .map(|e| e.vector().normal())
+            .map(|e| e.vector().normal() * half_width)
             .collect();
 
         let edge_pairs = edges.iter().zip(edges.iter().skip(1));
