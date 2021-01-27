@@ -33,7 +33,6 @@ use crate::types::*;
 use std::cmp::{Ord, PartialEq};
 use num_traits::NumCast;
 use crate::traits::TryCastCoord;
-use itertools::Itertools;
 use crate::simple_polygon::SimplePolygon;
 use crate::redge::{REdge, REdgeOrientation};
 
@@ -604,16 +603,11 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     type Output = SimpleRPolygon<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        let new_half_points: Vec<_> = self.half_points.iter()
+        let new_half_points: Option<Vec<_>> = self.half_points.iter()
             .map(|&p| Dst::from(p))
-            .while_some()
             .collect();
-        if new_half_points.len() == self.half_points.len() {
-            Some(SimpleRPolygon { half_points: new_half_points })
-        } else {
-            // Some points could not be casted.
-            None
-        }
+
+        new_half_points.map(|p| SimpleRPolygon { half_points: p })
     }
 }
 
