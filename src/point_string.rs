@@ -33,7 +33,6 @@ use std::iter::FromIterator;
 use std::slice::Iter;
 
 use num_traits::{Float, NumCast};
-use itertools::Itertools;
 
 /// A point string is a finite sequence of points.
 /// TODO: Implement `Deref` for accessing the list of points.
@@ -127,16 +126,11 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     type Output = PointString<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        let new_points: Vec<_> = self.points.iter()
+        let new_points: Option<Vec<_>> = self.points.iter()
             .map(|p| p.try_cast())
-            .while_some()
             .collect();
-        if new_points.len() == self.points.len() {
-            Some(PointString::new(new_points))
-        } else {
-            // Some points could not be casted.
-            None
-        }
+
+        new_points.map(|p| PointString::new(p))
     }
 }
 
