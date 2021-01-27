@@ -68,8 +68,17 @@ macro_rules! simple_polygon {
 impl<T: CoordinateType> SimplePolygon<T> {
 
     /// Create a new polygon from a list of points.
+    ///
+    /// The orientation of the points is normalized to counter-clock-wise.
     pub fn new(points: Vec<Point<T>>) -> Self {
-             Self::new_raw(points)
+        let mut new = Self::new_raw(points);
+
+        // Normalize orientation.
+        if new.orientation() != Orientation::CounterClockWise {
+            new.points.reverse();
+        }
+
+        new
     }
 
     /// Create a new polygon from a list of points.
