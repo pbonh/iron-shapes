@@ -35,7 +35,6 @@ use std::cmp::{Ord, PartialEq};
 use std::slice::Iter;
 use num_traits::NumCast;
 use crate::traits::TryCastCoord;
-use itertools::Itertools;
 
 /// A `SimplePolygon` is a polygon defined by vertices. It does not contain holes but can be
 /// self-intersecting.
@@ -544,16 +543,11 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     type Output = SimplePolygon<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        let new_points: Vec<_> = self.points.iter()
+        let new_points: Option<Vec<_>> = self.points.iter()
             .map(|p| p.try_cast())
-            .while_some()
             .collect();
-        if new_points.len() == self.points.len() {
-            Some(SimplePolygon::new_raw(new_points))
-        } else {
-            // Some points could not be casted.
-            None
-        }
+
+        new_points.map(|p| SimplePolygon::new_raw(p))
     }
 }
 
