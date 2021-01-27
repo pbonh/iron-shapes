@@ -549,7 +549,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
             .while_some()
             .collect();
         if new_points.len() == self.points.len() {
-            Some(SimplePolygon::new(new_points))
+            Some(SimplePolygon::new_raw(new_points))
         } else {
             // Some points could not be casted.
             None
