@@ -126,7 +126,7 @@ impl<T: CoordinateType> Edge<T> {
     }
 
     /// Test if this edge is either horizontal or vertical.
-    pub fn is_ortho(&self) -> bool {
+    pub fn is_rectilinear(&self) -> bool {
         !self.is_degenerate() &&
             (self.start.x == self.end.x || self.start.y == self.end.y)
     }
@@ -1013,8 +1013,8 @@ mod tests {
         // Bounding boxes overlap but edges are not touching.
         let e1 = Edge::new((0, 0), (8, 8));
         let e2 = Edge::new((4, 0), (3, 1));
-        assert!(!e1.is_ortho());
-        assert!(!e2.is_ortho());
+        assert!(!e1.is_rectilinear());
+        assert!(!e2.is_rectilinear());
         assert!(e1.bounding_box().touches(&e2.bounding_box()));
         assert!(!e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.lines_intersect(&e2));

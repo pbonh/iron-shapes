@@ -265,6 +265,18 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
+    /// Get a vector of unit length pointing in the same direction as the edge.
+    /// Returns `None` if the length of the edge is zero.
+    pub fn direction(&self) -> Option<Vector<T>> {
+        let v = self.vector();
+        let length = v.norm1();
+        if length > T::zero() {
+            Some(v / length)
+        } else {
+            None
+        }
+    }
+
     /// Tells on which side of the edge a point is.
     ///
     /// # Panics
