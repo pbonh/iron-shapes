@@ -30,6 +30,7 @@ use num_traits::Zero;
 /// The offsets are computed as `(i*a, j*b)` for `i` in `0..n` and `j` in `0..m`.
 /// `a` and `b` the distance vectors between two neighbouring points.
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RegularRepetition<T>
     where T: CoordinateType {
     /// First lattice vector.
@@ -94,6 +95,7 @@ impl<T> RegularRepetition<T>
 
 /// Describe a non-equispaced repetition by storing a list of offsets.
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct IrregularRepetition<T>
     where T: CoordinateType {
     /// Offset vectors of the repetition.
@@ -121,6 +123,7 @@ impl<T> IrregularRepetition<T>
 
 /// Describe the regular or irregular repetition of a geometrical object.
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Repetition<T>
     where T: CoordinateType {
     /// Lattice based repetition.
