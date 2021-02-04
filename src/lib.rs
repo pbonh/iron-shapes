@@ -60,3 +60,4 @@ pub mod shape;
 pub mod text;
 pub mod transform;
 pub mod redge;
+pub mod repetition;
