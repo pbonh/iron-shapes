@@ -234,12 +234,20 @@ impl<T: CoordinateType> SimplePolygon<T> {
     ///
     /// ```
     pub fn edges(&self) -> Vec<Edge<T>> {
+        self.edges_iter().collect()
+    }
+
+    /// Iterate over all edges.
+    fn edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
         self.iter()
             .zip(self.iter_cycle().skip(1))
             .map(|(a, b)| Edge::new(a, b))
-            .collect()
     }
 
+    /// Test if all edges are parallel to the x or y axis.
+    pub fn is_rectilinear(&self) -> bool {
+        self.edges_iter().all(|e| e.is_rectilinear())
+    }
 
     /// Get the vertex with lowest x-coordinate. Prefer lower y-coordinates to break ties.
     ///
