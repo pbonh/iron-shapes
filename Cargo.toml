@@ -10,6 +10,7 @@ repository = "https://codeberg.org/libreda/iron-shapes"
 
 [dependencies]
 num-traits = "0.2"
+num-integer = "0.1"
 num-rational = "0.2"
 itertools = "0.10.0"
 serde = { version = "1", optional = true, features = ["derive"] }
