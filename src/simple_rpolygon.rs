@@ -512,8 +512,8 @@ impl<T> TryBoundingBox<T> for SimpleRPolygon<T>
             let mut ymin = ymax;
             self.half_points.chunks(2)
                 .for_each(|c| {
-                    let x = c[0];
-                    let y = c[1];
+                    let x = c[1];
+                    let y = c[0];
                     if x > xmax { xmax = x };
                     if x < xmin { xmin = x };
                     if y > ymax { ymax = y };
@@ -644,6 +644,6 @@ fn test_partial_eq() {
 /// Simple sanity check for computation of bounding box.
 #[test]
 fn test_bounding_box() {
-    let p = simple_rpolygon!((0, 0), (0, 1), (1, 1), (1, 0));
-    assert_eq!(p.try_bounding_box(), Some(Rect::new((0, 0), (1, 1))));
+    let p = simple_rpolygon!((0, 1), (2, 1), (2, 3), (0, 3));
+    assert_eq!(p.try_bounding_box(), Some(Rect::new((0, 1), (2, 3))));
 }
