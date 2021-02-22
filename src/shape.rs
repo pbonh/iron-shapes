@@ -54,7 +54,7 @@ impl<T: CoordinateType> Geometry<T> {
             Geometry::Rect(g) => g.transform(trans).into(),
             Geometry::SimplePolygon(g) => g.transform(trans).into(),
             Geometry::Polygon(g) => g.transform(trans).into(),
-            Geometry::Path(p) => unimplemented!(),
+            Geometry::Path(p) => p.transform(tf).into(),
             Geometry::Text(g) => g.transform(trans).into(),
         }
     }
@@ -95,21 +95,21 @@ impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
     }
 }
 
-impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
-    /// Point wise transformation.
-    fn transform<F>(&self, transformation: F) -> Self
-        where F: Fn(Point<T>) -> Point<T> {
-        match self {
-            Geometry::Point(e) => e.transform(transformation).into(),
-            Geometry::Edge(e) => e.transform(transformation).into(),
-            Geometry::Rect(e) => e.transform(transformation).into(),
-            Geometry::SimplePolygon(e) => e.transform(transformation).into(),
-            Geometry::Polygon(e) => e.transform(transformation).into(),
-            Geometry::Path(p) => unimplemented!(),
-            Geometry::Text(t) => t.transform(transformation).into(),
-        }
-    }
-}
+// impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
+//     /// Point wise transformation.
+//     fn transform<F>(&self, transformation: F) -> Self
+//         where F: Fn(Point<T>) -> Point<T> {
+//         match self {
+//             Geometry::Point(e) => e.transform(transformation).into(),
+//             Geometry::Edge(e) => e.transform(transformation).into(),
+//             Geometry::Rect(e) => e.transform(transformation).into(),
+//             Geometry::SimplePolygon(e) => e.transform(transformation).into(),
+//             Geometry::Polygon(e) => e.transform(transformation).into(),
+//             Geometry::Path(p) => unimplemented!(),
+//             Geometry::Text(t) => t.transform(transformation).into(),
+//         }
+//     }
+// }
 
 impl<T: CoordinateType + NumCast> DoubledOrientedArea<T> for Geometry<T> {
     /// Area calculation.
@@ -131,8 +131,11 @@ impl<T: CoordinateType + NumCast> DoubledOrientedArea<T> for Geometry<T> {
     }
 }
 
-impl<T: CoordinateType> ToPolygon<T> for Geometry<T> {
+impl<T: CoordinateType + NumCast> ToPolygon<T> for Geometry<T> {
     /// Convert a geometry into a polygon.
+    ///
+    /// The coordinate type must implement `NumCast` because there is currently
+    /// no way to convert a `Path` into a polygon without converting it to a float type first.
     ///
     /// # Examples
     /// ```
@@ -149,13 +152,13 @@ impl<T: CoordinateType> ToPolygon<T> for Geometry<T> {
             Geometry::Rect(e) => e.to_polygon(),
             Geometry::SimplePolygon(e) => Polygon::from(e),
             Geometry::Polygon(e) => e.clone(),
-            Geometry::Path(p) => unimplemented!(),
+            Geometry::Path(p) => p.to_polygon_approx().cast().into(),
             Geometry::Text(_) => Polygon::empty(),
         }
     }
 }
 
-impl<T: CoordinateType> Into<Polygon<T>> for Geometry<T> {
+impl<T: CoordinateType + NumCast> Into<Polygon<T>> for Geometry<T> {
     /// Convert a geometry into a polygon.
     fn into(self) -> Polygon<T> {
         self.to_polygon()

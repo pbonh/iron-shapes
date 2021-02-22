@@ -1,10 +1,10 @@
 [package]
 name = "iron-shapes"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Thomas Kramer <code@tkramer.ch>"]
 edition = "2018"
 license = "AGPLv3"
-description = "Basic data types and routines for computational geometry."
+description = "Basic data types and routines for computational geometry focused on VLSI chip design."
 readme = "README.md"
 repository = "https://codeberg.org/libreda/iron-shapes"
 

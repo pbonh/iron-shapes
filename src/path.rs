@@ -27,7 +27,7 @@ use crate::point_string::PointString;
 
 use crate::CoordinateType;
 
-use crate::traits::{Scale, Translate, TryBoundingBox};
+use crate::traits::{Scale, Translate, TryBoundingBox, MapPointwise};
 pub use crate::traits::{BoundingBox, RotateOrtho};
 pub use crate::types::Angle;
 
@@ -38,6 +38,7 @@ use crate::simple_polygon::SimplePolygon;
 use std::iter::FromIterator;
 use crate::edge::*;
 use crate::rect::Rect;
+use crate::transform::SimpleTransform;
 
 /// Encoding for the type of the beginning and end of the path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -119,11 +120,20 @@ impl<T: CoordinateType> Path<T> {
     }
 
     /// Rotate the path by a multiple of 90 degrees around the origin `(0, 0)`.
-    pub fn rothate_ortho(&self, angle: Angle) -> Self {
+    pub fn rotate_ortho(&self, angle: Angle) -> Self {
         Path {
             points: self.points.rotate_ortho(angle),
             width: self.width,
             path_type: self.path_type,
+        }
+    }
+
+    /// Get the transformed version of this path by applying `tf`.
+    pub fn transform(&self, tf: &SimpleTransform<T>) -> Self {
+        Self {
+            points: self.points.transform(|p| tf.transform_point(p)),
+            width: tf.transform_distance(self.width),
+            path_type: self.path_type
         }
     }
 }

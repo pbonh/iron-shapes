@@ -394,6 +394,38 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
             x => x + 1
         }
     }
+
+    // TODO:
+    // /// Decompose into non-overlapping rectangles.
+    // pub fn decompose_rectangles(&self) -> Vec<Rect<T>> {
+    //     // Get vertical edges and order them by their lower end.
+    //     struct Vertical {
+    //         x: T,
+    //         y_low: T,
+    //         y_high: T,
+    //     }
+    //     impl Ord for Vertical {
+    //         fn cmp(&self, other: &Self) -> Ordering {
+    //
+    //         }
+    //     }
+    //     let mut verticals = BinaryHeap::new();
+    //     self.edges().filter(|e| e.is_vertical())
+    //         .for_each(|e| {
+    //             let (y_low, y_high) = if e.start < e.end {
+    //                 (e.start, e.end)
+    //             } else {
+    //                 (e.end, e.start)
+    //             };
+    //             let v = Vertical {
+    //                 x: e.offset,
+    //                 y_low,
+    //                 y_high,
+    //             };
+    //             verticals.push(v);
+    //         });
+    //     unimplemented!()
+    // }
 }
 
 impl<T> WindingNumber<T> for SimpleRPolygon<T>
