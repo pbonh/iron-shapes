@@ -105,6 +105,14 @@ impl<T: CoordinateType> Rect<T> {
         Point::new(self.upper_right.x, self.lower_left.y)
     }
 
+    /// Get the center point of the rectangle.
+    /// When using integer coordinates the resulting
+    /// coordinates will be truncated to the next integers.
+    pub fn center(&self) -> Point<T> {
+        let _2 = T::one() + T::one();
+        (self.lower_left() + self.lower_right()) /  _2
+    }
+
     /// Compute the width of the rectangle.
     #[inline]
     pub fn width(&self) -> T {
