@@ -285,6 +285,14 @@ impl<T: CoordinateType> Rect<T> {
         self.add_point(rect.lower_left)
             .add_point(rect.upper_right)
     }
+
+    /// Create an enlarged copy of this rectangle.
+    /// The vertical boundaries will be shifted towards the outside by `add_x`.
+    /// The horizontal boundaries will be shifted towards the outside by `add_y`.
+    pub fn sized(&self, add_x: T, add_y: T) -> Self {
+        Rect::new((self.lower_left.x - add_x, self.lower_left.x - add_y),
+                  (self.upper_right.x + add_x, self.upper_right.y + add_y))
+    }
 }
 
 impl<T: CoordinateType> DoubledOrientedArea<T> for Rect<T> {
