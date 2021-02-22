@@ -5,8 +5,11 @@ authors = ["Thomas Kramer <code@tkramer.ch>"]
 edition = "2018"
 license = "AGPLv3"
 description = "Basic data types and routines for computational geometry focused on VLSI chip design."
+keywords = ["geometry", "euclidean", "vlsi"]
+categories = ["graphics"]
 readme = "README.md"
 repository = "https://codeberg.org/libreda/iron-shapes"
+homepage = "https://codeberg.org/libreda/iron-shapes"
 
 [dependencies]
 num-traits = "0.2"
