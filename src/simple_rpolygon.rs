@@ -378,6 +378,16 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         }
     }
 
+    /// Create a copy of this polygon whose vertices are ordered in reversed order.
+    pub fn reversed(&self) -> Self {
+        let mut half_points = self.half_points.clone();
+        half_points.reverse();
+        half_points.rotate_right(1);
+        Self {
+            half_points
+        }
+    }
+
 
     /// Get index of previous half-point.
     fn prev(&self, i: usize) -> usize {
@@ -678,4 +688,13 @@ fn test_partial_eq() {
 fn test_bounding_box() {
     let p = simple_rpolygon!((0, 1), (2, 1), (2, 3), (0, 3));
     assert_eq!(p.try_bounding_box(), Some(Rect::new((0, 1), (2, 3))));
+}
+
+#[test]
+fn test_reversed() {
+    let p = simple_rpolygon!((0, 0), (1, 0), (1, 1), (2, 1), (2, 2), (0, 2));
+    let p_rev_expected = simple_rpolygon!((0, 2), (2, 2), (2, 1), (1, 1), (1, 0), (0, 0));
+    let p_rev_actual = p.reversed();
+    assert_eq!(p_rev_actual, p_rev_expected);
+    assert_eq!(p.reversed().reversed().half_points, p.half_points)
 }
