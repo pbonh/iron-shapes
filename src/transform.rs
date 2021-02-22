@@ -184,6 +184,52 @@ impl<T: CoordinateType> SimpleTransform<T> {
         }
     }
 
+    /// Get the identity transform.
+    pub fn identity() -> Self {
+        Self::translate(Vector::zero())
+    }
+
+    /// Create a translation by a vector.
+    pub fn translate<V: Into<Vector<T>>>(v: V) -> Self {
+        let t = v.into();
+        Self::new(
+            false, Angle::R0,
+            T::one(), t,
+        )
+    }
+
+    /// Create a rotation by an integer multiple of 90 degrees.
+    pub fn rotate90(angle: Angle) -> Self {
+        Self::new(
+            false, angle,
+            T::one(), Vector::zero(),
+        )
+    }
+
+    /// Create a scaling by a factor.
+    pub fn scale(factor: T) -> Self {
+        Self::new(
+            false, Angle::R0,
+            factor, Vector::zero(),
+        )
+    }
+
+    /// Create a transformation that mirrors at the x-axis.
+    pub fn mirror_x() -> Self {
+        Self::new(
+            true, Angle::R0,
+            T::one(), Vector::zero(),
+        )
+    }
+
+    /// Create a transformation that mirrors at the y-axis.
+    pub fn mirror_y() -> Self {
+        Self::new(
+            true, Angle::R180,
+            T::one(), Vector::zero(),
+        )
+    }
+
     /// Transform a distance.
     pub fn transform_distance(&self, d: T) -> T {
         d * self.magnification
