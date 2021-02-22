@@ -378,14 +378,17 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         }
     }
 
+    /// Reverse the order of the vertices in-place.
+    pub fn reverse(&mut self) {
+        self.half_points.reverse();
+        self.half_points.rotate_right(1);
+    }
+
     /// Create a copy of this polygon whose vertices are ordered in reversed order.
     pub fn reversed(&self) -> Self {
-        let mut half_points = self.half_points.clone();
-        half_points.reverse();
-        half_points.rotate_right(1);
-        Self {
-            half_points
-        }
+        let mut result = self.clone();
+        result.reverse();
+        result
     }
 
 
