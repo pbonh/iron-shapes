@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! `Path` is essentially a chain of line segments but with a possibly a non-zero width.
+//! `Path` is essentially a chain of line segments but with a possibly non-zero width.
 //! It can be thought of the shape resulting by a stroke of a thick pen along the line segments.
 
 use crate::vector::Vector;
