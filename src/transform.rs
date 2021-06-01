@@ -160,7 +160,7 @@ impl Rot90Transform {
 /// Describes a geometric transformation that consists of a optional mirroring along the x-axis
 /// followed by a rotation by a multiple of 90 degrees
 /// followed by a displacement.
-#[derive(Clone, Default, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimpleTransform<T: CoordinateType> {
     /// Mirror on the x-axis?
@@ -171,6 +171,12 @@ pub struct SimpleTransform<T: CoordinateType> {
     pub magnification: T,
     /// Translation.
     pub displacement: Vector<T>,
+}
+
+impl<T: CoordinateType> Default for SimpleTransform<T> {
+    fn default() -> Self {
+        SimpleTransform::identity()
+    }
 }
 
 impl<T: CoordinateType> SimpleTransform<T> {
