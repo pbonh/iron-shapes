@@ -296,16 +296,18 @@ impl<T: CoordinateType> Edge<T> {
             let a = other.start - self.start;
             let b = other.end - self.start;
 
-            if v.x.is_zero() {
-                // Both vertical.
-                a.x.is_zero() && b.x.is_zero()
-            } else if v.y.is_zero() {
-                // Both horizontal.
-                a.y.is_zero() && b.y.is_zero()
-            } else if a.x.is_zero() || b.x.is_zero() {
-                false
-            } else if a.y.is_zero() || b.y.is_zero() {
-                false
+            if self.start.x == self.end.x {
+                // Self is vertical.
+                // The edges are collinear iff `other` has the same x coordinates as `self`.
+                other.start.x == self.start.x && other.end.x == self.start.x
+            } else if self.start.y == self.end.y {
+                // `self` is horizontal
+                other.start.y == self.start.y && other.end.y == self.start.y
+            } else if other.start.x == other.end.x {
+                self.start.x == other.start.x && self.end.x == other.start.x
+            } else if other.start.y == other.end.y {
+                // `other` is horizontal
+                self.start.y == other.start.y && self.end.y == other.start.y
             } else {
                 v.cross_prod(a).is_zero() &&
                     v.cross_prod(b).is_zero()
