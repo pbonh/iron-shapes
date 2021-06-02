@@ -21,12 +21,14 @@
 
 use crate::point::Point;
 pub use crate::edge::{Edge, EdgeIntersection, LineIntersection};
+use crate::redge::{REdge, REdgeIntersection};
 
 use crate::CoordinateType;
 
 use num_traits::{PrimInt, Zero};
 use crate::traits::BoundingBox;
 use std::fmt::Debug;
+use std::convert::TryFrom;
 
 impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
     /// Compute the intersection point of the lines defined by the two edges.
@@ -69,6 +71,41 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
             // because the degenerate cases are handled before.
             debug_assert!(!ab.is_zero());
             debug_assert!(!cd.is_zero());
+
+            // if ab.x.is_zero() {
+            //     // Self is vertical.
+            //     if cd.y.is_zero() {
+            //         // Lines are orthogonal.
+            //         // Get intersection point.
+            //         let p = Point::new(self.start.x, other.start.y);
+            //         unimplemented!()
+            //         // TODO:
+            //     } else if cd.x.is_zero() {
+            //         // Lines are parallel.
+            //         return if self.x == other.x {
+            //             // Lines are collinear.
+            //             LineIntersection::Collinear
+            //         } else {
+            //             LineIntersection::None
+            //         }
+            //     }
+            // } else if ab.y.is_zero() {
+            //     if cd.x.is_zero() {
+            //         // Lines are orthogonal.
+            //         // Get intersection point.
+            //         let p = Point::new(other.start.x, start.start.y);
+            //         unimplemented!()
+            //         // TODO:
+            //     } else if cd.y.is_zero() {
+            //         // Lines are parallel.
+            //         return if self.y == other.y {
+            //             // Lines are collinear.
+            //             LineIntersection::Collinear
+            //         } else {
+            //             LineIntersection::None
+            //         }
+            //     }
+            // }
 
             let s = ab.cross_prod(cd);
 
@@ -135,6 +172,18 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
         };
         debug_assert_eq!(self.start < self.end, other.start < other.end,
                          "Edges should have the same orientation now.");
+
+        // Try to convert the edges into rectilinear edges.
+        if let Ok(a) = REdge::try_from(self) {
+            if let Ok(b) = REdge::try_from(&other) {
+                return match a.edge_intersection(&b) {
+                    REdgeIntersection::None => EdgeIntersection::None,
+                    REdgeIntersection::EndPoint(p) => EdgeIntersection::EndPoint(p),
+                    REdgeIntersection::Point(p) => EdgeIntersection::Point(p),
+                    REdgeIntersection::Overlap(e) => EdgeIntersection::Overlap(e.into()),
+                }
+            }
+        }
 
         // Check endpoints for coincidence.
         // This must be handled separately because equality of the intersection point and endpoints

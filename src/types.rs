@@ -116,6 +116,15 @@ impl Side {
     pub fn is_center(&self) -> bool {
         *self == Side::Center
     }
+
+    /// Get the other side.
+    pub fn other(&self) -> Self {
+        match self {
+            Side::Left => Side::Right,
+            Side::Center => Side::Center,
+            Side::Right => Side::Left
+        }
+    }
 }
 
 /// Relative orientation of two geometrical objects such as vectors.

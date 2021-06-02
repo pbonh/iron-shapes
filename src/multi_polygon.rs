@@ -31,7 +31,7 @@ use std::iter::FromIterator;
 
 /// A `MultiPolygon` is a list of polygons. There is no restrictions on the polygons (they can be
 /// intersecting, empty, etc.).
-#[derive(Clone, Debug, Hash)]
+#[derive(Default, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MultiPolygon<T>
     where T: CoordinateType {
@@ -41,8 +41,15 @@ pub struct MultiPolygon<T>
 
 impl<T: CoordinateType> MultiPolygon<T> {
 
+    /// Create an empty set of polygons.
+    pub fn new() -> Self {
+        Self {
+            polygons: vec![]
+        }
+    }
+
     /// Create a `MultiPolygon` from a vector of `Polygon`s.
-    pub fn new(polygons: Vec<Polygon<T>>) -> Self {
+    pub fn from_polygons(polygons: Vec<Polygon<T>>) -> Self {
         MultiPolygon {
             polygons
         }
@@ -51,6 +58,11 @@ impl<T: CoordinateType> MultiPolygon<T> {
     /// Return the number of polygons.
     pub fn len(&self) -> usize {
         self.polygons.len()
+    }
+
+    /// Insert a polygon into the region.
+    pub fn insert(&mut self, polygon: Polygon<T>) {
+        self.polygons.push(polygon)
     }
 }
 
@@ -67,7 +79,7 @@ impl<T> WindingNumber<T> for MultiPolygon<T>
 impl<T> MapPointwise<T> for MultiPolygon<T>
     where T: CoordinateType {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
-        MultiPolygon::new(
+        MultiPolygon::from_polygons(
             self.polygons.iter()
                 .map(|p| p.transform(&tf))
                 .collect()
@@ -77,14 +89,22 @@ impl<T> MapPointwise<T> for MultiPolygon<T>
 
 impl<T: CoordinateType, IP: Into<Polygon<T>>> From<IP> for MultiPolygon<T> {
     fn from(x: IP) -> Self {
-        MultiPolygon::new(vec![x.into()])
+        MultiPolygon::from_polygons(vec![x.into()])
+    }
+}
+
+impl<T: CoordinateType> From<Vec<Polygon<T>>> for MultiPolygon<T> {
+    fn from(polygons: Vec<Polygon<T>>) -> Self {
+        MultiPolygon {
+            polygons
+        }
     }
 }
 
 
 impl<T: CoordinateType, IP: Into<Polygon<T>>> FromIterator<IP> for MultiPolygon<T> {
     fn from_iter<I: IntoIterator<Item=IP>>(iter: I) -> Self {
-        MultiPolygon::new(
+        MultiPolygon::from_polygons(
             iter.into_iter()
                 .map(|p| p.into()).collect()
         )

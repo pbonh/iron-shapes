@@ -86,6 +86,13 @@ impl<T: CoordinateType> Into<Edge<T>> for &REdge<T> {
     }
 }
 
+impl<T: CoordinateType> Into<Edge<T>> for REdge<T> {
+    fn into(self) -> Edge<T> {
+        Edge::new(self.start(), self.end())
+    }
+}
+
+
 impl<T: CoordinateType> TryFrom<&Edge<T>> for REdge<T> {
     type Error = ();
 

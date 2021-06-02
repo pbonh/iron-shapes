@@ -163,6 +163,43 @@ impl<T: CoordinateType> Edge<T> {
         let a = self.vector();
         let b = point - self.start;
 
+        // Handle rectilinear cases.
+        if a.x.is_zero() {
+            let side =  if point.x < self.start.x {
+                Side::Left
+            } else if point.x > self.start.x {
+                Side::Right
+            } else {
+                Side::Center
+            };
+
+            // Maybe flip the side depending on the orientation of the edge.
+            let side = if self.start.y < self.end.y {
+                side
+            } else {
+                side.other()
+            };
+
+            return side
+        } else if a.y.is_zero() {
+            let side =  if point.y < self.start.y {
+                Side::Right
+            } else if point.y > self.start.y {
+                Side::Left
+            } else {
+                Side::Center
+            };
+
+            // Maybe flip the side depending on the orientation of the edge.
+            let side = if self.start.x < self.end.x {
+                side
+            } else {
+                side.other()
+            };
+
+            return side
+        }
+
         let area = b.cross_prod(a);
 
         if area.is_zero() {
@@ -232,7 +269,19 @@ impl<T: CoordinateType> Edge<T> {
             let a = self.vector();
             let b = other.vector();
 
-            a.cross_prod(b).is_zero()
+            if a.x.is_zero() {
+                // Both vertical?
+                b.x.is_zero()
+            } else if a.y.is_zero() {
+                // Both horizontal?
+                b.y.is_zero()
+            } else if b.x.is_zero() {
+                false
+            } else if b.y.is_zero() {
+                false
+            } else {
+                a.cross_prod(b).is_zero()
+            }
         }
     }
 
@@ -247,8 +296,20 @@ impl<T: CoordinateType> Edge<T> {
             let a = other.start - self.start;
             let b = other.end - self.start;
 
-            v.cross_prod(a).is_zero() &&
-                v.cross_prod(b).is_zero()
+            if v.x.is_zero() {
+                // Both vertical.
+                a.x.is_zero() && b.x.is_zero()
+            } else if v.y.is_zero() {
+                // Both horizontal.
+                a.y.is_zero() && b.y.is_zero()
+            } else if a.x.is_zero() || b.x.is_zero() {
+                false
+            } else if a.y.is_zero() || b.y.is_zero() {
+                false
+            } else {
+                v.cross_prod(a).is_zero() &&
+                    v.cross_prod(b).is_zero()
+            }
         }
     }
 
