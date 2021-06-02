@@ -176,9 +176,13 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
         // Try to convert the edges into rectilinear edges.
         if let Ok(a) = REdge::try_from(self) {
             if let Ok(b) = REdge::try_from(&other) {
+
                 return match a.edge_intersection(&b) {
                     REdgeIntersection::None => EdgeIntersection::None,
-                    REdgeIntersection::EndPoint(p) => EdgeIntersection::EndPoint(p),
+                    REdgeIntersection::EndPoint(p) => {
+                        debug_assert!(p == a.start() || p == a.end() || p == b.start() || p == b.end());
+                        EdgeIntersection::EndPoint(p)
+                    },
                     REdgeIntersection::Point(p) => EdgeIntersection::Point(p),
                     REdgeIntersection::Overlap(e) => EdgeIntersection::Overlap(e.into()),
                 }

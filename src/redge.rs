@@ -553,6 +553,8 @@ impl<T: CoordinateType> REdge<T> {
                             REdgeOrientation::Vertical => Point::new(self.offset, s),
                             REdgeOrientation::Horizontal => Point::new(s, self.offset),
                         };
+                        debug_assert!(p == self.start() || p == self.end() || p == other.start() || p == other.end(),
+                                        "`p` must be an end point.");
                         REdgeIntersection::EndPoint(p)
                     }
                 } else {
@@ -572,8 +574,10 @@ impl<T: CoordinateType> REdge<T> {
                     (vertical.end <= p.y && p.y <= vertical.start);
                 if is_on_horizontal && is_on_vertical {
                     let is_endpoint_horizontal = p.x == horizontal.start || p.x == horizontal.end;
-                    let is_endpoint_vertical = p.y == vertical.start || p.x == vertical.end;
+                    let is_endpoint_vertical = p.y == vertical.start || p.y == vertical.end;
                     if is_endpoint_horizontal || is_endpoint_vertical {
+                        debug_assert!(p == self.start() || p == self.end() || p == other.start() || p == other.end(),
+                                      "`p` must be an end point.");
                         REdgeIntersection::EndPoint(p)
                     } else {
                         REdgeIntersection::Point(p)
