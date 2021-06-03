@@ -290,7 +290,7 @@ impl<T: CoordinateType> Rect<T> {
     /// The vertical boundaries will be shifted towards the outside by `add_x`.
     /// The horizontal boundaries will be shifted towards the outside by `add_y`.
     pub fn sized(&self, add_x: T, add_y: T) -> Self {
-        Rect::new((self.lower_left.x - add_x, self.lower_left.x - add_y),
+        Rect::new((self.lower_left.x - add_x, self.lower_left.y - add_y),
                   (self.upper_right.x + add_x, self.upper_right.y + add_y))
     }
 }
