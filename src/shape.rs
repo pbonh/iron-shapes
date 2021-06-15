@@ -84,7 +84,7 @@ impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
     /// Calculate the bounding box of this geometrical shape by calling the bounding box method of the concrete type.
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         match self {
-            Geometry::Point(p) => Some(Rect::new(p, p)),
+            Geometry::Point(p) => p.try_bounding_box(),
             Geometry::Edge(e) => e.try_bounding_box(),
             Geometry::Rect(e) => e.try_bounding_box(),
             Geometry::SimplePolygon(e) => e.try_bounding_box(),
@@ -94,6 +94,7 @@ impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
         }
     }
 }
+
 
 // impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
 //     /// Point wise transformation.

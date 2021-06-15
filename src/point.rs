@@ -21,7 +21,7 @@
 //! Points represent a location in the two dimensional plane by an `x` and `y` coordinate.
 
 use crate::vector::Vector;
-use crate::traits::{MapPointwise, TryCastCoord};
+use crate::traits::{MapPointwise, TryCastCoord, BoundingBox, TryBoundingBox};
 use crate::CoordinateType;
 
 
@@ -32,6 +32,7 @@ use num_traits::{Float, NumCast};
 pub use num_traits::Zero;
 use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add};
 pub use std::ops::Deref;
+use crate::prelude::Rect;
 
 /// Shorthand notation for creating a point.
 ///
@@ -448,5 +449,17 @@ impl<T: CoordinateType> std::iter::Sum for Point<T> {
     /// If the iterator is empty, (0, 0) is returned.
     fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
         iter.fold(Self::zero(), |acc, p| acc + p)
+    }
+}
+
+impl<T: CoordinateType> BoundingBox<T> for Point<T> {
+    fn bounding_box(&self) -> Rect<T> {
+        Rect::new(self, self)
+    }
+}
+
+impl<T: CoordinateType> TryBoundingBox<T> for Point<T> {
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        Some(Rect::new(self, self))
     }
 }
