@@ -281,14 +281,14 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
 mod tests {
     use super::*;
     use crate::traits::Scale;
-    use num_rational::Rational;
+    use num_rational::Rational64;
 
     #[test]
     fn test_rational_edge() {
-        let e = Edge::new((Rational::from(0), Rational::from(0)),
-                          (Rational::from(1), Rational::from(1)));
+        let e = Edge::new((Rational64::from(0), Rational64::from(0)),
+                          (Rational64::from(1), Rational64::from(1)));
         let v = e.vector();
-        assert!(v.norm2_squared() == Rational::from(2));
+        assert!(v.norm2_squared() == Rational64::from(2));
         assert!(!e.is_degenerate());
     }
 
@@ -296,9 +296,9 @@ mod tests {
     #[test]
     fn test_line_intersection_rational() {
         // Helper constructors.
-        let rp = |a: isize, b: isize| Point::new(Rational::from(a), Rational::from(b));
-        let r = |a: isize, b: isize| Rational::new(a, b);
-        let i = |a: isize| Rational::from(a);
+        let rp = |a: i64, b: i64| Point::new(Rational64::from(a), Rational64::from(b));
+        let r = |a: i64, b: i64| Rational64::new(a, b);
+        let i = |a: i64| Rational64::from(a);
 
         let e1 = Edge::new(rp(0, 0), rp(2, 2));
         let e2 = Edge::new(rp(1, 0), rp(0, 1));
@@ -331,7 +331,7 @@ mod tests {
         }
 
         // Collinear lines.
-        let scale = Rational::new(1, 3);
+        let scale = Rational64::new(1, 3);
         let e1 = Edge::new(rp(0, 0), rp(2, 2)).scale(scale);
         let e2 = Edge::new(rp(4, 4), rp(8, 8)).scale(scale);
         assert!(!e1.is_coincident(&e2));

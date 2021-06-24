@@ -491,11 +491,11 @@ impl<T: CoordinateType> std::iter::Sum for Vector<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_rational::Rational;
+    use num_rational::Rational64;
     use num_traits::Zero;
 
     #[test]
     fn test_rational_vector() {
-        let _ = Vector::new(Rational::zero(), Rational::zero());
+        let _ = Vector::new(Rational64::zero(), Rational64::zero());
     }
 }
