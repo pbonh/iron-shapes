@@ -272,11 +272,20 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
+    /// Get the length of the edge.
+    pub fn length(&self) -> T {
+        if self.start < self.end {
+            self.end - self.start
+        } else {
+            self.start - self.end
+        }
+    }
+
     /// Get a vector of unit length pointing in the same direction as the edge.
     /// Returns `None` if the length of the edge is zero.
     pub fn direction(&self) -> Option<Vector<T>> {
         let v = self.vector();
-        let length = v.norm1();
+        let length = self.length();
         if length > T::zero() {
             Some(v / length)
         } else {
