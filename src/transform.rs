@@ -212,6 +212,16 @@ impl<T: CoordinateType> SimpleTransform<T> {
         )
     }
 
+    /// Rotate 90 degrees counter-clock wise.
+    pub fn rotate_ccw90() -> Self {
+        Self::rotate90(Angle::R90)
+    }
+
+    /// Rotate 90 degrees counter-clock wise.
+    pub fn rotate_cw90() -> Self {
+        Self::rotate90(Angle::R270)
+    }
+
     /// Create a scaling by a factor.
     pub fn scale(factor: T) -> Self {
         Self::new(
