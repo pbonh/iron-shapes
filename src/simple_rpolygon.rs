@@ -35,6 +35,7 @@ use num_traits::NumCast;
 use crate::traits::TryCastCoord;
 use crate::simple_polygon::SimplePolygon;
 use crate::redge::{REdge, REdgeOrientation};
+use crate::prelude::SimpleTransform;
 
 /// A `SimpleRPolygon` is a rectilinear polygon. It does not contain holes but can be self-intersecting.
 /// The vertices are stored in an implicit format (one coordinate of two neighbour vertices is always the same
@@ -169,6 +170,17 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     /// Iterate over the points.
     pub fn points(&self) -> impl Iterator<Item=Point<T>> + '_ {
         (0..self.num_points()).map(move |i| self.get_point(i))
+    }
+
+    /// Apply the transformation to this rectilinear polygon.
+    pub fn transformed(&self, tf: &SimpleTransform<T>) -> Self {
+        Self::try_new(self.points().map(|p| tf.transform_point(p)).collect())
+            .unwrap() // Unwrap should be fine because the edges will remain axis-aligned under the Simple Transform.
+    }
+
+    /// Convert to a `SimplePolygon`.
+    pub fn to_simple_polygon(&self) -> SimplePolygon<T> {
+        SimplePolygon::new(self.points().collect())
     }
 
     /// Get the convex hull of the polygon.

@@ -65,7 +65,6 @@ macro_rules! simple_polygon {
 }
 
 impl<T: CoordinateType> SimplePolygon<T> {
-
     /// Create a new polygon from a list of points.
     ///
     /// The orientation of the points is normalized to counter-clock-wise.
@@ -87,6 +86,14 @@ impl<T: CoordinateType> SimplePolygon<T> {
         Self {
             points
         }
+    }
+
+    /// Create a new simple polygon from a rectangle.
+    pub fn from_rect(rect: &Rect<T>) -> Self {
+        Self::new(
+            vec![rect.lower_left(), rect.lower_right(),
+                 rect.upper_right(), rect.upper_left()]
+        )
     }
 
     /// Create empty polygon without any vertices.
@@ -387,6 +394,15 @@ impl<I, T, P> From<I> for SimplePolygon<T>
         SimplePolygon { points }
     }
 }
+
+// impl<T: CoordinateType> From<&Rect<T>> for SimplePolygon<T> {
+//     fn from(rect: &Rect<T>) -> Self {
+//         Self::new(
+//             vec![rect.lower_left(), rect.lower_right(),
+//                  rect.upper_right(), rect.upper_left()]
+//         )
+//     }
+// }
 
 //
 // /// Create a polygon from a `Vec` of values convertible to `Point`s.
