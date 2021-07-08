@@ -110,7 +110,7 @@ impl<T: CoordinateType> Rect<T> {
     /// coordinates will be truncated to the next integers.
     pub fn center(&self) -> Point<T> {
         let _2 = T::one() + T::one();
-        (self.lower_left() + self.lower_right()) /  _2
+        (self.lower_left() + self.upper_right()) /  _2
     }
 
     /// Compute the width of the rectangle.
