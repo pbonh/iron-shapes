@@ -138,6 +138,21 @@ pub enum Orientation {
     Straight,
 }
 
+impl Orientation {
+    /// Test if the orientation is equal to `ClockWise`.
+    pub fn is_clock_wise(self) -> bool {
+        self == Self::ClockWise
+    }
+    /// Test if the orientation is equal to `CounterClockWise`.
+    pub fn is_counter_clock_wise(self) -> bool {
+        self == Self::CounterClockWise
+    }
+    /// Test if the orientation is equal to `Straight`.
+    pub fn is_straight(self) -> bool {
+        self == Self::Straight
+    }
+}
+
 /// This is a result type for containment checks.
 /// * `No` Not inside.
 /// * `OnBounds` Lies on the boundaries.
