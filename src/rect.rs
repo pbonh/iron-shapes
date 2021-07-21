@@ -344,6 +344,18 @@ impl<'a, T> IntoIterator for &'a Rect<T>
     }
 }
 
+/// Iterate over all points of the rectangle.
+/// Starts with the lower left corner and iterates counter clock-wise.
+impl<T> IntoIterator for Rect<T>
+    where T: CoordinateType {
+    type Item = Point<T>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        (&self).into_iter()
+    }
+}
+
 impl<T: CoordinateType> ToPolygon<T> for Rect<T> {
     fn to_polygon(&self) -> Polygon<T> {
         Polygon::from(self)
