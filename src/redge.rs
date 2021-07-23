@@ -29,7 +29,7 @@ use crate::CoordinateType;
 
 use num_traits::cast::NumCast;
 
-pub use crate::traits::{BoundingBox, RotateOrtho, TryCastCoord};
+pub use crate::traits::{BoundingBox, TryBoundingBox, RotateOrtho, TryCastCoord};
 pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
@@ -630,6 +630,12 @@ fn test_rotate_ortho() {
 impl<T: CoordinateType> BoundingBox<T> for REdge<T> {
     fn bounding_box(&self) -> Rect<T> {
         Rect::new(self.start(), self.end())
+    }
+}
+
+impl<T: CoordinateType> TryBoundingBox<T> for REdge<T> {
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        Some(self.bounding_box())
     }
 }
 

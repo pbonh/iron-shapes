@@ -31,7 +31,7 @@ use num_traits::cast::NumCast;
 use crate::types::Angle;
 
 /// Calculation of the 'bounding box', i.e. the smallest rectangle that contains the geometrical object.
-pub trait BoundingBox<T>
+pub trait BoundingBox<T>: TryBoundingBox<T>
     where T: CoordinateType {
     /// Return the bounding box of this geometry.
     fn bounding_box(&self) -> Rect<T>;
