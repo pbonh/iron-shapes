@@ -109,7 +109,7 @@ pub trait WindingNumber<T>
     ///
     /// TODO: Define how point on edges and vertices is handled.
     ///
-    /// See: http://geomalgorithms.com/a03-_inclusion.html
+    /// See: <http://geomalgorithms.com/a03-_inclusion.html>
     fn winding_number(&self, point: Point<T>) -> isize;
 
     /// Check if `point` is inside the polygon, i.e. the polygons winds around the point

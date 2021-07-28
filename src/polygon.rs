@@ -204,7 +204,7 @@ impl<T: CoordinateType> Polygon<T> {
     /// Get the convex hull of the polygon.
     ///
     /// Implements Andrew's Monotone Chain algorithm.
-    /// See: http://geomalgorithms.com/a10-_hull-1.html
+    /// See: <http://geomalgorithms.com/a10-_hull-1.html>
     pub fn convex_hull(&self) -> Polygon<T>
         where T: Ord {
         self.exterior.convex_hull().into()
@@ -283,7 +283,7 @@ impl<T> WindingNumber<T> for Polygon<T>
     ///
     /// TODO: Define how point on edges and vertices is handled.
     ///
-    /// See: http://geomalgorithms.com/a03-_inclusion.html
+    /// See: <http://geomalgorithms.com/a03-_inclusion.html>
     fn winding_number(&self, point: Point<T>) -> isize {
         let ext = self.exterior.winding_number(point);
         let int: isize = self.interiors.iter()

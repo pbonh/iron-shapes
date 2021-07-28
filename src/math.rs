@@ -26,8 +26,8 @@ use num_traits::PrimInt;
 pub trait FastInvSqrt {
     /// Fast approximate computation of 1/sqrt(x).
     ///
-    /// See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
-    /// And: http://www.lomont.org/papers/2003/InvSqrt.pdf
+    /// See: <https://en.wikipedia.org/wiki/Fast_inverse_square_root>
+    /// And: <http://www.lomont.org/papers/2003/InvSqrt.pdf>
     fn fast_invsqrt(x: Self) -> Self;
 }
 
@@ -49,8 +49,8 @@ impl FastInvSqrt for f64 {
 /// Fast approximate computation of 1/sqrt(x).
 /// The error should be below 0.2%.
 ///
-/// See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
-/// And: http://www.lomont.org/papers/2003/InvSqrt.pdf
+/// See: <https://en.wikipedia.org/wiki/Fast_inverse_square_root>
+/// And: <http://www.lomont.org/papers/2003/InvSqrt.pdf>
 pub fn fast_invsqrt_32(x: f32) -> f32 {
     let approx = 0x5f375a86u32;
     let xhalf = 0.5 * x;
@@ -63,8 +63,8 @@ pub fn fast_invsqrt_32(x: f32) -> f32 {
 /// Fast approximate computation of 1/sqrt(x).
 /// The error should be below 0.2%.
 ///
-/// See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
-/// And: http://www.lomont.org/papers/2003/InvSqrt.pdf
+/// See: <https://en.wikipedia.org/wiki/Fast_inverse_square_root>
+/// And: <http://www.lomont.org/papers/2003/InvSqrt.pdf>
 pub fn fast_invsqrt_64(x: f64) -> f64 {
     let approx = 0x5fe6eb50c7aa19f9u64;
     let xhalf = 0.5 * x;
@@ -100,7 +100,7 @@ fn test_fast_invsqrt_64() {
 /// Returns the biggest integer which is smaller or equal to the actual square root of `n`.
 /// Similar to `(i as f64).sqrt().floor() as T` but without type conversions.
 ///
-/// See: https://en.wikipedia.org/wiki/Integer_square_root
+/// See: <https://en.wikipedia.org/wiki/Integer_square_root>
 ///
 /// # Panics
 /// Panics when given a negative number.

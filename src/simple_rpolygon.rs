@@ -186,7 +186,7 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     /// Get the convex hull of the polygon.
     ///
     /// Implements Andrew's Monotone Chain algorithm.
-    /// See: http://geomalgorithms.com/a10-_hull-1.html
+    /// See: <http://geomalgorithms.com/a10-_hull-1.html>
     pub fn convex_hull(&self) -> SimplePolygon<T>
         where T: Ord {
 
@@ -459,7 +459,7 @@ impl<T> WindingNumber<T> for SimpleRPolygon<T>
     ///
     /// TODO: Define how point on edges and vertices is handled.
     ///
-    /// See: http://geomalgorithms.com/a03-_inclusion.html
+    /// See: <http://geomalgorithms.com/a03-_inclusion.html>
     fn winding_number(&self, point: Point<T>) -> isize {
         let mut winding_number = 0isize;
 
