@@ -26,13 +26,13 @@ use crate::CoordinateType;
 use crate::vector::Vector;
 use crate::point::Point;
 use crate::matrix2d::*;
-use crate::traits::{RotateOrtho, Mirror, Translate, Scale};
+use crate::traits::{RotateOrtho, Mirror, Translate, Scale, TryCastCoord};
 use crate::types::Angle;
 
 use std::ops::Mul;
 use crate::types::FloatType;
 use crate::matrix3d::Matrix3d;
-use num_traits::{Zero, Float};
+use num_traits::{Zero, Float, NumCast};
 
 /// Description of a transformation in the euclidean plane by a 2x2 matrix `A`.
 /// Transforming a point `p` is computed by the matrix product `A*p`.
@@ -160,7 +160,7 @@ impl Rot90Transform {
 /// Describes a geometric transformation that consists of a optional mirroring along the x-axis
 /// followed by a rotation by a multiple of 90 degrees
 /// followed by a displacement.
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimpleTransform<T: CoordinateType> {
     /// Mirror on the x-axis?
@@ -288,7 +288,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
     pub fn then(&self, t: &Self) -> Self {
         let d = t.transform_point(self.displacement.into());
         let r = if t.mirror {
-            - self.rotation
+            -self.rotation
         } else {
             self.rotation
         };
@@ -296,7 +296,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
             mirror: self.mirror ^ t.mirror,
             rotation: r + t.rotation,
             magnification: self.magnification * t.magnification,
-            displacement: d.v()
+            displacement: d.v(),
         }
     }
 }
@@ -672,4 +672,21 @@ fn test_invert_float() {
     let p = Point::new(42.42, -1.0);
     let p2 = tf_inv.transform_point(tf.transform_point(p));
     assert!((p - p2).norm2_squared() < 1e-6); // Test for approximate equality.
+}
+
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for SimpleTransform<T> {
+    type Output = SimpleTransform<Dst>;
+
+    fn try_cast(&self) -> Option<Self::Output> {
+        match (self.displacement.try_cast(), Dst::from(self.magnification)) {
+            (Some(displacement), Some(magnification)) => Some(
+                Self::Output {
+                    mirror: self.mirror,
+                    displacement,
+                    magnification,
+                    rotation: self.rotation,
+                }),
+            _ => None
+        }
+    }
 }
