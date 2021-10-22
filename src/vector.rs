@@ -433,12 +433,13 @@ impl<T> Neg for Vector<T>
 }
 
 /// Scalar multiplication.
-impl<T> Mul<T> for Vector<T>
-    where T: CoordinateType + Mul<Output=T>
+impl<T, M> Mul<M> for Vector<T>
+    where T: CoordinateType + Mul<M, Output=T>,
+          M: Copy
 {
     type Output = Self;
 
-    fn mul(self, rhs: T) -> Self {
+    fn mul(self, rhs: M) -> Self {
         Vector {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -447,24 +448,26 @@ impl<T> Mul<T> for Vector<T>
 }
 
 /// In-place scalar multiplication.
-impl<T> MulAssign<T> for Vector<T>
-    where T: CoordinateType + MulAssign<T>
+impl<T, M> MulAssign<M> for Vector<T>
+    where T: CoordinateType + MulAssign<M>,
+          M: Copy
 {
     #[inline]
-    fn mul_assign(&mut self, rhs: T) {
+    fn mul_assign(&mut self, rhs: M) {
         self.x *= rhs;
         self.y *= rhs;
     }
 }
 
 /// Scalar division.
-impl<T> Div<T> for Vector<T>
-    where T: CoordinateType + Div<Output=T>
+impl<T, D> Div<D> for Vector<T>
+    where T: CoordinateType + Div<D, Output=T>,
+          D: Copy
 {
     type Output = Self;
 
     #[inline]
-    fn div(self, rhs: T) -> Self {
+    fn div(self, rhs: D) -> Self {
         Vector {
             x: self.x / rhs,
             y: self.y / rhs,
