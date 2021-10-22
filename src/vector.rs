@@ -147,7 +147,7 @@ impl<T: Zero> Zero for Vector<T> {
     }
 }
 
-impl<T: CoordinateType> Vector<T> {
+impl<T> Vector<T> {
     /// Create a new vector with `x` and `y` coordinates.
     /// # Examples
     /// ```
@@ -159,7 +159,9 @@ impl<T: CoordinateType> Vector<T> {
     pub fn new(x: T, y: T) -> Self {
         Vector { x, y }
     }
+}
 
+impl<T: CoordinateType> Vector<T> {
     /// Get 1-norm of vector, i.e. the sum of the absolute values of its components.
     ///
     /// # Examples
@@ -426,8 +428,8 @@ impl<T> Neg for Vector<T>
     #[inline]
     fn neg(self) -> Self {
         Vector {
-            x: - self.x,
-            y: - self.y,
+            x: -self.x,
+            y: -self.y,
         }
     }
 }
