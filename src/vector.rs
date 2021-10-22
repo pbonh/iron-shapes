@@ -118,7 +118,7 @@ impl<T> fmt::Display for Vector<T>
     }
 }
 
-impl<T: CoordinateType> Zero for Vector<T> {
+impl<T: Zero> Zero for Vector<T> {
     /// Get zero-vector.
     ///
     /// # Examples
@@ -370,7 +370,7 @@ impl<T: CoordinateType + NumCast> Vector<T>
 
 /// Vector addition.
 impl<T> Add for Vector<T>
-    where T: CoordinateType + Add<Output=T>
+    where T: Add<Output=T>
 {
     type Output = Self;
 
@@ -384,7 +384,7 @@ impl<T> Add for Vector<T>
 }
 
 impl<T> AddAssign for Vector<T>
-    where T: CoordinateType + AddAssign
+    where T: AddAssign
 {
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
@@ -395,7 +395,7 @@ impl<T> AddAssign for Vector<T>
 
 /// Vector subtraction.
 impl<T> Sub for Vector<T>
-    where T: CoordinateType + Sub<Output=T>
+    where T: Sub<Output=T>
 {
     type Output = Self;
 
@@ -409,7 +409,7 @@ impl<T> Sub for Vector<T>
 }
 
 impl<T> SubAssign for Vector<T>
-    where T: CoordinateType + SubAssign
+    where T: SubAssign
 {
     #[inline]
     fn sub_assign(&mut self, rhs: Self) {
@@ -419,15 +419,15 @@ impl<T> SubAssign for Vector<T>
 }
 
 impl<T> Neg for Vector<T>
-    where T: CoordinateType
+    where T: Neg<Output=T>
 {
     type Output = Self;
 
     #[inline]
     fn neg(self) -> Self {
         Vector {
-            x: T::zero() - self.x,
-            y: T::zero() - self.y,
+            x: - self.x,
+            y: - self.y,
         }
     }
 }
