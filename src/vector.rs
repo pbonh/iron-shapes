@@ -22,7 +22,7 @@
 //! `Vector`s consist of an `x` and `y` coordinate value and describe a translation in the plane.
 
 use std::fmt;
-use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Div};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Div, DivAssign};
 
 use num_traits::{Float, NumCast};
 pub use num_traits::Zero;
@@ -474,6 +474,18 @@ impl<T, D> Div<D> for Vector<T>
             x: self.x / rhs,
             y: self.y / rhs,
         }
+    }
+}
+
+/// Assigning scalar division.
+impl<T, D> DivAssign<D> for Vector<T>
+    where T: CoordinateType + DivAssign<D>,
+          D: Copy
+{
+    #[inline]
+    fn div_assign(&mut self, rhs: D) {
+        self.x /= rhs;
+        self.y /= rhs;
     }
 }
 
