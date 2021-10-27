@@ -117,7 +117,15 @@ impl<T> Point<T> {
     }
 }
 
-impl<T: CoordinateType> Point<T> {
+impl<T: Copy> Point<T> {
+    /// Return the location of this point as a vector.
+    #[inline]
+    pub fn v(&self) -> Vector<T> {
+        self.location
+    }
+}
+
+impl<T: Zero> Point<T> {
     /// Get zero-Point.
     ///
     /// # Examples
@@ -144,7 +152,9 @@ impl<T: CoordinateType> Point<T> {
     pub fn is_zero(&self) -> bool {
         self.x.is_zero() && self.y.is_zero()
     }
+}
 
+impl<T: CoordinateType> Point<T> {
     /// Compute the squared distance to the `other` point.
     ///
     /// # Examples
@@ -184,12 +194,6 @@ impl<T: CoordinateType> Point<T> {
     #[inline]
     pub fn cross_prod3(&self, b: Point<T>, c: Point<T>) -> T {
         (b.x - self.x) * (c.y - b.y) - (b.y - self.y) * (c.x - b.x)
-    }
-
-    /// Return the location of this point as a vector.
-    #[inline]
-    pub fn v(&self) -> Vector<T> {
-        self.location
     }
 }
 
@@ -407,8 +411,8 @@ impl<T> Neg for Point<T>
     #[inline]
     fn neg(self) -> Self {
         Point::new(
-            - self.x,
-            - self.y,
+            -self.x,
+            -self.y,
         )
     }
 }
