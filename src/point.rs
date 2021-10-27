@@ -52,16 +52,22 @@ macro_rules! point {
 }
 
 /// A point is defined by a x and y coordinate in the euclidean plane.
-#[derive(Copy, Clone, Default, Hash, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Point<T>
-    where T: CoordinateType {
+pub struct Point<T> {
     /// Store the location as a translation from the origin.
     location: Vector<T>
 }
 
-impl<T> Deref for Point<T>
-    where T: CoordinateType {
+impl<T: PartialEq> Eq for Point<T> {}
+
+impl<T: PartialEq> PartialEq for Point<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.location == other.location
+    }
+}
+
+impl<T> Deref for Point<T> {
     type Target = Vector<T>;
 
     #[inline]
@@ -70,7 +76,7 @@ impl<T> Deref for Point<T>
     }
 }
 
-impl<T: CoordinateType> From<Vector<T>> for Point<T> {
+impl<T> From<Vector<T>> for Point<T> {
     #[inline]
     fn from(v: Vector<T>) -> Self {
         Point {
@@ -79,14 +85,14 @@ impl<T: CoordinateType> From<Vector<T>> for Point<T> {
     }
 }
 
-impl<T: CoordinateType> From<&Vector<T>> for Point<T> {
+impl<T: Copy> From<&Vector<T>> for Point<T> {
     #[inline]
     fn from(v: &Vector<T>) -> Self {
         Self::from(*v)
     }
 }
 
-impl<T: CoordinateType> Into<Vector<T>> for Point<T> {
+impl<T> Into<Vector<T>> for Point<T> {
     #[inline]
     fn into(self) -> Vector<T> {
         self.location
@@ -102,13 +108,16 @@ impl<T: CoordinateType> Into<Vector<T>> for Point<T> {
 //    }
 //}
 
-impl<T: CoordinateType> Point<T> {
+
+impl<T> Point<T> {
     /// Create a new point with `x` and `y` coordinates.
     #[inline]
     pub fn new(x: T, y: T) -> Self {
         Point { location: Vector::new(x, y) }
     }
+}
 
+impl<T: CoordinateType> Point<T> {
     /// Get zero-Point.
     ///
     /// # Examples
@@ -239,42 +248,42 @@ impl<T> MapPointwise<T> for Point<T>
 }
 
 
-impl<T: CoordinateType> Into<(T, T)> for Point<T> {
+impl<T: Copy> Into<(T, T)> for Point<T> {
     #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
-impl<T: CoordinateType> Into<(T, T)> for &Point<T> {
+impl<T: Copy> Into<(T, T)> for &Point<T> {
     #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
-impl<T: CoordinateType> From<(T, T)> for Point<T> {
+impl<T: Copy> From<(T, T)> for Point<T> {
     #[inline]
     fn from(coords: (T, T)) -> Self {
         Point::new(coords.0, coords.1)
     }
 }
 
-impl<'a, T: CoordinateType> From<&'a (T, T)> for Point<T> {
+impl<'a, T: Copy> From<&'a (T, T)> for Point<T> {
     #[inline]
     fn from(coords: &'a (T, T)) -> Self {
         Point::new(coords.0, coords.1)
     }
 }
 
-impl<'a, T: CoordinateType> From<&'a Point<T>> for Point<T> {
+impl<'a, T: Copy> From<&'a Point<T>> for Point<T> {
     #[inline]
     fn from(v: &'a Point<T>) -> Self {
         Point::new(v.x, v.y)
     }
 }
 
-impl<T: CoordinateType> From<[T; 2]> for Point<T> {
+impl<T: Copy> From<[T; 2]> for Point<T> {
     #[inline]
     fn from(coords: [T; 2]) -> Self {
         Point::new(coords[0], coords[1])
@@ -282,14 +291,14 @@ impl<T: CoordinateType> From<[T; 2]> for Point<T> {
 }
 
 impl<T> fmt::Debug for Point<T>
-    where T: fmt::Debug + CoordinateType {
+    where T: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Point({:?}, {:?})", self.x, self.y)
     }
 }
 
 impl<T> fmt::Display for Point<T>
-    where T: fmt::Display + CoordinateType
+    where T: fmt::Display
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {})", self.x, self.y)
@@ -300,7 +309,7 @@ impl<T> fmt::Display for Point<T>
 impl<T: CoordinateType + NumCast> Point<T> {
     /// Convert Point into a Point with floating point data type.
     #[inline]
-    pub fn cast_to_float<F: CoordinateType + Float + NumCast>(&self) -> Point<F> {
+    pub fn cast_to_float<F: Float + NumCast>(&self) -> Point<F> {
         // TODO: find conversion that does not panic for sure.
         Point::new(
             F::from(self.x).unwrap(),

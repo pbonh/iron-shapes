@@ -61,42 +61,42 @@ macro_rules! vector {
  ($x:expr, $y:expr) => {Vector::new($x, $y)}
 }
 
-impl<T: CoordinateType> Into<(T, T)> for Vector<T> {
+impl<T: Copy> Into<(T, T)> for Vector<T> {
     #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
-impl<T: CoordinateType> Into<(T, T)> for &Vector<T> {
+impl<T: Copy> Into<(T, T)> for &Vector<T> {
     #[inline]
     fn into(self) -> (T, T) {
         (self.x, self.y)
     }
 }
 
-impl<T: CoordinateType> From<(T, T)> for Vector<T> {
+impl<T: Copy> From<(T, T)> for Vector<T> {
     #[inline]
     fn from(coords: (T, T)) -> Self {
         Vector::new(coords.0, coords.1)
     }
 }
 
-impl<'a, T: CoordinateType> From<&'a (T, T)> for Vector<T> {
+impl<'a, T: Copy> From<&'a (T, T)> for Vector<T> {
     #[inline]
     fn from(coords: &'a (T, T)) -> Self {
         Vector::new(coords.0, coords.1)
     }
 }
 
-impl<'a, T: CoordinateType> From<&'a Vector<T>> for Vector<T> {
+impl<'a, T: Copy> From<&'a Vector<T>> for Vector<T> {
     #[inline]
     fn from(v: &'a Vector<T>) -> Self {
         Vector::new(v.x, v.y)
     }
 }
 
-impl<T: CoordinateType> From<[T; 2]> for Vector<T> {
+impl<T: Copy> From<[T; 2]> for Vector<T> {
     #[inline]
     fn from(coords: [T; 2]) -> Self {
         Vector::new(coords[0], coords[1])
@@ -104,9 +104,9 @@ impl<T: CoordinateType> From<[T; 2]> for Vector<T> {
 }
 
 impl<T> fmt::Debug for Vector<T>
-    where T: fmt::Debug + Copy {
+    where T: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({:?}, {:?})", self.x, self.y)
+        write!(f, "({:?}, {:?})", &self.x, &self.y)
     }
 }
 

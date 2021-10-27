@@ -30,14 +30,21 @@ use crate::polygon::{ToPolygon, Polygon};
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Rect<T>
-    where T: CoordinateType {
+pub struct Rect<T> {
     /// Lower left corner of the rectangle.
     pub lower_left: Point<T>,
     /// Upper right corner of the rectangle.
     pub upper_right: Point<T>,
+}
+
+impl<T: PartialEq> Eq for Rect<T> {}
+
+impl<T: PartialEq> PartialEq for Rect<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.lower_left == other.lower_left || self.upper_right == other.upper_right
+    }
 }
 
 impl<T: CoordinateType> Rect<T> {
