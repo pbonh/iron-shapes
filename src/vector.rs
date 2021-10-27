@@ -161,7 +161,8 @@ impl<T> Vector<T> {
     }
 }
 
-impl<T: CoordinateType> Vector<T> {
+
+impl<T: Copy + Zero + PartialOrd + Sub<Output=T>> Vector<T> {
     /// Get 1-norm of vector, i.e. the sum of the absolute values of its components.
     ///
     /// # Examples
@@ -180,54 +181,9 @@ impl<T: CoordinateType> Vector<T> {
         } else { self.y };
         xabs + yabs
     }
+}
 
-    /// Get squared 2-norm of vector.
-    ///
-    /// # Examples
-    /// ```
-    /// use iron_shapes::vector::Vector;
-    /// let a = Vector::new(2, 3);
-    /// assert_eq!(a.norm2_squared(), 2*2+3*3);
-    /// ```
-    #[inline]
-    pub fn norm2_squared(&self) -> T {
-        self.x * self.x + self.y * self.y
-    }
-
-    /// Calculate scalar product.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::vector::Vector;
-    ///
-    /// let a = Vector::new(1, 2);
-    /// let b = Vector::new(3, 4);
-    ///
-    /// assert_eq!(a.dot(b), 1*3 + 2*4);
-    /// ```
-    pub fn dot(&self, other: Self) -> T {
-        self.x * other.x + self.y * other.y
-    }
-
-    /// Calculate cross product.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::vector::Vector;
-    ///
-    /// let a = Vector::new(2, 0);
-    /// let b = Vector::new(0, 2);
-    ///
-    /// assert_eq!(a.cross_prod(b), 4);
-    /// assert_eq!(b.cross_prod(a), -4);
-    /// ```
-    #[inline]
-    pub fn cross_prod(&self, other: Self) -> T {
-        self.x * other.y - other.x * self.y
-    }
-
+impl<T: Copy + Zero + PartialOrd + Mul<Output=T> + Sub<Output=T>> Vector<T> {
     /// Check if `other` is oriented clockwise or counter-clockwise respective to `self`.
     ///
     /// # Examples
@@ -258,6 +214,58 @@ impl<T: CoordinateType> Vector<T> {
     }
 }
 
+impl<T: Copy + Mul<Output=T> + Add<Output=T>> Vector<T> {
+    /// Get squared 2-norm of vector.
+    ///
+    /// # Examples
+    /// ```
+    /// use iron_shapes::vector::Vector;
+    /// let a = Vector::new(2, 3);
+    /// assert_eq!(a.norm2_squared(), 2*2+3*3);
+    /// ```
+    #[inline]
+    pub fn norm2_squared(&self) -> T {
+        self.x * self.x + self.y * self.y
+    }
+
+    /// Calculate scalar product.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::vector::Vector;
+    ///
+    /// let a = Vector::new(1, 2);
+    /// let b = Vector::new(3, 4);
+    ///
+    /// assert_eq!(a.dot(b), 1*3 + 2*4);
+    /// ```
+    pub fn dot(&self, other: Self) -> T {
+        self.x * other.x + self.y * other.y
+    }
+}
+
+
+impl<T: Copy + Mul<Output=T> + Sub<Output=T>> Vector<T> {
+    /// Calculate cross product.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::vector::Vector;
+    ///
+    /// let a = Vector::new(2, 0);
+    /// let b = Vector::new(0, 2);
+    ///
+    /// assert_eq!(a.cross_prod(b), 4);
+    /// assert_eq!(b.cross_prod(a), -4);
+    /// ```
+    #[inline]
+    pub fn cross_prod(&self, other: Self) -> T {
+        self.x * other.y - other.x * self.y
+    }
+}
+
 impl<T: CoordinateType + NumCast> Vector<T> {
     /// Convert vector into a vector with floating point data type.
     #[inline]
@@ -270,7 +278,7 @@ impl<T: CoordinateType + NumCast> Vector<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Vector<T> {
+impl<T: Copy + NumCast, Dst: Copy + NumCast> TryCastCoord<T, Dst> for Vector<T> {
     type Output = Vector<Dst>;
 
     /// Try to cast to vector of target data type.
@@ -306,7 +314,8 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     }
 }
 
-impl<T: CoordinateType + Float> Vector<T>
+impl<T> Vector<T>
+    where T: Copy + Float + Mul<Output=T> + Add<Output=T>
 {
     /// Get 2-norm of vector (length of vector).
     ///
@@ -345,7 +354,7 @@ impl<T: CoordinateType + Float> Vector<T>
     }
 }
 
-impl<T: CoordinateType + NumCast> Vector<T>
+impl<T: Copy + NumCast> Vector<T>
 {
     /// Calculate length of vector.
     ///
@@ -499,7 +508,8 @@ impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
 
 /// Compute the sum of all vectors in the iterator.
 /// If the iterator is empty, (0, 0) is returned.
-impl<T: CoordinateType> std::iter::Sum for Vector<T> {
+impl<T> std::iter::Sum for Vector<T>
+    where T: Zero + Add<Output=T> {
     fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
         iter.fold(Self::zero(), |acc, v| acc + v)
     }
