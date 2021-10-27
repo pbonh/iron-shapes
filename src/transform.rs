@@ -215,7 +215,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
 
     /// Create a rotation arount `rotation_center` by an integer multiple of 90 degrees.
     pub fn rotate90_around(angle: Angle, rotation_center: Point<T>) -> Self {
-        Self::translate(-rotation_center)
+        Self::translate(Point::zero()-rotation_center)
             .then(&Self::rotate90(angle))
             .then(&Self::translate(rotation_center))
     }

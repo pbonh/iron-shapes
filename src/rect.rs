@@ -43,12 +43,12 @@ impl<T: PartialEq> Eq for Rect<T> {}
 
 impl<T: PartialEq> PartialEq for Rect<T> {
     fn eq(&self, other: &Self) -> bool {
-        self.lower_left == other.lower_left || self.upper_right == other.upper_right
+        self.lower_left == other.lower_left && self.upper_right == other.upper_right
     }
 }
 
-impl<T: CoordinateType> Rect<T> {
 
+impl<T: PartialOrd + Copy> Rect<T> {
     /// Construct the bounding box of the two points. Order does not matter.
     ///
     /// # Examples
@@ -87,7 +87,10 @@ impl<T: CoordinateType> Rect<T> {
             upper_right: Point::new(x2, y2),
         }
     }
+}
 
+
+impl<T: Copy> Rect<T> {
     /// Get the lower left corner.
     #[inline]
     pub fn lower_left(&self) -> Point<T> {
@@ -111,13 +114,15 @@ impl<T: CoordinateType> Rect<T> {
     pub fn lower_right(&self) -> Point<T> {
         Point::new(self.upper_right.x, self.lower_left.y)
     }
+}
 
+impl<T: CoordinateType> Rect<T> {
     /// Get the center point of the rectangle.
     /// When using integer coordinates the resulting
     /// coordinates will be truncated to the next integers.
     pub fn center(&self) -> Point<T> {
         let _2 = T::one() + T::one();
-        (self.lower_left() + self.upper_right()) /  _2
+        (self.lower_left() + self.upper_right()) / _2
     }
 
     /// Compute the width of the rectangle.

@@ -69,6 +69,104 @@ macro_rules! simple_rpolygon {
  ($($x:expr),*) => {SimpleRPolygon::try_new((vec![$($x),*])).unwrap()}
 }
 
+impl<T> SimpleRPolygon<T> {
+
+    /// Create empty polygon without any vertices.
+    pub fn empty() -> Self {
+        Self {
+            half_points: Vec::new()
+        }
+    }
+
+    /// Get the number of vertices.
+    pub fn num_points(&self) -> usize {
+        self.half_points.len()
+    }
+
+    /// Reverse the order of the vertices in-place.
+    pub fn reverse(&mut self) {
+        self.half_points.reverse();
+        self.half_points.rotate_right(1);
+    }
+
+    /// Get index of previous half-point.
+    fn prev(&self, i: usize) -> usize {
+        match i {
+            0 => self.half_points.len() - 1,
+            x => x - 1
+        }
+    }
+
+    /// Get index of next half-point.
+    fn next(&self, i: usize) -> usize {
+        match i {
+            _ if i == self.half_points.len() - 1 => 0,
+            x => x + 1
+        }
+    }
+}
+
+
+impl<T: Clone> SimpleRPolygon<T> {
+    /// Create a copy of this polygon whose vertices are ordered in reversed order.
+    pub fn reversed(&self) -> Self {
+        let mut result = self.clone();
+        result.reverse();
+        result
+    }
+}
+
+
+impl<T: Copy> SimpleRPolygon<T> {
+
+    /// Get `i`-th point of the polygon.
+    fn get_point(&self, i: usize) -> Point<T> {
+        if i % 2 == 0 {
+            Point::new(self.half_points[self.prev(i)], self.half_points[i])
+        } else {
+            Point::new(self.half_points[i], self.half_points[self.prev(i)])
+        }
+    }
+
+    /// Iterate over the points.
+    pub fn points(&self) -> impl Iterator<Item=Point<T>> + '_ {
+        (0..self.num_points()).map(move |i| self.get_point(i))
+    }
+
+    /// Get all exterior edges of the polygon.
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::simple_rpolygon::SimpleRPolygon;
+    /// use iron_shapes::redge::REdge;
+    /// let coords = vec![(0, 0), (1, 0), (1, 1), (0, 1)];
+    ///
+    /// let poly = SimpleRPolygon::try_new(coords).unwrap();
+    /// let edges: Vec<_> = poly.edges().collect();
+    /// assert_eq!(edges, vec![
+    ///     REdge::new((0, 0), (1, 0)),
+    ///     REdge::new((1, 0), (1, 1)),
+    ///     REdge::new((1, 1), (0, 1)),
+    ///     REdge::new((0, 1), (0, 0)),
+    /// ]);
+    ///
+    /// ```
+    pub fn edges(&self) -> impl Iterator<Item=REdge<T>> + '_ {
+        (0..self.num_points()).map(move |i| {
+            let orientation = if i % 2 == 0 {
+                REdgeOrientation::Horizontal
+            } else {
+                REdgeOrientation::Vertical
+            };
+
+            REdge::new_raw(self.half_points[self.prev(i)],
+                           self.half_points[self.next(i)],
+                           self.half_points[i],
+                           orientation)
+        })
+    }
+}
+
 impl<T: CoordinateType> SimpleRPolygon<T> {
     /// Create new rectilinear polygon from points.
     /// Returns `None` if the polygon defined by the points is not rectilinear.
@@ -147,31 +245,6 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         }
     }
 
-    /// Create empty polygon without any vertices.
-    pub fn empty() -> Self {
-        Self {
-            half_points: Vec::new()
-        }
-    }
-
-    /// Get the number of vertices.
-    pub fn num_points(&self) -> usize {
-        self.half_points.len()
-    }
-
-    /// Get `i`-th point of the polygon.
-    fn get_point(&self, i: usize) -> Point<T> {
-        if i % 2 == 0 {
-            Point::new(self.half_points[self.prev(i)], self.half_points[i])
-        } else {
-            Point::new(self.half_points[i], self.half_points[self.prev(i)])
-        }
-    }
-
-    /// Iterate over the points.
-    pub fn points(&self) -> impl Iterator<Item=Point<T>> + '_ {
-        (0..self.num_points()).map(move |i| self.get_point(i))
-    }
 
     /// Apply the transformation to this rectilinear polygon.
     pub fn transformed(&self, tf: &SimpleTransform<T>) -> Self {
@@ -290,39 +363,6 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         }
     }
 
-    /// Get all exterior edges of the polygon.
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::simple_rpolygon::SimpleRPolygon;
-    /// use iron_shapes::redge::REdge;
-    /// let coords = vec![(0, 0), (1, 0), (1, 1), (0, 1)];
-    ///
-    /// let poly = SimpleRPolygon::try_new(coords).unwrap();
-    /// let edges: Vec<_> = poly.edges().collect();
-    /// assert_eq!(edges, vec![
-    ///     REdge::new((0, 0), (1, 0)),
-    ///     REdge::new((1, 0), (1, 1)),
-    ///     REdge::new((1, 1), (0, 1)),
-    ///     REdge::new((0, 1), (0, 0)),
-    /// ]);
-    ///
-    /// ```
-    pub fn edges(&self) -> impl Iterator<Item=REdge<T>> + '_ {
-        (0..self.num_points()).map(move |i| {
-            let orientation = if i % 2 == 0 {
-                REdgeOrientation::Horizontal
-            } else {
-                REdgeOrientation::Vertical
-            };
-
-            REdge::new_raw(self.half_points[self.prev(i)],
-                           self.half_points[self.next(i)],
-                           self.half_points[i],
-                           orientation)
-        })
-    }
-
 
     /// Get the vertex with lowest x-coordinate. Prefer lower y-coordinates to break ties.
     ///
@@ -391,35 +431,6 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         }
     }
 
-    /// Reverse the order of the vertices in-place.
-    pub fn reverse(&mut self) {
-        self.half_points.reverse();
-        self.half_points.rotate_right(1);
-    }
-
-    /// Create a copy of this polygon whose vertices are ordered in reversed order.
-    pub fn reversed(&self) -> Self {
-        let mut result = self.clone();
-        result.reverse();
-        result
-    }
-
-
-    /// Get index of previous half-point.
-    fn prev(&self, i: usize) -> usize {
-        match i {
-            0 => self.half_points.len() - 1,
-            x => x - 1
-        }
-    }
-
-    /// Get index of next half-point.
-    fn next(&self, i: usize) -> usize {
-        match i {
-            _ if i == self.half_points.len() - 1 => 0,
-            x => x + 1
-        }
-    }
 
     // TODO:
     // /// Decompose into non-overlapping rectangles.
@@ -561,7 +572,7 @@ fn test_from_rect() {
 
 
 impl<T> TryBoundingBox<T> for SimpleRPolygon<T>
-    where T: CoordinateType {
+    where T: Copy + PartialOrd {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         if self.num_points() > 0 {
             let mut xmax = self.half_points[1];

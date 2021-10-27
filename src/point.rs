@@ -332,7 +332,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
 
 /// Point addition.
 impl<T, V> Add<V> for Point<T>
-    where T: CoordinateType + Add<Output=T>,
+    where T: Copy + Add<Output=T>,
           V: Into<Point<T>>
 {
     type Output = Self;
@@ -348,7 +348,7 @@ impl<T, V> Add<V> for Point<T>
 }
 
 impl<T, V> AddAssign<V> for Point<T>
-    where T: CoordinateType + AddAssign<T>,
+    where T: Copy + AddAssign<T>,
           V: Into<Vector<T>>
 {
     #[inline]
@@ -360,7 +360,7 @@ impl<T, V> AddAssign<V> for Point<T>
 
 /// Subtract a point.
 impl<T> Sub<Point<T>> for Point<T>
-    where T: CoordinateType + Sub<Output=T>
+    where T: Copy + Sub<Output=T>
 {
     type Output = Vector<T>;
 
@@ -375,7 +375,7 @@ impl<T> Sub<Point<T>> for Point<T>
 
 /// Subtract a vector.
 impl<T> Sub<Vector<T>> for Point<T>
-    where T: CoordinateType + Sub<Output=T>
+    where T: Copy + Sub<Output=T>
 {
     type Output = Point<T>;
 
@@ -389,7 +389,7 @@ impl<T> Sub<Vector<T>> for Point<T>
 }
 
 impl<T, V> SubAssign<V> for Point<T>
-    where T: CoordinateType + SubAssign<T>,
+    where T: Copy + SubAssign<T>,
           V: Into<Vector<T>>
 {
     #[inline]
@@ -400,22 +400,22 @@ impl<T, V> SubAssign<V> for Point<T>
 }
 
 impl<T> Neg for Point<T>
-    where T: CoordinateType
+    where T: Copy + Neg<Output=T>
 {
     type Output = Self;
 
     #[inline]
     fn neg(self) -> Self {
         Point::new(
-            T::zero() - self.x,
-            T::zero() - self.y,
+            - self.x,
+            - self.y,
         )
     }
 }
 
 /// Scalar multiplication.
 impl<T> Mul<T> for Point<T>
-    where T: CoordinateType + Mul<Output=T>
+    where T: Copy + Mul<Output=T>
 {
     type Output = Self;
 
@@ -430,7 +430,7 @@ impl<T> Mul<T> for Point<T>
 
 /// In-place scalar multiplication.
 impl<T> MulAssign<T> for Point<T>
-    where T: CoordinateType + MulAssign<T>
+    where T: Copy + MulAssign<T>
 {
     #[inline]
     fn mul_assign(&mut self, rhs: T) {

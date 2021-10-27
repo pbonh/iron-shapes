@@ -31,8 +31,7 @@ use num_traits::cast::NumCast;
 use crate::types::Angle;
 
 /// Calculation of the 'bounding box', i.e. the smallest rectangle that contains the geometrical object.
-pub trait BoundingBox<T>: TryBoundingBox<T>
-    where T: CoordinateType {
+pub trait BoundingBox<T>: TryBoundingBox<T> {
     /// Return the bounding box of this geometry.
     fn bounding_box(&self) -> Rect<T>;
 }
@@ -40,8 +39,7 @@ pub trait BoundingBox<T>: TryBoundingBox<T>
 /// Try the calculation of the 'bounding box', i.e. the smallest rectangle that contains the geometrical object.
 /// In some cases this is not always possible, so the try might fail.
 /// For instance a set of polygons does not have a bounding box if the set is empty.
-pub trait TryBoundingBox<T>
-    where T: CoordinateType {
+pub trait TryBoundingBox<T> {
     /// Return the bounding box of this geometry if a bounding box is defined.
     fn try_bounding_box(&self) -> Option<Rect<T>>;
 }
@@ -148,7 +146,7 @@ impl<S, T> RotateOrtho<T> for S
                     T::zero() - p.y,
                     p.x,
                 ),
-                Angle::R180 => -p,
+                Angle::R180 => Point::zero()-p.v(),
                 Angle::R270 => Point::new(
                     p.y,
                     T::zero() - p.x,

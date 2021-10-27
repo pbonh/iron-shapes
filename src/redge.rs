@@ -35,6 +35,7 @@ pub use crate::types::Angle;
 pub use crate::types::{Side, ContainsResult};
 use crate::edge::Edge;
 use std::convert::TryFrom;
+use std::ops::Sub;
 
 /// Return type for the edge-edge intersection functions.
 /// Stores all possible results of a edge to edge intersection.
@@ -139,9 +140,9 @@ impl REdgeOrientation {
 }
 
 /// An rectilinear edge (horizontal or vertical line segment) is represented by its starting point and end point.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct REdge<T: CoordinateType> {
+pub struct REdge<T> {
     /// Start-coordinate of the edge.
     pub start: T,
     /// End-coordinate of the edge.
@@ -152,18 +153,17 @@ pub struct REdge<T: CoordinateType> {
     pub orientation: REdgeOrientation,
 }
 
-impl<T: CoordinateType> REdge<T> {
-    /// Create a new `REdge` from two arguments that implement `Into<Point>`.
-    /// The two points must lie either on a vertical or horizontal line, otherwise `None` is returned.
-    ///
-    /// # Panics
-    /// Panics if the two points are not on the same horizontal or vertical line.
-    pub fn new<C>(start: C, end: C) -> Self
-        where C: Into<Point<T>>
-    {
-        Self::try_from_points(start, end).expect("Points must be on a vertical or horizontal line.")
-    }
+impl<T: PartialEq> Eq for REdge<T> {}
 
+impl<T: PartialEq> PartialEq for REdge<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.start == other.start && self.end == other.end &&
+            self.offset == other.offset &&
+            self.orientation == other.orientation
+    }
+}
+
+impl<T: Copy> REdge<T> {
     /// Create a new rectilinear edge.
     ///
     /// # Parameters
@@ -179,6 +179,85 @@ impl<T: CoordinateType> REdge<T> {
             offset,
             orientation,
         }
+    }
+
+    /// Get the start point of the edge.
+    pub fn start(&self) -> Point<T> {
+        match self.orientation {
+            REdgeOrientation::Horizontal => Point::new(self.start, self.offset),
+            REdgeOrientation::Vertical => Point::new(self.offset, self.start)
+        }
+    }
+
+    /// Get the end point of the edge.
+    pub fn end(&self) -> Point<T> {
+        match self.orientation {
+            REdgeOrientation::Horizontal => Point::new(self.end, self.offset),
+            REdgeOrientation::Vertical => Point::new(self.offset, self.end)
+        }
+    }
+
+    /// Return the same edge but with the two points swapped.
+    pub fn reversed(&self) -> Self {
+        Self {
+            start: self.end,
+            end: self.start,
+            offset: self.offset,
+            orientation: self.orientation,
+        }
+    }
+}
+
+impl<T: PartialEq> REdge<T> {
+    /// Check if edge is degenerate.
+    /// An edge is degenerate if start point and end point are equal.
+    #[inline]
+    pub fn is_degenerate(&self) -> bool {
+        self.start == self.end
+    }
+
+    /// Test if this edge is either horizontal or vertical.
+    #[inline]
+    pub fn is_ortho(&self) -> bool {
+        !self.is_degenerate() && true
+    }
+
+    /// Test if this edge is horizontal.
+    #[inline]
+    pub fn is_horizontal(&self) -> bool {
+        !self.is_degenerate() &&
+            self.orientation == REdgeOrientation::Horizontal
+    }
+
+    /// Test if this edge is vertical.
+    #[inline]
+    pub fn is_vertical(&self) -> bool {
+        !self.is_degenerate() &&
+            self.orientation == REdgeOrientation::Vertical
+    }
+}
+
+impl<T: PartialOrd + Sub<Output=T> + Copy> REdge<T> {
+    /// Get the length of the edge.
+    pub fn length(&self) -> T {
+        if self.start < self.end {
+            self.end - self.start
+        } else {
+            self.start - self.end
+        }
+    }
+}
+
+impl<T: CoordinateType> REdge<T> {
+    /// Create a new `REdge` from two arguments that implement `Into<Point>`.
+    /// The two points must lie either on a vertical or horizontal line, otherwise `None` is returned.
+    ///
+    /// # Panics
+    /// Panics if the two points are not on the same horizontal or vertical line.
+    pub fn new<C>(start: C, end: C) -> Self
+        where C: Into<Point<T>>
+    {
+        Self::try_from_points(start, end).expect("Points must be on a vertical or horizontal line.")
     }
 
     /// Create a new `REdge` from two arguments that implement `Into<Point>`.
@@ -210,74 +289,11 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
-    /// Get the start point of the edge.
-    pub fn start(&self) -> Point<T> {
-        match self.orientation {
-            REdgeOrientation::Horizontal => Point::new(self.start, self.offset),
-            REdgeOrientation::Vertical => Point::new(self.offset, self.start)
-        }
-    }
-
-    /// Get the end point of the edge.
-    pub fn end(&self) -> Point<T> {
-        match self.orientation {
-            REdgeOrientation::Horizontal => Point::new(self.end, self.offset),
-            REdgeOrientation::Vertical => Point::new(self.offset, self.end)
-        }
-    }
-
-    /// Return the same edge but with the two points swapped.
-    pub fn reversed(&self) -> Self {
-        Self {
-            start: self.end,
-            end: self.start,
-            offset: self.offset,
-            orientation: self.orientation,
-        }
-    }
-
-    /// Check if edge is degenerate.
-    /// An edge is degenerate if start point and end point are equal.
-    #[inline]
-    pub fn is_degenerate(&self) -> bool {
-        self.start == self.end
-    }
-
-    /// Test if this edge is either horizontal or vertical.
-    #[inline]
-    pub fn is_ortho(&self) -> bool {
-        !self.is_degenerate() && true
-    }
-
-    /// Test if this edge is horizontal.
-    #[inline]
-    pub fn is_horizontal(&self) -> bool {
-        !self.is_degenerate() &&
-            self.orientation == REdgeOrientation::Horizontal
-    }
-
-    /// Test if this edge is vertical.
-    #[inline]
-    pub fn is_vertical(&self) -> bool {
-        !self.is_degenerate() &&
-            self.orientation == REdgeOrientation::Vertical
-    }
-
-
     /// Returns the vector from `self.start()` to `self.end()`.
     pub fn vector(&self) -> Vector<T> {
         match self.orientation {
             REdgeOrientation::Horizontal => Vector::new(self.end - self.start, T::zero()),
             REdgeOrientation::Vertical => Vector::new(T::zero(), self.end - self.start)
-        }
-    }
-
-    /// Get the length of the edge.
-    pub fn length(&self) -> T {
-        if self.start < self.end {
-            self.end - self.start
-        } else {
-            self.start - self.end
         }
     }
 
@@ -563,7 +579,7 @@ impl<T: CoordinateType> REdge<T> {
                             REdgeOrientation::Horizontal => Point::new(s, self.offset),
                         };
                         debug_assert!(p == self.start() || p == self.end() || p == other.start() || p == other.end(),
-                                        "`p` must be an end point.");
+                                      "`p` must be an end point.");
                         REdgeIntersection::EndPoint(p)
                     }
                 } else {

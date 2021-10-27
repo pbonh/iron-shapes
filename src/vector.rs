@@ -451,7 +451,7 @@ impl<T, M> Mul<M> for Vector<T>
 
 /// In-place scalar multiplication.
 impl<T, M> MulAssign<M> for Vector<T>
-    where T: CoordinateType + MulAssign<M>,
+    where T: Copy + MulAssign<M>,
           M: Copy
 {
     #[inline]
@@ -463,7 +463,7 @@ impl<T, M> MulAssign<M> for Vector<T>
 
 /// Scalar division.
 impl<T, D> Div<D> for Vector<T>
-    where T: CoordinateType + Div<D, Output=T>,
+    where T: Copy + Div<D, Output=T>,
           D: Copy
 {
     type Output = Self;
@@ -479,7 +479,7 @@ impl<T, D> Div<D> for Vector<T>
 
 /// Assigning scalar division.
 impl<T, D> DivAssign<D> for Vector<T>
-    where T: CoordinateType + DivAssign<D>,
+    where T: Copy + DivAssign<D>,
           D: Copy
 {
     #[inline]
