@@ -43,14 +43,15 @@ use crate::prelude::SimpleTransform;
 /// alternate between horizontal and vertical. Vertices between two edges of the same orientation will
 /// be dropped.
 ///
-#[derive(Clone, Debug, Hash, Eq)]
+#[derive(Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SimpleRPolygon<T>
-    where T: CoordinateType {
+pub struct SimpleRPolygon<T> {
     /// Vertices of the polygon.
     /// Begin with a y-coordinate. First edge is horizontal.
     half_points: Vec<T>
 }
+
+impl<T: PartialEq> Eq for SimpleRPolygon<T> {}
 
 /// Shorthand notation for creating a simple polygon.
 /// # Example
@@ -627,8 +628,7 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimpleRPolygon<T> {
     }
 }
 
-impl<T> PartialEq for SimpleRPolygon<T>
-    where T: CoordinateType {
+impl<T: PartialEq> PartialEq for SimpleRPolygon<T> {
     /// Equality test for simple polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied
