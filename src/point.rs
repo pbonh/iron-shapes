@@ -22,7 +22,6 @@
 
 use crate::vector::Vector;
 use crate::traits::{MapPointwise, TryCastCoord, BoundingBox, TryBoundingBox};
-use crate::CoordinateType;
 
 
 use std::cmp::{Ord, Ordering};
@@ -99,16 +98,6 @@ impl<T> Into<Vector<T>> for Point<T> {
     }
 }
 
-///// Convert a type into a point by converting it into a vector first.
-//impl<S, T: CoordinateType> From<S> for Point<T>
-//    where S: Into<Vector<T>> {
-//    fn from(s: S) -> Self {
-//        let v: Vector<T> = s.into();
-//        v.into()
-//    }
-//}
-
-
 impl<T> Point<T> {
     /// Create a new point with `x` and `y` coordinates.
     #[inline]
@@ -154,7 +143,7 @@ impl<T: Zero> Point<T> {
     }
 }
 
-impl<T: CoordinateType> Point<T> {
+impl<T: Copy + Mul<Output=T> + Add<Output=T> + Sub<Output=T>> Point<T> {
     /// Compute the squared distance to the `other` point.
     ///
     /// # Examples
@@ -197,7 +186,7 @@ impl<T: CoordinateType> Point<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast> Point<T> {
+impl<T: Copy + Sub<Output=T> + NumCast> Point<T> {
     /// Compute the Euclidean distance betwen two points.
     #[inline]
     pub fn distance<F: Float>(self, other: &Point<T>) -> F {
@@ -212,7 +201,7 @@ impl<T: CoordinateType + NumCast> Point<T> {
 /// for both points the y-coordinate is used.
 ///
 /// Point `a` > Point `b` iff `a.x > b.x || (a.x == b.x && a.y > b.y)`.
-impl<T: CoordinateType> PartialOrd for Point<T> {
+impl<T: PartialOrd> PartialOrd for Point<T> {
     #[inline]
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         match self.x.partial_cmp(&rhs.x) {
@@ -228,7 +217,7 @@ impl<T: CoordinateType> PartialOrd for Point<T> {
 /// for both points the y-coordinate is used.
 ///
 /// Point `a` > Point `b` iff `a.x > b.x || (a.x == b.x && a.y > b.y)`.
-impl<T: CoordinateType + Ord> Ord for Point<T> {
+impl<T: Ord> Ord for Point<T> {
     #[inline]
     fn cmp(&self, rhs: &Self) -> Ordering {
         match self.x.cmp(&rhs.x) {
@@ -240,9 +229,7 @@ impl<T: CoordinateType + Ord> Ord for Point<T> {
 
 
 /// Point wise transformation for a single point.
-impl<T> MapPointwise<T> for Point<T>
-    where T: CoordinateType
-{
+impl<T: Copy> MapPointwise<T> for Point<T> {
     /// Point wise transformation.
     #[inline]
     fn transform<F>(&self, transformation: F) -> Self
@@ -310,7 +297,7 @@ impl<T> fmt::Display for Point<T>
 }
 
 
-impl<T: CoordinateType + NumCast> Point<T> {
+impl<T: Copy + NumCast> Point<T> {
     /// Convert Point into a Point with floating point data type.
     #[inline]
     pub fn cast_to_float<F: Float + NumCast>(&self) -> Point<F> {
@@ -322,7 +309,7 @@ impl<T: CoordinateType + NumCast> Point<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Point<T> {
+impl<T: Copy + NumCast, Dst: Copy + NumCast> TryCastCoord<T, Dst> for Point<T> {
     type Output = Point<Dst>;
 
     #[inline]
@@ -444,7 +431,7 @@ impl<T> MulAssign<T> for Point<T>
 
 /// Scalar division.
 impl<T> Div<T> for Point<T>
-    where T: CoordinateType + Div<Output=T>
+    where T: Copy + Div<Output=T>
 {
     type Output = Self;
 
@@ -457,7 +444,7 @@ impl<T> Div<T> for Point<T>
     }
 }
 
-impl<T: CoordinateType> std::iter::Sum for Point<T> {
+impl<T: Copy + Zero + Add<Output=T>> std::iter::Sum for Point<T> {
     /// Compute the sum of all points in the iterator.
     /// If the iterator is empty, (0, 0) is returned.
     fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
@@ -465,14 +452,17 @@ impl<T: CoordinateType> std::iter::Sum for Point<T> {
     }
 }
 
-impl<T: CoordinateType> BoundingBox<T> for Point<T> {
+impl<T: Copy> BoundingBox<T> for Point<T> {
     fn bounding_box(&self) -> Rect<T> {
-        Rect::new(self, self)
+        Rect {
+            lower_left: *self,
+            upper_right: *self
+        }
     }
 }
 
-impl<T: CoordinateType> TryBoundingBox<T> for Point<T> {
+impl<T: Copy> TryBoundingBox<T> for Point<T> {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        Some(Rect::new(self, self))
+        Some(self.bounding_box())
     }
 }
