@@ -162,7 +162,7 @@ impl Rot90Transform {
 /// followed by a displacement.
 #[derive(Copy, Clone, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SimpleTransform<T: CoordinateType> {
+pub struct SimpleTransform<T> {
     /// Mirror on the x-axis?
     pub mirror: bool,
     /// Rotation by a multiple of 90 degrees.
