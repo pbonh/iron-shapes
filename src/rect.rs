@@ -25,8 +25,9 @@ use crate::point::Point;
 use crate::traits::*;
 use crate::cmp::{min, max};
 use crate::CoordinateType;
-use num_traits::NumCast;
+use num_traits::{NumCast, One};
 use crate::polygon::{ToPolygon, Polygon};
+use std::ops::{Sub, Add, Div};
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
@@ -116,27 +117,7 @@ impl<T: Copy> Rect<T> {
     }
 }
 
-impl<T: CoordinateType> Rect<T> {
-    /// Get the center point of the rectangle.
-    /// When using integer coordinates the resulting
-    /// coordinates will be truncated to the next integers.
-    pub fn center(&self) -> Point<T> {
-        let _2 = T::one() + T::one();
-        (self.lower_left() + self.upper_right()) / _2
-    }
-
-    /// Compute the width of the rectangle.
-    #[inline]
-    pub fn width(&self) -> T {
-        self.upper_right.x - self.lower_left.x
-    }
-
-    /// Compute the height of the rectangle.
-    #[inline]
-    pub fn height(&self) -> T {
-        self.upper_right.y - self.lower_left.y
-    }
-
+impl<T: PartialOrd + Copy> Rect<T> {
     /// Check if rectangle contains the point.
     /// Inclusive boundaries.
     ///
@@ -254,7 +235,23 @@ impl<T: CoordinateType> Rect<T> {
             None
         }
     }
+}
 
+impl<T: Copy + Sub<Output=T>> Rect<T> {
+    /// Compute the width of the rectangle.
+    #[inline]
+    pub fn width(&self) -> T {
+        self.upper_right.x - self.lower_left.x
+    }
+
+    /// Compute the height of the rectangle.
+    #[inline]
+    pub fn height(&self) -> T {
+        self.upper_right.y - self.lower_left.y
+    }
+}
+
+impl<T: Copy + Ord> Rect<T> {
     /// Create the smallest `Rect` that contains the original `Rect` and the `point`.
     ///
     /// # Example
@@ -297,13 +294,28 @@ impl<T: CoordinateType> Rect<T> {
         self.add_point(rect.lower_left)
             .add_point(rect.upper_right)
     }
+}
 
+impl<T: Copy + Add<Output=T> + Div<Output=T> + One> Rect<T> {
+    /// Get the center point of the rectangle.
+    /// When using integer coordinates the resulting
+    /// coordinates will be truncated to the next integers.
+    pub fn center(&self) -> Point<T> {
+        let _2 = T::one() + T::one();
+        (self.lower_left() + self.upper_right()) / _2
+    }
+}
+
+
+impl<T: Copy + Add<Output=T> + Sub<Output=T>> Rect<T> {
     /// Create an enlarged copy of this rectangle.
     /// The vertical boundaries will be shifted towards the outside by `add_x`.
     /// The horizontal boundaries will be shifted towards the outside by `add_y`.
     pub fn sized(&self, add_x: T, add_y: T) -> Self {
-        Rect::new((self.lower_left.x - add_x, self.lower_left.y - add_y),
-                  (self.upper_right.x + add_x, self.upper_right.y + add_y))
+        Rect {
+            lower_left: (self.lower_left.x - add_x, self.lower_left.y - add_y).into(),
+            upper_right: (self.upper_right.x + add_x, self.upper_right.y + add_y).into(),
+        }
     }
 }
 
@@ -315,23 +327,22 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for Rect<T> {
     }
 }
 
-impl<T: CoordinateType> BoundingBox<T> for Rect<T> {
+impl<T: Copy> BoundingBox<T> for Rect<T> {
     /// Get bounding box of rectangle (which is equal to the rectangle itself).
     fn bounding_box(&self) -> Rect<T> {
-        self.clone()
+        *self
     }
 }
 
-impl<T: CoordinateType> TryBoundingBox<T> for Rect<T> {
+impl<T: Copy> TryBoundingBox<T> for Rect<T> {
     /// Get bounding box of rectangle (always exists).
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        Some(self.clone())
+        Some(*self)
     }
 }
 
 /// Point wise transformation of the two corner points.
-impl<T> MapPointwise<T> for Rect<T>
-    where T: CoordinateType
+impl<T: Copy + PartialOrd> MapPointwise<T> for Rect<T>
 {
     /// Point wise transformation.
     fn transform<F>(&self, transformation: F) -> Self
@@ -346,7 +357,7 @@ impl<T> MapPointwise<T> for Rect<T>
 /// Iterate over all points of the rectangle.
 /// Starts with the lower left corner and iterates counter clock-wise.
 impl<'a, T> IntoIterator for &'a Rect<T>
-    where T: CoordinateType {
+    where T: Copy {
     type Item = Point<T>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -359,7 +370,7 @@ impl<'a, T> IntoIterator for &'a Rect<T>
 /// Iterate over all points of the rectangle.
 /// Starts with the lower left corner and iterates counter clock-wise.
 impl<T> IntoIterator for Rect<T>
-    where T: CoordinateType {
+    where T: Copy {
     type Item = Point<T>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 

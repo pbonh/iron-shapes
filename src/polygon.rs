@@ -39,10 +39,9 @@ use itertools::Itertools;
 
 /// A polygon possibly with holes. The polygon is defined by a hull and a list of holes
 /// which are both `SimplePolygon`s.
-#[derive(Clone, Hash, Debug, Eq)]
+#[derive(Clone, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Polygon<T>
-    where T: CoordinateType {
+pub struct Polygon<T> {
     /// The outer hull of the polygon.
     pub exterior: SimplePolygon<T>,
     /// A list of holes in the polygon.
@@ -82,7 +81,7 @@ impl<'a, T, P> From<&'a Vec<P>> for Polygon<T>
 
 /// Create a polygon from a `Vec` of values convertible to `Point`s.
 impl<T, P> From<Vec<P>> for Polygon<T>
-    where T: CoordinateType,
+    where T: Copy,
           Point<T>: From<P>
 {
     fn from(vec: Vec<P>) -> Self {
@@ -96,7 +95,7 @@ impl<T, P> From<Vec<P>> for Polygon<T>
 
 /// Create a polygon from a iterator of values convertible to `Point`s.
 impl<T, P> FromIterator<P> for Polygon<T>
-    where T: CoordinateType,
+    where T: Copy,
           P: Into<Point<T>>
 {
     fn from_iter<I>(iter: I) -> Self
@@ -112,7 +111,6 @@ impl<T, P> FromIterator<P> for Polygon<T>
 
 /// Create a polygon from a simple polygon.
 impl<T> From<SimplePolygon<T>> for Polygon<T>
-    where T: CoordinateType
 {
     fn from(simple_polygon: SimplePolygon<T>) -> Self {
         Polygon {
@@ -124,7 +122,7 @@ impl<T> From<SimplePolygon<T>> for Polygon<T>
 
 /// Create a polygon from a simple polygon.
 impl<T> From<&SimplePolygon<T>> for Polygon<T>
-    where T: CoordinateType
+    where T: Copy
 {
     fn from(simple_polygon: &SimplePolygon<T>) -> Self {
         Polygon {
@@ -136,7 +134,7 @@ impl<T> From<&SimplePolygon<T>> for Polygon<T>
 
 /// Create a polygon from a rectangle.
 impl<T> From<Rect<T>> for Polygon<T>
-    where T: CoordinateType
+    where T: Copy
 {
     fn from(rect: Rect<T>) -> Self {
         Polygon::from(
@@ -148,7 +146,7 @@ impl<T> From<Rect<T>> for Polygon<T>
 
 /// Create a polygon from a rectangle.
 impl<T> From<&Rect<T>> for Polygon<T>
-    where T: CoordinateType
+    where T: Copy
 {
     fn from(rect: &Rect<T>) -> Self {
         Polygon::from(
@@ -336,8 +334,10 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for Polygon<T> {
     }
 }
 
+impl<T: Copy + PartialEq> Eq for Polygon<T> {}
+
 impl<T> PartialEq for Polygon<T>
-    where T: CoordinateType {
+    where T: Copy + PartialEq {
     /// Equality test for polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied

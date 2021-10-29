@@ -40,10 +40,9 @@ use crate::traits::TryCastCoord;
 /// self-intersecting.
 ///
 /// TODO: Implement `Deref` for accessing the vertices.
-#[derive(Clone, Debug, Hash, Eq)]
+#[derive(Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct SimplePolygon<T>
-    where T: CoordinateType {
+pub struct SimplePolygon<T> {
     /// Vertices of the polygon.
     pub points: Vec<Point<T>>
 }
@@ -64,20 +63,7 @@ macro_rules! simple_polygon {
  ($($x:expr),*) => {SimplePolygon::new((vec![$($x.into()),*]))}
 }
 
-impl<T: CoordinateType> SimplePolygon<T> {
-    /// Create a new polygon from a list of points.
-    ///
-    /// The orientation of the points is normalized to counter-clock-wise.
-    pub fn new(points: Vec<Point<T>>) -> Self {
-        let mut new = Self::new_raw(points);
-
-        // Normalize orientation.
-        if new.orientation() != Orientation::CounterClockWise {
-            new.points.reverse();
-        }
-
-        new
-    }
+impl<T> SimplePolygon<T> {
 
     /// Create a new polygon from a list of points.
     /// The points are taken as they are, without reordering
@@ -86,14 +72,6 @@ impl<T: CoordinateType> SimplePolygon<T> {
         Self {
             points
         }
-    }
-
-    /// Create a new simple polygon from a rectangle.
-    pub fn from_rect(rect: &Rect<T>) -> Self {
-        Self::new(
-            vec![rect.lower_left(), rect.lower_right(),
-                 rect.upper_right(), rect.upper_left()]
-        )
     }
 
     /// Create empty polygon without any vertices.
@@ -111,6 +89,33 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// Shortcut for `self.points.iter()`.
     pub fn iter(&self) -> Iter<Point<T>> {
         self.points.iter()
+    }
+}
+
+impl<T: Copy> SimplePolygon<T> {
+
+    /// Create a new simple polygon from a rectangle.
+    pub fn from_rect(rect: &Rect<T>) -> Self {
+        Self::new_raw(
+            vec![rect.lower_left(), rect.lower_right(),
+                 rect.upper_right(), rect.upper_left()]
+        )
+    }
+}
+
+impl<T: CoordinateType> SimplePolygon<T> {
+    /// Create a new polygon from a list of points.
+    ///
+    /// The orientation of the points is normalized to counter-clock-wise.
+    pub fn new(points: Vec<Point<T>>) -> Self {
+        let mut new = Self::new_raw(points);
+
+        // Normalize orientation.
+        if new.orientation() != Orientation::CounterClockWise {
+            new.points.reverse();
+        }
+
+        new
     }
 
     /// Get the convex hull of the polygon.
@@ -382,7 +387,7 @@ impl<T> WindingNumber<T> for SimplePolygon<T>
 
 /// Create a polygon from a type that is convertible into an iterator of values convertible to `Point`s.
 impl<I, T, P> From<I> for SimplePolygon<T>
-    where T: CoordinateType,
+    where T: Copy,
           I: IntoIterator<Item=P>,
           Point<T>: From<P>
 {
@@ -435,7 +440,7 @@ impl<I, T, P> From<I> for SimplePolygon<T>
 
 /// Create a polygon from a iterator of values convertible to `Point`s.
 impl<T, P> FromIterator<P> for SimplePolygon<T>
-    where T: CoordinateType,
+    where T: Copy,
           P: Into<Point<T>>
 {
     fn from_iter<I>(iter: I) -> Self
@@ -535,8 +540,12 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimplePolygon<T> {
     }
 }
 
+
+impl<T: Copy + PartialEq> Eq for SimplePolygon<T> {}
+
+
 impl<T> PartialEq for SimplePolygon<T>
-    where T: CoordinateType {
+    where T: Copy + PartialEq {
     /// Equality test for simple polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied
