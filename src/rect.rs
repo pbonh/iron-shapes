@@ -251,7 +251,7 @@ impl<T: Copy + Sub<Output=T>> Rect<T> {
     }
 }
 
-impl<T: Copy + Ord> Rect<T> {
+impl<T: Copy + PartialOrd> Rect<T> {
     /// Create the smallest `Rect` that contains the original `Rect` and the `point`.
     ///
     /// # Example
