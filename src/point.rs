@@ -29,7 +29,7 @@ use std::fmt;
 
 use num_traits::{Float, NumCast};
 pub use num_traits::Zero;
-use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add};
+use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add, DerefMut};
 pub use std::ops::Deref;
 use crate::prelude::Rect;
 
@@ -72,6 +72,13 @@ impl<T> Deref for Point<T> {
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.location
+    }
+}
+
+impl<T> DerefMut for Point<T> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.location
     }
 }
 

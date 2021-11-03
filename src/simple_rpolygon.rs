@@ -254,7 +254,7 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
 
     /// Convert to a `SimplePolygon`.
     pub fn to_simple_polygon(&self) -> SimplePolygon<T> {
-        SimplePolygon::new(self.points().collect())
+        SimplePolygon::new_raw(self.points().collect())
     }
 
     /// Get the convex hull of the polygon.

@@ -28,25 +28,26 @@ use crate::polygon::Polygon;
 pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
 
 use std::iter::FromIterator;
+use crate::traits::TryBoundingBox;
+use crate::prelude::Rect;
 
 /// A `MultiPolygon` is a list of polygons. There is no restrictions on the polygons (they can be
 /// intersecting, empty, etc.).
 #[derive(Default, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct MultiPolygon<T>
-    where T: CoordinateType {
+pub struct MultiPolygon<T> {
     /// The list of polygons which defines the content of this multi polygon.
     pub polygons: Vec<Polygon<T>>
 }
 
-impl<T: CoordinateType> MultiPolygon<T> {
-
+impl<T> MultiPolygon<T> {
     /// Create an empty set of polygons.
     pub fn new() -> Self {
         Self {
             polygons: vec![]
         }
     }
+
 
     /// Create a `MultiPolygon` from a vector of `Polygon`s.
     pub fn from_polygons(polygons: Vec<Polygon<T>>) -> Self {
@@ -65,7 +66,6 @@ impl<T: CoordinateType> MultiPolygon<T> {
         self.polygons.push(polygon)
     }
 }
-
 
 impl<T> WindingNumber<T> for MultiPolygon<T>
     where T: CoordinateType {
@@ -87,13 +87,13 @@ impl<T> MapPointwise<T> for MultiPolygon<T>
     }
 }
 
-impl<T: CoordinateType, IP: Into<Polygon<T>>> From<IP> for MultiPolygon<T> {
+impl<T, IP: Into<Polygon<T>>> From<IP> for MultiPolygon<T> {
     fn from(x: IP) -> Self {
         MultiPolygon::from_polygons(vec![x.into()])
     }
 }
 
-impl<T: CoordinateType> From<Vec<Polygon<T>>> for MultiPolygon<T> {
+impl<T> From<Vec<Polygon<T>>> for MultiPolygon<T> {
     fn from(polygons: Vec<Polygon<T>>) -> Self {
         MultiPolygon {
             polygons
@@ -102,7 +102,7 @@ impl<T: CoordinateType> From<Vec<Polygon<T>>> for MultiPolygon<T> {
 }
 
 
-impl<T: CoordinateType, IP: Into<Polygon<T>>> FromIterator<IP> for MultiPolygon<T> {
+impl<T, IP: Into<Polygon<T>>> FromIterator<IP> for MultiPolygon<T> {
     fn from_iter<I: IntoIterator<Item=IP>>(iter: I) -> Self {
         MultiPolygon::from_polygons(
             iter.into_iter()
@@ -111,12 +111,26 @@ impl<T: CoordinateType, IP: Into<Polygon<T>>> FromIterator<IP> for MultiPolygon<
     }
 }
 
-impl<T: CoordinateType> IntoIterator for MultiPolygon<T> {
+impl<T> IntoIterator for MultiPolygon<T> {
     type Item = Polygon<T>;
     type IntoIter = ::std::vec::IntoIter<Polygon<T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.polygons.into_iter()
+    }
+}
+
+impl<T: CoordinateType> TryBoundingBox<T> for MultiPolygon<T> {
+    fn try_bounding_box(&self) -> Option<Rect<T>> {
+        self.polygons.iter()
+            .map(|p| p.try_bounding_box())
+            .fold(None, |acc, bbox| {
+                match (acc, bbox) {
+                    (None, None) => None,
+                    (None, Some(b)) | (Some(b), None) => Some(b),
+                    (Some(a), Some(b)) => Some(a.add_rect(&b))
+                }
+            })
     }
 }
 
