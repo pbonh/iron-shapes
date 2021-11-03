@@ -27,7 +27,7 @@ use crate::cmp::{min, max};
 use crate::CoordinateType;
 use num_traits::{NumCast, One};
 use crate::polygon::{ToPolygon, Polygon};
-use std::ops::{Sub, Add, Div};
+use std::ops::{Sub, Add, Div, Mul};
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
@@ -319,11 +319,12 @@ impl<T: Copy + Add<Output=T> + Sub<Output=T>> Rect<T> {
     }
 }
 
-impl<T: CoordinateType> DoubledOrientedArea<T> for Rect<T> {
+impl<T: Copy + Add<Output=T> + Sub<Output=T> + Mul<Output=T>> DoubledOrientedArea<T> for Rect<T> {
     /// Calculate doubled oriented area of rectangle.
     fn area_doubled_oriented(&self) -> T {
         let diff = self.upper_right - self.lower_left;
-        diff.x * diff.y * (T::one() + T::one())
+        let area = diff.x * diff.y;
+        area + area
     }
 }
 
