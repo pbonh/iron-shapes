@@ -28,7 +28,7 @@ use crate::polygon::Polygon;
 pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
 
 use std::iter::FromIterator;
-use crate::traits::TryBoundingBox;
+use crate::traits::{TryBoundingBox, TryIntoBoundingBox};
 use crate::prelude::Rect;
 
 /// A `MultiPolygon` is a list of polygons. There is no restrictions on the polygons (they can be
@@ -122,15 +122,7 @@ impl<T> IntoIterator for MultiPolygon<T> {
 
 impl<T: CoordinateType> TryBoundingBox<T> for MultiPolygon<T> {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        self.polygons.iter()
-            .map(|p| p.try_bounding_box())
-            .fold(None, |acc, bbox| {
-                match (acc, bbox) {
-                    (None, None) => None,
-                    (None, Some(b)) | (Some(b), None) => Some(b),
-                    (Some(a), Some(b)) => Some(a.add_rect(&b))
-                }
-            })
+        self.polygons.iter() .try_into_bounding_box()
     }
 }
 

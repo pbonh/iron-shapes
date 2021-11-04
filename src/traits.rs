@@ -43,6 +43,30 @@ pub trait TryBoundingBox<T> {
     fn try_bounding_box(&self) -> Option<Rect<T>>;
 }
 
+/// Try to compute the bounding box while consuming the data.
+/// This is intended to be used for computing bounding boxes over iterators.
+pub trait TryIntoBoundingBox<T> {
+    /// Return the bounding box of this geometry if such bounding box is defined.
+    fn try_into_bounding_box(self) -> Option<Rect<T>>;
+}
+
+/// Compute the bounding box of many objects that may have a bounding box.
+impl<'a, I, B, T> TryIntoBoundingBox<T> for I
+    where I: Iterator<Item=&'a B>,
+          B: TryBoundingBox<T> + 'a,
+          T: Copy + PartialOrd {
+    fn try_into_bounding_box(self) -> Option<Rect<T>> {
+        self.map(|p| p.try_bounding_box())
+            .fold(None, |acc, bbox| {
+                match (acc, bbox) {
+                    (None, None) => None,
+                    (None, Some(b)) | (Some(b), None) => Some(b),
+                    (Some(a), Some(b)) => Some(a.add_rect(&b))
+                }
+            })
+    }
+}
+
 
 /// Calculate the doubled oriented area of a geometry.
 /// Using the doubled area allows to compute the area without using fractions. This is especially
@@ -140,7 +164,7 @@ impl<S, T> RotateOrtho<T> for S
                     T::zero() - p.y,
                     p.x,
                 ),
-                Angle::R180 => Point::zero()-p.v(),
+                Angle::R180 => Point::zero() - p.v(),
                 Angle::R270 => Point::new(
                     p.y,
                     T::zero() - p.x,
