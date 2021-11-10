@@ -873,7 +873,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     }
 }
 
-impl<T: CoordinateType> MapPointwise<T> for Edge<T> {
+impl<T: Copy> MapPointwise<T> for Edge<T> {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         Edge {
             start: tf(self.start),
@@ -882,20 +882,20 @@ impl<T: CoordinateType> MapPointwise<T> for Edge<T> {
     }
 }
 
-impl<T: CoordinateType> BoundingBox<T> for Edge<T> {
+impl<T: Copy + PartialOrd> BoundingBox<T> for Edge<T> {
     fn bounding_box(&self) -> Rect<T> {
         Rect::new(self.start, self.end)
     }
 }
 
-impl<T: CoordinateType> TryBoundingBox<T> for Edge<T> {
+impl<T: Copy + PartialOrd> TryBoundingBox<T> for Edge<T> {
     /// Get bounding box of edge (always exists).
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         Some(self.bounding_box())
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Edge<T> {
+impl<T: Copy + NumCast, Dst: Copy + NumCast> TryCastCoord<T, Dst> for Edge<T> {
     type Output = Edge<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {

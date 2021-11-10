@@ -22,12 +22,12 @@
 
 use crate::prelude::*;
 use crate::traits::{TryBoundingBox, MapPointwise};
-use num_traits::NumCast;
+use num_traits::{NumCast, Num};
 
 /// Abstracted geometrical shape.
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum Geometry<T: CoordinateType> {
+pub enum Geometry<T> {
     /// Point.
     Point(Point<T>),
     /// Edge.
@@ -66,7 +66,7 @@ impl<T: CoordinateType> Geometry<T> {
 /// Implement `From` for `Geometry`.
 macro_rules! geometry_from {
  ( $t:tt ) => {
-       impl<T: CoordinateType> From<$t<T>> for Geometry<T> {
+       impl<T: Copy> From<$t<T>> for Geometry<T> {
             fn from(x: $t<T>) -> Geometry<T> {
                 Geometry::$t(x)
             }
@@ -84,7 +84,7 @@ geometry_from!(Polygon);
 geometry_from!(Path);
 geometry_from!(Text);
 
-impl<T: CoordinateType> TryBoundingBox<T> for Geometry<T> {
+impl<T: Copy + PartialOrd + Num> TryBoundingBox<T> for Geometry<T> {
     /// Calculate the bounding box of this geometrical shape by calling the bounding box method of the concrete type.
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         match self {

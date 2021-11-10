@@ -249,7 +249,7 @@ impl<T: CoordinateType> Polygon<T> {
 }
 
 impl<T> TryBoundingBox<T> for Polygon<T>
-    where T: CoordinateType {
+    where T: Copy + PartialOrd {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         // TODO: What if holes exceed the exterior boundary?
         let bbox = self.exterior.try_bounding_box();
@@ -334,10 +334,10 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for Polygon<T> {
     }
 }
 
-impl<T: Copy + PartialEq> Eq for Polygon<T> {}
+impl<T: PartialEq> Eq for Polygon<T> {}
 
 impl<T> PartialEq for Polygon<T>
-    where T: Copy + PartialEq {
+    where T: PartialEq {
     /// Equality test for polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied

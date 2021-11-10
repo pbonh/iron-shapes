@@ -20,7 +20,6 @@
 
 //! `Text` is used as labels associated with a point.
 
-use crate::CoordinateType;
 use crate::point::Point;
 use crate::traits::*;
 use std::ops::Deref;
@@ -41,8 +40,7 @@ impl<T: Eq + Hash + Clone + fmt::Debug> TextType for T {}
 /// This struct does not define how the text should be rendered on screen.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Text<T, S = String>
-    where T: CoordinateType {
+pub struct Text<T, S = String> {
     /// Location of the label.
     location: Point<T>,
     /// Text content.
@@ -51,14 +49,14 @@ pub struct Text<T, S = String>
 
 /// Display format of the text label.
 impl<T, S> fmt::Display for Text<T, S>
-    where T: CoordinateType + fmt::Display,
+    where T: fmt::Display,
           S: TextType + fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Text({}, {})", self.text, self.location)
     }
 }
 
-impl<T: CoordinateType, S> Deref for Text<T, S>
+impl<T, S> Deref for Text<T, S>
     where S: Deref<Target=String> {
     type Target = String;
 
@@ -68,7 +66,7 @@ impl<T: CoordinateType, S> Deref for Text<T, S>
     }
 }
 
-impl<T: CoordinateType, S: TextType> Text<T, S> {
+impl<T, S: TextType> Text<T, S> {
     /// Create a new text object.
     pub fn new(text: S, location: Point<T>) -> Self {
         Text {
@@ -81,7 +79,9 @@ impl<T: CoordinateType, S: TextType> Text<T, S> {
     pub fn text(&self) -> &S {
         &self.text
     }
+}
 
+impl<T: Copy, S: TextType> Text<T, S> {
     /// Get location of the text label.
     #[inline]
     pub fn location(&self) -> Point<T> {
@@ -101,7 +101,8 @@ impl<T: CoordinateType, S: TextType> Text<T, S> {
     }
 }
 
-impl<T: CoordinateType, S> TryBoundingBox<T> for Text<T, S> {
+
+impl<T: Copy + PartialOrd, S> TryBoundingBox<T> for Text<T, S> {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         Some(
             Rect::new(self.location, self.location)
@@ -111,8 +112,8 @@ impl<T: CoordinateType, S> TryBoundingBox<T> for Text<T, S> {
 
 
 impl<T, Dst, S> TryCastCoord<T, Dst> for Text<T, S>
-    where T: CoordinateType + NumCast,
-          Dst: CoordinateType + NumCast,
+    where T: Copy + NumCast,
+          Dst: Copy + NumCast,
           S: Clone {
     type Output = Text<Dst, S>;
 
@@ -127,7 +128,7 @@ impl<T, Dst, S> TryCastCoord<T, Dst> for Text<T, S>
 
 /// Point wise transformation for a single point.
 impl<T, S> MapPointwise<T> for Text<T, S>
-    where T: CoordinateType,
+    where T: Copy,
           S: Clone
 {
     /// Point wise transformation.

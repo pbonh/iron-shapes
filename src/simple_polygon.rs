@@ -458,7 +458,7 @@ impl<T, P> FromIterator<P> for SimplePolygon<T>
 
 
 impl<T> TryBoundingBox<T> for SimplePolygon<T>
-    where T: CoordinateType {
+    where T: Copy + PartialOrd {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         if self.len() > 0 {
             let mut x_min = self.points[0].x;
@@ -541,11 +541,11 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimplePolygon<T> {
 }
 
 
-impl<T: Copy + PartialEq> Eq for SimplePolygon<T> {}
+impl<T: PartialEq> Eq for SimplePolygon<T> {}
 
 
 impl<T> PartialEq for SimplePolygon<T>
-    where T: Copy + PartialEq {
+    where T: PartialEq {
     /// Equality test for simple polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied

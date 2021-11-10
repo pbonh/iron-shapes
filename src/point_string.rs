@@ -33,26 +33,29 @@ use std::iter::FromIterator;
 use std::slice::Iter;
 
 use num_traits::{Float, NumCast};
+use std::ops::Sub;
 
 /// A point string is a finite sequence of points.
 /// TODO: Implement `Deref` for accessing the list of points.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct PointString<T: CoordinateType> {
+pub struct PointString<T> {
     /// The points defining this point string.
     pub points: Vec<Point<T>>
 }
 
-impl<T: CoordinateType> PointString<T> {
+impl<T> PointString<T> {
+    /// Get the number of vertices.
+    pub fn len(&self) -> usize {
+        self.points.len()
+    }
+}
+
+impl<T: Copy> PointString<T> {
     /// Create new point string by taking vertices from a type that implements `Into<PointString<T>>`.
     pub fn new<I>(i: I) -> Self
         where I: Into<Self> {
         i.into()
-    }
-
-    /// Get the number of vertices.
-    pub fn len(&self) -> usize {
-        self.points.len()
     }
 
     /// Shortcut for `self.points.iter()`.
@@ -102,7 +105,7 @@ impl<T: CoordinateType> PointString<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast> PointString<T> {
+impl<T: Copy + Sub<Output=T> + NumCast> PointString<T> {
     /// Compute geometrical length of the path defined by the point string.
     /// # Examples
     ///
@@ -122,7 +125,7 @@ impl<T: CoordinateType + NumCast> PointString<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for PointString<T> {
+impl<T: Copy + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for PointString<T> {
     type Output = PointString<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
@@ -136,7 +139,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
 
 /// Create a point string from something that can be turned into an iterator of values convertible to [`Point`]s.
 impl<I, T, P> From<I> for PointString<T>
-    where T: CoordinateType,
+    where T: Copy,
           I: IntoIterator<Item=P>,
           Point<T>: From<P>
 {
@@ -180,7 +183,7 @@ impl<I, T, P> From<I> for PointString<T>
 
 /// Create a point string from a iterator of values convertible to [`Point`]s.
 impl<T, P> FromIterator<P> for PointString<T>
-    where T: CoordinateType,
+    where T: Copy,
           P: Into<Point<T>>
 {
     fn from_iter<I>(iter: I) -> Self
@@ -195,7 +198,7 @@ impl<T, P> FromIterator<P> for PointString<T>
 }
 
 impl<T> MapPointwise<T> for PointString<T>
-    where T: CoordinateType {
+    where T: Copy {
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         let points = self.points.iter()
             .map(|&p| tf(p))
@@ -208,7 +211,7 @@ impl<T> MapPointwise<T> for PointString<T>
 }
 
 impl<T> TryBoundingBox<T> for PointString<T>
-    where T: CoordinateType {
+    where T: Copy + PartialOrd {
     /// Compute the bounding box of all the points in this string.
     /// Returns `None` if the string is empty.
     /// # Examples

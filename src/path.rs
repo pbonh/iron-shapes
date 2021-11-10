@@ -33,17 +33,18 @@ pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
 
-use num_traits::{Float, NumCast};
+use num_traits::{Float, NumCast, Num};
 use crate::simple_polygon::SimplePolygon;
 use std::iter::FromIterator;
 use crate::edge::*;
 use crate::rect::Rect;
 use crate::transform::SimpleTransform;
+use std::ops::{Add, Mul};
 
 /// Encoding for the type of the beginning and end of the path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum PathEndType<T: CoordinateType> {
+pub enum PathEndType<T> {
     /// Beginning and end of path are not extended.
     Flat,
     /// Define the extension length at the beginning and at the end of the path.
@@ -56,7 +57,7 @@ pub enum PathEndType<T: CoordinateType> {
 /// It can be thought of the shape resulting by a stroke of a thick pen along the line segments.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Path<T: CoordinateType> {
+pub struct Path<T> {
     /// The vertices of the path which define the sequence of line segments.
     pub points: PointString<T>,
     /// Width of the path.
@@ -65,7 +66,14 @@ pub struct Path<T: CoordinateType> {
     pub path_type: PathEndType<T>,
 }
 
-impl<T: CoordinateType> Path<T> {
+impl<T> Path<T> {
+    /// Get number of vertices defining the path.
+    pub fn len(&self) -> usize {
+        self.points.len()
+    }
+}
+
+impl<T: Copy> Path<T> {
     /// Create new path by taking vertices from a type that implements `Into<PointString<T>>`.
     pub fn new<I>(i: I, width: T) -> Self
         where I: Into<PointString<T>> {
@@ -95,7 +103,9 @@ impl<T: CoordinateType> Path<T> {
             path_type: PathEndType::Round,
         }
     }
+}
 
+impl<T: Copy + Add<Output=T>> Path<T> {
     /// Translate the path by an offset vector.
     pub fn translate(&self, v: Vector<T>) -> Self {
         Path {
@@ -104,12 +114,9 @@ impl<T: CoordinateType> Path<T> {
             path_type: self.path_type,
         }
     }
+}
 
-    /// Get number of vertices defining the path.
-    pub fn len(&self) -> usize {
-        self.points.len()
-    }
-
+impl<T: Copy + Mul<Output=T>> Path<T> {
     /// Scale the path. Scaling center is the origin `(0, 0)`.
     pub fn scale(&self, factor: T) -> Self {
         Path {
@@ -118,6 +125,8 @@ impl<T: CoordinateType> Path<T> {
             path_type: self.path_type,
         }
     }
+}
+impl<T: CoordinateType> Path<T> {
 
     /// Rotate the path by a multiple of 90 degrees around the origin `(0, 0)`.
     pub fn rotate_ortho(&self, angle: Angle) -> Self {
@@ -133,7 +142,7 @@ impl<T: CoordinateType> Path<T> {
         Self {
             points: self.points.transform(|p| tf.transform_point(p)),
             width: tf.transform_distance(self.width),
-            path_type: self.path_type
+            path_type: self.path_type,
         }
     }
 }
@@ -291,7 +300,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     }
 }
 
-impl<T: CoordinateType> TryBoundingBox<T> for Path<T> {
+impl<T: Copy + PartialOrd + Num> TryBoundingBox<T> for Path<T> {
     // /// Compute the bounding box of this path.
     // fn bounding_box(&self) -> Rect<T> {
     //     // Compute the bounding box by first converting the path into a polygon
@@ -317,7 +326,7 @@ impl<T: CoordinateType> TryBoundingBox<T> for Path<T> {
             // Enlarge it by width/2 in all directions to make sure the path is fully contained
             // in the bounding box.
             let (p1, p2) = (bbox.lower_left(), bbox.upper_right());
-            let w_half = (self.width+_1)/_2;
+            let w_half = (self.width + _1) / _2;
             let width = Vector::new(w_half, w_half);
             Rect::new(p1 - width, p2 + width)
         })
