@@ -66,7 +66,7 @@ impl<T: CoordinateType> Geometry<T> {
 /// Implement `From` for `Geometry`.
 macro_rules! geometry_from {
  ( $t:tt ) => {
-       impl<T: Copy> From<$t<T>> for Geometry<T> {
+       impl<T> From<$t<T>> for Geometry<T> {
             fn from(x: $t<T>) -> Geometry<T> {
                 Geometry::$t(x)
             }
