@@ -94,14 +94,14 @@ impl<T: CoordinateType> From<[Point<T>; 2]> for Edge<T> {
 /// An edge (line segment) is represented by its starting point and end point.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Edge<T: CoordinateType> {
+pub struct Edge<T> {
     /// Start-point of the edge.
     pub start: Point<T>,
     /// End-point of the edge.
     pub end: Point<T>,
 }
 
-impl<T: CoordinateType> Edge<T> {
+impl<T: Copy> Edge<T> {
     /// Create a new `Edge` from two arguments that implement `Into<Point>`.
     pub fn new<C>(start: C, end: C) -> Self
         where C: Into<Point<T>> {
@@ -118,7 +118,9 @@ impl<T: CoordinateType> Edge<T> {
             end: self.start,
         }
     }
+}
 
+impl<T: PartialEq> Edge<T> {
     /// Check if edge is degenerate.
     /// An edge is degenerate if start point and end point are equal.
     pub fn is_degenerate(&self) -> bool {
@@ -142,8 +144,9 @@ impl<T: CoordinateType> Edge<T> {
         !self.is_degenerate() &&
             self.start.x == self.end.x
     }
+}
 
-
+impl<T: CoordinateType> Edge<T> {
     /// Returns the vector from `self.start` to `self.end`.
     pub fn vector(&self) -> Vector<T> {
         self.end - self.start
@@ -165,7 +168,7 @@ impl<T: CoordinateType> Edge<T> {
 
         // Handle rectilinear cases.
         if a.x.is_zero() {
-            let side =  if point.x < self.start.x {
+            let side = if point.x < self.start.x {
                 Side::Left
             } else if point.x > self.start.x {
                 Side::Right
@@ -180,9 +183,9 @@ impl<T: CoordinateType> Edge<T> {
                 side.other()
             };
 
-            return side
+            return side;
         } else if a.y.is_zero() {
-            let side =  if point.y < self.start.y {
+            let side = if point.y < self.start.y {
                 Side::Right
             } else if point.y > self.start.y {
                 Side::Left
@@ -197,7 +200,7 @@ impl<T: CoordinateType> Edge<T> {
                 side.other()
             };
 
-            return side
+            return side;
         }
 
         let area = b.cross_prod(a);
