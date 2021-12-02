@@ -34,6 +34,59 @@ use crate::types::FloatType;
 use crate::matrix3d::Matrix3d;
 use num_traits::{Zero, Float, NumCast};
 
+/// General geometric transformation.
+pub trait Transformation {
+    /// Coordinate type of input points.
+    type SourceCoord;
+    /// Coordinate type of output points.
+    type DestinationCoord;
+
+    /// Apply the transform to a point.
+    fn transform_point(&self, p: Point<Self::SourceCoord>) -> Point<Self::DestinationCoord>;
+}
+
+/// Geometric transformation which preserves parallelism.
+/// Adds 'shear' to the [`SimiliarityTransform`].
+pub trait AffineTransform: Transformation {
+    // TODO: fn shear(&self);
+}
+
+/// Geometric transformation which preserves angles and ratios of distances.
+/// Adds resizing to the [`IsometricTransform`].
+pub trait SimiliarityTransform: AffineTransform {
+    /// Transform a distance.
+    fn transform_distance(&self, distance: Self::SourceCoord) -> Self::DestinationCoord;
+}
+
+/// Geometric transformation which preserves angles and ratios of distances.
+/// Adds resizing by integer numbers to the [`IsometricRTransform`].
+pub trait SimiliarityRTransform: SimiliarityTransform<SourceCoord=Self::Coord, DestinationCoord=Self::Coord> {
+    /// Type or source and destination coordinates.
+    type Coord;
+    // TODO
+}
+
+/// Geometric transformation which preserves angles and distances (e.g. euclidean transform).
+pub trait IsometricTransform: SimiliarityTransform {
+    // TODO
+}
+
+/// Geometric transformation which preserves angles and distances (e.g. euclidean transform) but
+/// allows only rotations by a multiple of 90 degrees.
+pub trait IsometricRTransform: IsometricTransform + SimiliarityRTransform {
+    // TODO
+}
+
+/// Geometric transformation which preserves oriented angles and distances (i.e. translation).
+pub trait DisplacementTransform: IsometricRTransform {
+
+    /// Get the displacement vector.
+    fn displacement(&self) -> Vector<Self::SourceCoord>;
+}
+
+
+
+
 /// Description of a transformation in the euclidean plane by a 2x2 matrix `A`.
 /// Transforming a point `p` is computed by the matrix product `A*p`.
 #[derive(Clone, Hash, PartialEq, Debug)]
