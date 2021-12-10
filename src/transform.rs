@@ -46,34 +46,34 @@ pub trait Transformation {
 }
 
 /// Geometric transformation which preserves parallelism.
-/// Adds 'shear' to the [`SimiliarityTransform`].
+/// Adds 'shear' to the [`SimilarityTransform`].
 pub trait AffineTransform: Transformation {
     // TODO: fn shear(&self);
 }
 
 /// Geometric transformation which preserves angles and ratios of distances.
 /// Adds resizing to the [`IsometricTransform`].
-pub trait SimiliarityTransform: AffineTransform {
+pub trait SimilarityTransform: AffineTransform {
     /// Transform a distance.
     fn transform_distance(&self, distance: Self::SourceCoord) -> Self::DestinationCoord;
 }
 
 /// Geometric transformation which preserves angles and ratios of distances.
 /// Adds resizing by integer numbers to the [`IsometricRTransform`].
-pub trait SimiliarityRTransform: SimiliarityTransform<SourceCoord=Self::Coord, DestinationCoord=Self::Coord> {
+pub trait SimilarityRTransform: SimilarityTransform<SourceCoord=Self::Coord, DestinationCoord=Self::Coord> {
     /// Type or source and destination coordinates.
     type Coord;
     // TODO
 }
 
 /// Geometric transformation which preserves angles and distances (e.g. euclidean transform).
-pub trait IsometricTransform: SimiliarityTransform {
+pub trait IsometricTransform: SimilarityTransform {
     // TODO
 }
 
 /// Geometric transformation which preserves angles and distances (e.g. euclidean transform) but
 /// allows only rotations by a multiple of 90 degrees.
-pub trait IsometricRTransform: IsometricTransform + SimiliarityRTransform {
+pub trait IsometricRTransform: IsometricTransform + SimilarityRTransform {
     // TODO
 }
 
