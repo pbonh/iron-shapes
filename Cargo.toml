@@ -1,6 +1,6 @@
 [package]
 name = "iron-shapes"
-version = "0.0.6"
+version = "0.0.7"
 authors = ["Thomas Kramer <code@tkramer.ch>"]
 edition = "2018"
 license = "AGPL-3.0-or-later"
@@ -15,7 +15,7 @@ homepage = "https://codeberg.org/libreda/iron-shapes"
 num-traits = "0.2"
 num-integer = "0.1"
 num-rational = "0.4"
-itertools = "0.10.0"
+itertools = "0.10"
 serde = { version = "1", optional = true, features = ["derive"] }
 
 [dev-dependencies]
