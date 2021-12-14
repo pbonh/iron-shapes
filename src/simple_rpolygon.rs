@@ -70,7 +70,6 @@ macro_rules! simple_rpolygon {
 }
 
 impl<T> SimpleRPolygon<T> {
-
     /// Create empty polygon without any vertices.
     pub fn empty() -> Self {
         Self {
@@ -118,7 +117,6 @@ impl<T: Clone> SimpleRPolygon<T> {
 
 
 impl<T: Copy> SimpleRPolygon<T> {
-
     /// Get `i`-th point of the polygon.
     fn get_point(&self, i: usize) -> Point<T> {
         if i % 2 == 0 {
@@ -570,6 +568,14 @@ fn test_from_rect() {
 //     }
 // }
 
+impl<T> SimpleRPolygon<T>
+    where T: Copy + PartialOrd {
+
+    /// Check if the polygon is an axis-aligned rectangle.
+    pub fn is_rect(&self) -> bool {
+        self.num_points() == 4
+    }
+}
 
 impl<T> TryBoundingBox<T> for SimpleRPolygon<T>
     where T: Copy + PartialOrd {
