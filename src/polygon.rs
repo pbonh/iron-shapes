@@ -34,7 +34,7 @@ pub use crate::simple_polygon::*;
 use std::iter::FromIterator;
 use std::cmp::{Ord, PartialEq};
 use crate::traits::TryCastCoord;
-use num_traits::NumCast;
+use num_traits::{NumCast, Num};
 use itertools::Itertools;
 
 /// A polygon possibly with holes. The polygon is defined by a hull and a list of holes
@@ -240,11 +240,12 @@ impl<T: CoordinateType> Polygon<T> {
     ///
     /// let poly = Polygon::new(coords);
     ///
-    /// assert_eq!(poly.orientation(), Orientation::CounterClockWise);
+    /// assert_eq!(poly.orientation::<i64>(), Orientation::CounterClockWise);
     ///
     /// ```
-    pub fn orientation(&self) -> Orientation {
-        self.exterior.orientation()
+    pub fn orientation<Area>(&self) -> Orientation
+        where Area: Num + From<T> + PartialOrd {
+        self.exterior.orientation::<Area>()
     }
 }
 
@@ -303,7 +304,9 @@ impl<T> MapPointwise<T> for Polygon<T>
     }
 }
 
-impl<T: CoordinateType> DoubledOrientedArea<T> for Polygon<T> {
+impl<T, A> DoubledOrientedArea<A> for Polygon<T>
+    where T: CoordinateType,
+          A: Num + From<T> {
     /// Calculates the doubled oriented area.
     ///
     /// Using doubled area allows to compute in the integers because the area
@@ -322,14 +325,15 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for Polygon<T> {
     ///
     /// let poly = Polygon::new(coords);
     ///
-    /// assert_eq!(poly.area_doubled_oriented(), 3);
+    /// let area: i64 = poly.area_doubled_oriented();
+    /// assert_eq!(area, 3);
     ///
     /// ```
-    fn area_doubled_oriented(&self) -> T {
-        let ext = self.exterior.area_doubled_oriented();
+    fn area_doubled_oriented(&self) -> A {
+        let ext: A = self.exterior.area_doubled_oriented();
         let int = self.interiors.iter()
             .map(|p| p.area_doubled_oriented())
-            .fold(T::zero(), |a, b| a + b);
+            .fold(A::zero(), |a, b| a + b);
         ext + int
     }
 }
@@ -393,7 +397,8 @@ mod tests {
 
         let poly: Polygon<i32> = (&coords).into();
 
-        assert_eq!(poly.area_doubled_oriented(), 2);
+        let doubled_area: i64 = poly.area_doubled_oriented();
+        assert_eq!(doubled_area, 2);
     }
 
     #[test]
@@ -403,7 +408,7 @@ mod tests {
 
         let poly: Polygon<i32> = (&coords).into();
 
-        assert_eq!(poly.orientation(), Orientation::CounterClockWise);
+        assert_eq!(poly.orientation::<i64>(), Orientation::CounterClockWise);
     }
 
     #[test]

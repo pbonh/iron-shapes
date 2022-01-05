@@ -33,7 +33,7 @@ use crate::types::*;
 use std::iter::FromIterator;
 use std::cmp::{Ord, PartialEq};
 use std::slice::Iter;
-use num_traits::NumCast;
+use num_traits::{NumCast, Num};
 use crate::traits::TryCastCoord;
 
 /// A `SimplePolygon` is a polygon defined by vertices. It does not contain holes but can be
@@ -64,11 +64,10 @@ macro_rules! simple_polygon {
 }
 
 impl<T> SimplePolygon<T> {
-
     /// Create a new polygon from a list of points.
     /// The points are taken as they are, without reordering
     /// or simplification.
-    pub fn new_raw(points: Vec<Point<T>>) -> Self {
+    pub fn new(points: Vec<Point<T>>) -> Self {
         Self {
             points
         }
@@ -93,10 +92,9 @@ impl<T> SimplePolygon<T> {
 }
 
 impl<T: Copy> SimplePolygon<T> {
-
     /// Create a new simple polygon from a rectangle.
     pub fn from_rect(rect: &Rect<T>) -> Self {
-        Self::new_raw(
+        Self::new(
             vec![rect.lower_left(), rect.lower_right(),
                  rect.upper_right(), rect.upper_left()]
         )
@@ -104,18 +102,59 @@ impl<T: Copy> SimplePolygon<T> {
 }
 
 impl<T: CoordinateType> SimplePolygon<T> {
-    /// Create a new polygon from a list of points.
+
+    /// Normalize the points of the polygon such that they are arranged counter-clock-wise.
     ///
-    /// The orientation of the points is normalized to counter-clock-wise.
-    pub fn new(points: Vec<Point<T>>) -> Self {
-        let mut new = Self::new_raw(points);
-
-        // Normalize orientation.
-        if new.orientation() != Orientation::CounterClockWise {
-            new.points.reverse();
+    /// After normalizing, `SimplePolygon::area_doubled_oriented()` will return a semi-positive value.
+    ///
+    /// For self-intersecting polygons, the orientation is not clearly defined. For example an `8` shape
+    /// has not orientation.
+    /// Here, the oriented area is used to define the orientation.
+    pub fn normalize_orientation<Area>(&mut self)
+        where Area: Num + PartialOrd + From<T> {
+        if self.orientation::<Area>() != Orientation::CounterClockWise {
+            self.points.reverse();
         }
+    }
 
-        new
+    /// Call `normalize_orientation()` while taking ownership and returning the result.
+    pub fn normalized_orientation<Area>(mut self) -> Self
+        where Area: Num + PartialOrd + From<T> {
+        self.normalize_orientation::<Area>();
+        self
+    }
+
+
+    /// Get the orientation of the polygon.
+    /// The orientation is defined by the oriented area. A polygon with a positive area
+    /// is oriented counter-clock-wise, otherwise it is oriented clock-wise.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::simple_polygon::SimplePolygon;
+    /// use iron_shapes::point::Point;
+    /// use iron_shapes::types::Orientation;
+    /// let coords = vec![(0, 0), (3, 0), (3, 1)];
+    ///
+    /// let poly = SimplePolygon::from(coords);
+    ///
+    /// assert_eq!(poly.orientation::<i64>(), Orientation::CounterClockWise);
+    ///
+    /// ```
+    pub fn orientation<Area>(&self) -> Orientation
+        where Area: Num + From<T> + PartialOrd {
+        // Find the orientation based the polygon area.
+        let area2: Area = self.area_doubled_oriented();
+
+        if area2 > Area::zero() {
+            Orientation::CounterClockWise
+        } else if area2 < Area::zero() {
+            Orientation::ClockWise
+        } else {
+            debug_assert!(area2 == Area::zero());
+            Orientation::Straight
+        }
     }
 
     /// Get the convex hull of the polygon.
@@ -124,104 +163,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// See: <http://geomalgorithms.com/a10-_hull-1.html>
     pub fn convex_hull(&self) -> SimplePolygon<T>
         where T: Ord {
-
-        // Sort S by increasing x and then y-coordinate.
-        let p: Vec<Point<T>> = {
-            let mut p: Vec<Point<T>> = self.points.clone();
-            p.sort();
-            p
-        };
-
-        assert!(p.len() >= 2);
-
-        // minmin = index of P with min x first and min y second
-        let minmin = 0;
-        let p_minmin = p[minmin];
-        // maxmax = index of P with max x first and max y second
-        let maxmax = p.len() - 1;
-        let p_maxmax = p[maxmax];
-        // minmax = index of P with min x first and max y second
-        let minmax = p.iter().enumerate()
-            .take_while(|(_, p)| p.x == p_minmin.x)
-            .last().unwrap().0;
-        let p_minmax = p[minmax];
-        // maxmin = index of P with max x first and min y second
-        let maxmin = p.iter().enumerate().rev()
-            .take_while(|(_, p)| p.x == p_maxmax.x)
-            .last().unwrap().0;
-        let p_maxmin = p[maxmin];
-
-        debug_assert!(minmin <= minmax);
-        debug_assert!(minmax <= maxmin || p_minmax.x == p_maxmin.x);
-        debug_assert!(maxmin <= maxmax);
-
-        debug_assert!(p.iter().all(|&p| p_minmin <= p));
-        debug_assert!(p.iter().all(|&p| p_maxmax >= p));
-        debug_assert!(p.iter().all(|&p|
-            p_minmax.x < p.x || (p_minmax.x == p.x && p_minmax.y >= p.y)
-        ));
-        debug_assert!(p.iter().all(|&p|
-            p_maxmin.x > p.x || (p_maxmin.x == p.x && p_maxmin.y <= p.y)
-        ));
-
-        // Handle degenerate case where all x coordinates are equal.
-        if p_minmin.x == p_maxmax.x {
-            if p_minmin.y == p_maxmax.y {
-                SimplePolygon::new(vec![p_minmin])
-            } else {
-                SimplePolygon::new(vec![p_minmin, p_maxmax])
-            }
-        } else {
-            let build_half_hull =
-                |l: Edge<T>, points: &[Point<T>]| {
-                    let mut stack = Vec::new();
-                    // Push starting point on stack.
-                    stack.push(l.start);
-
-                    for &pi in points {
-                        // Skip all points that are not strictly right of `l`.
-                        if l.side_of(pi) == Side::Right {
-                            while stack.len() >= 2 {
-                                let pt1 = stack[stack.len() - 1];
-                                let pt2 = stack[stack.len() - 2];
-
-                                if Edge::new(pt2, pt1).side_of(pi) == Side::Left {
-                                    // `pi` is strictly left of the line defined by the top two elements
-                                    // on the stack.
-                                    break;
-                                }
-                                stack.pop();
-                            }
-                            stack.push(pi);
-                        }
-                    }
-
-                    stack
-                };
-
-            // Compute the lower hull.
-            let l_min = Edge::new(p_minmin, p_maxmin);
-            let mut lower_half_hull = build_half_hull(l_min, &p[minmax + 1..maxmin]);
-
-            // Push p_maxmin on stack if necessary.
-            if p_maxmin != p_maxmax {
-                lower_half_hull.push(p_maxmin);
-            }
-
-            // Compute the upper hull.
-            let l_max = Edge::new(p_maxmax, p_minmax);
-            let mut upper_half_hull = build_half_hull(l_max, &p[minmax + 1..maxmin]);
-
-            // Push p_minmax on stack if necessary.
-            if p_minmax != p_minmin {
-                upper_half_hull.push(p_minmax);
-            }
-
-            // Join both hulls.
-            lower_half_hull.append(&mut upper_half_hull);
-
-            SimplePolygon::new(lower_half_hull)
-        }
+        crate::algorithms::convex_hull::convex_hull(self.points.clone())
     }
 
     /// Get an iterator over the polygon points.
@@ -297,38 +239,6 @@ impl<T: CoordinateType> SimplePolygon<T> {
         (idx, point.clone().into())
     }
 
-    /// Get the orientation of the polygon,
-    /// i.e. check if it is wound clock-wise or counter-clock-wise.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::simple_polygon::SimplePolygon;
-    /// use iron_shapes::point::Point;
-    /// use iron_shapes::types::Orientation;
-    /// let coords = vec![(0, 0), (3, 0), (3, 1)];
-    ///
-    /// let poly = SimplePolygon::from(coords);
-    ///
-    /// assert_eq!(poly.orientation(), Orientation::CounterClockWise);
-    ///
-    /// ```
-    pub fn orientation(&self) -> Orientation {
-        // Find the orientation by the polygon area.
-
-        let area2 = self.area_doubled_oriented();
-
-        if area2 > T::zero() {
-            Orientation::CounterClockWise
-        } else if area2 < T::zero() {
-            Orientation::ClockWise
-        } else {
-            debug_assert!(area2 == T::zero());
-            Orientation::Straight
-        }
-    }
-
-
     /// Get index of previous vertex.
     fn prev(&self, i: usize) -> usize {
         match i {
@@ -345,6 +255,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
         }
     }
 }
+
 
 impl<T> WindingNumber<T> for SimplePolygon<T>
     where T: CoordinateType {
@@ -499,7 +410,7 @@ impl<T> MapPointwise<T> for SimplePolygon<T>
 
         // Make sure the polygon is oriented the same way as before.
         // TODO: Could be done more efficiently if the magnification/mirroring of the transformation is known.
-        if new.orientation() != self.orientation() {
+        if new.orientation::<T>() != self.orientation::<T>() {
             new.points.reverse()
         }
 
@@ -507,7 +418,9 @@ impl<T> MapPointwise<T> for SimplePolygon<T>
     }
 }
 
-impl<T: CoordinateType> DoubledOrientedArea<T> for SimplePolygon<T> {
+impl<A, T> DoubledOrientedArea<A> for SimplePolygon<T>
+    where T: CoordinateType,
+          A: Num + From<T> {
     /// Calculates the doubled oriented area.
     ///
     /// Using doubled area allows to compute in the integers because the area
@@ -527,14 +440,17 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimplePolygon<T> {
     ///
     /// let poly = SimplePolygon::from(coords);
     ///
-    /// assert_eq!(poly.area_doubled_oriented(), 3);
+    /// let area: i64 = poly.area_doubled_oriented();
+    /// assert_eq!(area, 3);
     ///
     /// ```
-    fn area_doubled_oriented(&self) -> T {
-        let mut sum = T::zero();
-        for i in 0..self.points.len() {
-            sum = sum + self.points[i].x * (self.points[self.next(i)].y -
-                self.points[self.prev(i)].y);
+    fn area_doubled_oriented(&self) -> A {
+        let mut sum = A::zero();
+        let ps = &self.points;
+        for i in 0..ps.len() {
+            let dy = ps[self.next(i)].y - ps[self.prev(i)].y;
+            let x = ps[i].x;
+            sum = sum + A::from(x) * A::from(dy);
         }
         sum
     }
@@ -580,7 +496,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
             .map(|p| p.try_cast())
             .collect();
 
-        new_points.map(|p| SimplePolygon::new_raw(p))
+        new_points.map(|p| SimplePolygon::new(p))
     }
 }
 

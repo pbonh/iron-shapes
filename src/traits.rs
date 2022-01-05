@@ -24,7 +24,7 @@ use crate::rect::Rect;
 use crate::vector::Vector;
 use crate::point::Point;
 
-use num_traits::{Float, Zero};
+use num_traits::Zero;
 use num_traits::cast::NumCast;
 use crate::types::Angle;
 use std::ops::{Sub, Add, Mul};
@@ -71,19 +71,26 @@ impl<'a, I, B, T> TryIntoBoundingBox<T> for I
 /// Calculate the doubled oriented area of a geometry.
 /// Using the doubled area allows to compute the area without using fractions. This is especially
 /// helpful when computing in integer coordinates.
-pub trait DoubledOrientedArea<T> {
+///
+/// * `A`: Area type.
+pub trait DoubledOrientedArea<A> {
     /// Calculate doubled oriented area of this geometry.
     /// Using the doubled area allows to compute the area without using fractions.
-    fn area_doubled_oriented(&self) -> T;
+    fn area_doubled_oriented(&self) -> A;
 }
 
-impl<T: NumCast> dyn DoubledOrientedArea<T> {
+/// Calculate the area of a geometry.
+pub trait Area<F> {
     /// Compute the area of a geometrical shape by first computing
     /// doubled oriented area and then taking absolute value of the half.
-    pub fn area<F: Float + NumCast>(&self) -> F {
-        F::abs(F::from(self.area_doubled_oriented()).unwrap() / (F::one() + F::one()))
-    }
+    fn area(&self) -> F;
 }
+
+// impl<T, F: Float + NumCast, DA: DoubledOrientedArea<T>> Area<F> for DA {
+//     fn area(&self) -> F {
+//         F::abs(F::from(self.area_doubled_oriented()).unwrap() / (F::one() + F::one()))
+//     }
+// }
 
 /// Translate the geometrical object by a vector.
 pub trait Translate<T> {

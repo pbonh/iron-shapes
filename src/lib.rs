@@ -33,8 +33,12 @@ use num_traits::Num;
 /// Trait for types that can be used as coordinates in the euclidean plane.
 /// In practice this are integers, floats and possible rational numbers.
 pub trait CoordinateType: Num + Copy + PartialOrd + Sized {}
-
 impl<T: Num + Copy + PartialOrd> CoordinateType for T {}
+
+/// Trait for types that can be used as areas.
+/// In practice this are integers, floats and possible rational numbers.
+pub trait AreaType: Num + Copy + PartialOrd + Sized {}
+impl<T: Num + Copy + PartialOrd> AreaType for T {}
 
 pub mod prelude;
  
@@ -61,3 +65,4 @@ pub mod text;
 pub mod transform;
 pub mod redge;
 pub mod repetition;
+pub mod algorithms;
