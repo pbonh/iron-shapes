@@ -20,7 +20,7 @@
 
 //! Commonly used type definitions and constants.
 
-use std::ops::{Add, Neg};
+use std::ops::{Add, Neg, Sub};
 
 /// Precision for distance related decisions.
 pub const PREC_DISTANCE: DistanceType = 1e-5;
@@ -64,7 +64,7 @@ impl Angle {
             1 => Angle::R90,
             2 => Angle::R180,
             3 => Angle::R270,
-            _ => panic!()
+            _ => unreachable!()
         }
     }
 }
@@ -75,6 +75,15 @@ impl Add for Angle {
     fn add(self, rhs: Self) -> Self::Output {
         Self::from_u32(self.as_int() + rhs.as_int())
     }
+}
+
+impl Sub for Angle {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::from_u32(self.as_int() + 4 - rhs.as_int())
+    }
+
 }
 
 impl Neg for Angle {
