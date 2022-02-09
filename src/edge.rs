@@ -35,10 +35,43 @@ pub use crate::types::Angle;
 
 pub use crate::types::{Side, ContainsResult};
 
+/// Get the endpoints of an edge.
+pub trait EdgeEndpoints<T> {
+    /// Get the start point of the edge.
+    fn start(&self) -> Point<T>;
+    /// Get the end point of the edge.
+    fn end(&self) -> Point<T>;
+}
+
+/// Define the intersection between two edges (i.e. line segments).
+pub trait EdgeIntersect
+    where Self: Sized {
+    /// Numeric type used for expressing the end-point coordinates of the edge.
+    type Coord;
+    /// Numeric type used for expressing an intersection-point of two edges.
+    /// Often this might be the same as `Coord`.
+    type IntersectionCoord;
+
+    /// Compute intersection of two edges.
+    fn edge_intersection(&self, other: &Self) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, Self>;
+}
+
+/// Iterate over edges.
+/// For an n-gon this would produce n edges.
+pub trait Edges<T> {
+    /// Type of edge which will be returned.
+    type Edge: EdgeEndpoints<T>;
+    /// Iterator type.
+    type EdgeIter: Iterator<Item=Self::Edge>;
+
+    /// Get an iterator over edges.
+    fn edges(&self) -> Self::EdgeIter;
+}
+
 /// Return type for the edge-edge intersection functions.
 /// Stores all possible results of a edge to edge intersection.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum EdgeIntersection<TP: CoordinateType, TO: CoordinateType> {
+pub enum EdgeIntersection<TP, TO, Edge> {
     /// No intersection.
     None,
     /// Intersection in a single point but not on an endpoint of an edge.
@@ -46,7 +79,7 @@ pub enum EdgeIntersection<TP: CoordinateType, TO: CoordinateType> {
     /// Intersection in an endpoint of an edge.
     EndPoint(Point<TO>),
     /// Full or partial overlap.
-    Overlap(Edge<TO>),
+    Overlap(Edge),
 }
 
 /// Return type for the line-line intersection functions.
@@ -99,6 +132,16 @@ pub struct Edge<T> {
     pub start: Point<T>,
     /// End-point of the edge.
     pub end: Point<T>,
+}
+
+impl<T: Copy> EdgeEndpoints<T> for Edge<T> {
+    fn start(&self) -> Point<T> {
+        self.start
+    }
+
+    fn end(&self) -> Point<T> {
+        self.end
+    }
 }
 
 impl<T: Copy> Edge<T> {
@@ -574,7 +617,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
 
 
     /// Compute the intersection with another edge.
-    pub fn edge_intersection_approx<F: Float>(&self, other: &Edge<T>, tolerance: F) -> EdgeIntersection<F, T> {
+    pub fn edge_intersection_approx<F: Float>(&self, other: &Edge<T>, tolerance: F) -> EdgeIntersection<F, T, Edge<T>> {
         debug_assert!(tolerance >= F::zero(), "Tolerance cannot be negative.");
 
         // Swap direction of other edge such that both have the same direction.

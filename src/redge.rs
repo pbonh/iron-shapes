@@ -32,24 +32,16 @@ use num_traits::cast::NumCast;
 pub use crate::traits::{BoundingBox, TryBoundingBox, RotateOrtho, TryCastCoord};
 pub use crate::types::Angle;
 
-pub use crate::types::{Side, ContainsResult};
-use crate::edge::Edge;
+pub use super::types::{Side, ContainsResult};
+use super::prelude::{Edge, EdgeIntersection};
+use crate::prelude::{EdgeEndpoints, EdgeIntersect};
 use std::convert::TryFrom;
 use std::ops::Sub;
 
+
 /// Return type for the edge-edge intersection functions.
 /// Stores all possible results of a edge to edge intersection.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum REdgeIntersection<T: CoordinateType> {
-    /// No intersection.
-    None,
-    /// Intersection in a single point but not on an endpoint of an edge.
-    Point(Point<T>),
-    /// Intersection in an endpoint of an edge.
-    EndPoint(Point<T>),
-    /// Full or partial overlap.
-    Overlap(REdge<T>),
-}
+pub type REdgeIntersection<T> = EdgeIntersection<T, T, REdge<T>>;
 
 /// Return type for the line-line intersection functions.
 /// Stores all possible results of a line to line intersection.
@@ -151,6 +143,25 @@ pub struct REdge<T> {
     pub offset: T,
     /// Orientation: Either horizontal or vertical.
     pub orientation: REdgeOrientation,
+}
+
+impl<T: Copy> EdgeEndpoints<T> for REdge<T> {
+    fn start(&self) -> Point<T> {
+        self.start()
+    }
+
+    fn end(&self) -> Point<T> {
+        self.end()
+    }
+}
+
+impl<T: CoordinateType> EdgeIntersect for REdge<T> {
+    type Coord = T;
+    type IntersectionCoord = T;
+
+    fn edge_intersection(&self, other: &Self) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, REdge<T>> {
+        REdge::edge_intersection(self, other)
+    }
 }
 
 impl<T: PartialEq> Eq for REdge<T> {}

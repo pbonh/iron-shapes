@@ -163,7 +163,7 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
     /// Coordinates of intersection points are rounded towards zero.
     ///
     /// `EdgeIntersection::EndPoint` is returned if and only if the intersection lies exactly on an end point.
-    pub fn edge_intersection_rounded(&self, other: &Edge<T>) -> EdgeIntersection<T, T> {
+    pub fn edge_intersection_rounded(&self, other: &Edge<T>) -> EdgeIntersection<T, T, Edge<T>> {
         // Swap direction of other edge such that both have the same direction.
         let other = if (self.start < self.end) != (other.start < other.end) {
             other.reversed()

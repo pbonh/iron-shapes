@@ -129,7 +129,7 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
 
 
     /// Compute the intersection with another edge.
-    pub fn edge_intersection_rational(&self, other: &Edge<Ratio<T>>) -> EdgeIntersection<Ratio<T>, Ratio<T>> {
+    pub fn edge_intersection_rational(&self, other: &Edge<Ratio<T>>) -> EdgeIntersection<Ratio<T>, Ratio<T>, Edge<Ratio<T>>> {
 //        debug_assert!(tolerance >= Ratio::zero(), "Tolerance cannot be negative.");
 
         // Swap direction of other edge such that both have the same direction.
