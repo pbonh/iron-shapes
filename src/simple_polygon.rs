@@ -101,6 +101,59 @@ impl<T: Copy> SimplePolygon<T> {
     }
 }
 
+impl<T> SimplePolygon<T> {
+    /// Get index of previous vertex.
+    fn prev(&self, i: usize) -> usize {
+        match i {
+            0 => self.points.len() - 1,
+            x => x - 1
+        }
+    }
+
+    /// Get index of next vertex.
+    fn next(&self, i: usize) -> usize {
+        match i {
+            _ if i == self.points.len() - 1 => 0,
+            x => x + 1
+        }
+    }
+}
+
+impl<T: Copy> SimplePolygon<T> {
+
+    /// Get an iterator over the polygon points.
+    /// Point 0 is appended to the end to close the cycle.
+    fn iter_cycle(&self) -> impl Iterator<Item=&Point<T>> {
+        self.points.iter()
+            .cycle()
+            .take(self.points.len() + 1)
+    }
+
+    /// Get all exterior edges of the polygon.
+    /// # Examples
+    ///
+    /// ```
+    /// use iron_shapes::simple_polygon::SimplePolygon;
+    /// use iron_shapes::edge::Edge;
+    /// let coords = vec![(0, 0), (1, 0)];
+    ///
+    /// let poly = SimplePolygon::from(coords);
+    ///
+    /// assert_eq!(poly.edges(), vec![Edge::new((0, 0), (1, 0)), Edge::new((1, 0), (0, 0))]);
+    ///
+    /// ```
+    pub fn edges(&self) -> Vec<Edge<T>> {
+        self.edges_iter().collect()
+    }
+
+    /// Iterate over all edges.
+    pub fn edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
+        self.iter()
+            .zip(self.iter_cycle().skip(1))
+            .map(|(a, b)| Edge::new(a, b))
+    }
+}
+
 impl<T: CoordinateType> SimplePolygon<T> {
 
     /// Normalize the points of the polygon such that they are arranged counter-clock-wise.
@@ -166,38 +219,6 @@ impl<T: CoordinateType> SimplePolygon<T> {
         crate::algorithms::convex_hull::convex_hull(self.points.clone())
     }
 
-    /// Get an iterator over the polygon points.
-    /// Point 0 is appended to the end to close the cycle.
-    fn iter_cycle(&self) -> impl Iterator<Item=&Point<T>> {
-        self.points.iter()
-            .cycle()
-            .take(self.points.len() + 1)
-    }
-
-    /// Get all exterior edges of the polygon.
-    /// # Examples
-    ///
-    /// ```
-    /// use iron_shapes::simple_polygon::SimplePolygon;
-    /// use iron_shapes::edge::Edge;
-    /// let coords = vec![(0, 0), (1, 0)];
-    ///
-    /// let poly = SimplePolygon::from(coords);
-    ///
-    /// assert_eq!(poly.edges(), vec![Edge::new((0, 0), (1, 0)), Edge::new((1, 0), (0, 0))]);
-    ///
-    /// ```
-    pub fn edges(&self) -> Vec<Edge<T>> {
-        self.edges_iter().collect()
-    }
-
-    /// Iterate over all edges.
-    fn edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
-        self.iter()
-            .zip(self.iter_cycle().skip(1))
-            .map(|(a, b)| Edge::new(a, b))
-    }
-
     /// Test if all edges are parallel to the x or y axis.
     pub fn is_rectilinear(&self) -> bool {
         self.edges_iter().all(|e| e.is_rectilinear())
@@ -237,22 +258,6 @@ impl<T: CoordinateType> SimplePolygon<T> {
         let (idx, point) = min.unwrap();
 
         (idx, point.clone().into())
-    }
-
-    /// Get index of previous vertex.
-    fn prev(&self, i: usize) -> usize {
-        match i {
-            0 => self.points.len() - 1,
-            x => x - 1
-        }
-    }
-
-    /// Get index of next vertex.
-    fn next(&self, i: usize) -> usize {
-        match i {
-            _ if i == self.points.len() - 1 => 0,
-            x => x + 1
-        }
     }
 }
 

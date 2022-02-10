@@ -58,7 +58,7 @@ pub trait EdgeIntersect
 
 /// Iterate over edges.
 /// For an n-gon this would produce n edges.
-pub trait Edges<T> {
+pub trait IterEdges<T> {
     /// Type of edge which will be returned.
     type Edge: EdgeEndpoints<T>;
     /// Iterator type.

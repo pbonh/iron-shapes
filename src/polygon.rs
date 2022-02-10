@@ -157,26 +157,49 @@ impl<T> From<&Rect<T>> for Polygon<T>
 }
 
 /// Trait for the conversion of a geometric shape to a polygon.
-pub trait ToPolygon<T>
-    where T: CoordinateType {
+pub trait ToPolygon<T> {
     /// Convert the geometric object into a polygon.
     fn to_polygon(&self) -> Polygon<T>;
 }
 
 
-impl<T: CoordinateType> Polygon<T> {
-    /// Create a new polygon from a sequence of points.
-    pub fn new<I>(i: I) -> Self
-        where I: Into<Self> {
-        i.into()
-    }
-
+impl<T> Polygon<T> {
     /// Create empty polygon without any vertices.
     pub fn empty() -> Self {
         Polygon {
             exterior: SimplePolygon::empty(),
             interiors: Vec::new(),
         }
+    }
+}
+
+
+impl<T: Copy> Polygon<T> {
+    /// Get the number of vertices.
+    pub fn len(&self) -> usize {
+        self.exterior.len()
+    }
+
+    /// Get all exterior edges of the polygon.
+    pub fn edges(&self) -> Vec<Edge<T>> {
+        self.exterior.edges()
+    }
+
+    /// Iterate over all edges of the polygon, including interior edges.
+    pub fn all_edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
+        self.exterior.edges_iter()
+            .chain(
+                self.interiors.iter()
+                    .flat_map(|interior| interior.edges_iter())
+            )
+    }
+}
+
+impl<T: CoordinateType> Polygon<T> {
+    /// Create a new polygon from a sequence of points.
+    pub fn new<I>(i: I) -> Self
+        where I: Into<Self> {
+        i.into()
     }
 
     /// Create a new polygon from a hull and a list of holes.
@@ -187,16 +210,6 @@ impl<T: CoordinateType> Polygon<T> {
             exterior: exterior.into(),
             interiors: holes.into_iter().map(|i| i.into()).collect(),
         }
-    }
-
-    /// Get the number of vertices.
-    pub fn len(&self) -> usize {
-        self.exterior.len()
-    }
-
-    /// Get all exterior edges of the polygon.
-    pub fn edges(&self) -> Vec<Edge<T>> {
-        self.exterior.edges()
     }
 
     /// Get the convex hull of the polygon.

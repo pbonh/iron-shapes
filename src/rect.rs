@@ -28,6 +28,8 @@ use crate::CoordinateType;
 use num_traits::{NumCast, One};
 use crate::polygon::{ToPolygon, Polygon};
 use std::ops::{Sub, Add, Div, Mul};
+use crate::edge::IterEdges;
+use crate::prelude::REdge;
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
@@ -380,7 +382,7 @@ impl<T> IntoIterator for Rect<T>
     }
 }
 
-impl<T: CoordinateType> ToPolygon<T> for Rect<T> {
+impl<T: Copy> ToPolygon<T> for Rect<T> {
     fn to_polygon(&self) -> Polygon<T> {
         Polygon::from(self)
     }
@@ -421,4 +423,64 @@ mod tests {
         let b = Rect::new((1, 2), (5, 5));
         assert_eq!(a.intersection(&b), None);
     }
+}
+
+/// Iterator over edges of a rectangle.
+#[derive(Clone)]
+pub struct RectEdgeIterator<T> {
+    rect: Rect<T>,
+    pos: u8
+}
+
+impl<T> RectEdgeIterator<T> {
+    fn new(rect: Rect<T>) -> Self {
+        Self {
+            rect,
+            pos: 0
+        }
+    }
+}
+
+impl<T: CoordinateType> Iterator for RectEdgeIterator<T> {
+    type Item = REdge<T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= 4 {
+            None
+        } else {
+            let point = |idx: u8| -> Point<T> {
+                match idx {
+                    0 => self.rect.lower_right(),
+                    1 => self.rect.upper_right(),
+                    2 => self.rect.upper_left(),
+                    3 => self.rect.lower_left(),
+                    _ => unreachable!()
+                }
+            };
+            let edge = REdge::new(point(self.pos), point((self.pos + 1) % 4));
+            self.pos += 1;
+            Some(edge)
+        }
+    }
+}
+
+impl<T: CoordinateType> IterEdges<T> for Rect<T> {
+    type Edge = REdge<T>;
+    type EdgeIter = RectEdgeIterator<T>;
+
+    fn edges(&self) -> Self::EdgeIter {
+        RectEdgeIterator::new(*self)
+    }
+}
+
+#[test]
+fn test_edges_iterator() {
+    let rect = Rect::new((1, 2), (3, 4));
+    let edges: Vec<_> = rect.edges().collect();
+    assert_eq!(edges, vec![
+        REdge::new((3, 2), (3, 4)),
+        REdge::new((3, 4), (1, 4)),
+        REdge::new((1, 4), (1, 2)),
+        REdge::new((1, 2), (3, 2)),
+    ]);
 }
