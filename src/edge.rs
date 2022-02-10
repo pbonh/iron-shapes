@@ -58,14 +58,14 @@ pub trait EdgeIntersect
 
 /// Iterate over edges.
 /// For an n-gon this would produce n edges.
-pub trait IterEdges<T> {
+pub trait IntoEdges<T> {
     /// Type of edge which will be returned.
     type Edge: EdgeEndpoints<T>;
     /// Iterator type.
     type EdgeIter: Iterator<Item=Self::Edge>;
 
     /// Get an iterator over edges.
-    fn edges(&self) -> Self::EdgeIter;
+    fn into_edges(self) -> Self::EdgeIter;
 }
 
 /// Return type for the edge-edge intersection functions.

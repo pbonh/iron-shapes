@@ -28,7 +28,7 @@ use crate::CoordinateType;
 use num_traits::{NumCast, One};
 use crate::polygon::{ToPolygon, Polygon};
 use std::ops::{Sub, Add, Div, Mul};
-use crate::edge::IterEdges;
+use crate::edge::IntoEdges;
 use crate::prelude::REdge;
 
 /// A rectangle which is oriented along the x an y axis and
@@ -464,11 +464,11 @@ impl<T: CoordinateType> Iterator for RectEdgeIterator<T> {
     }
 }
 
-impl<T: CoordinateType> IterEdges<T> for Rect<T> {
+impl<T: CoordinateType> IntoEdges<T> for &Rect<T> {
     type Edge = REdge<T>;
     type EdgeIter = RectEdgeIterator<T>;
 
-    fn edges(&self) -> Self::EdgeIter {
+    fn into_edges(self) -> Self::EdgeIter {
         RectEdgeIterator::new(*self)
     }
 }
@@ -476,7 +476,7 @@ impl<T: CoordinateType> IterEdges<T> for Rect<T> {
 #[test]
 fn test_edges_iterator() {
     let rect = Rect::new((1, 2), (3, 4));
-    let edges: Vec<_> = rect.edges().collect();
+    let edges: Vec<_> = rect.into_edges().collect();
     assert_eq!(edges, vec![
         REdge::new((3, 2), (3, 4)),
         REdge::new((3, 4), (1, 4)),

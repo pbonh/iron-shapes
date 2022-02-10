@@ -30,7 +30,7 @@ use crate::types::Angle;
 use std::ops::{Sub, Add, Mul};
 
 /// Calculation of the 'bounding box', i.e. the smallest rectangle that contains the geometrical object.
-pub trait BoundingBox<T>: TryBoundingBox<T> {
+pub trait BoundingBox<T> {
     /// Return the bounding box of this geometry.
     fn bounding_box(&self) -> Rect<T>;
 }

@@ -48,7 +48,11 @@ pub trait Transformation {
 /// Geometric transformation which preserves parallelism.
 /// Adds 'shear' to the [`SimilarityTransform`].
 pub trait AffineTransform: Transformation {
-    // TODO: fn shear(&self);
+    /// Get the both eigen-vectors which characterize the 'shear'.
+    /// Eigen-vectors are the vectors whose direction is not changed when applying the transformation.
+    fn eigen_vectors(&self) -> (Vector<Self::SourceCoord>, Vector<Self::SourceCoord>);
+
+    // fn eigen_values(&self) -> (); // TODO
 }
 
 /// Geometric transformation which preserves angles and ratios of distances.
@@ -75,16 +79,34 @@ pub trait IsometricTransform: SimilarityTransform {
 /// allows only rotations by a multiple of 90 degrees.
 pub trait IsometricRTransform: IsometricTransform + SimilarityRTransform {
     // TODO
+
+    /// Return the rotation by a multiple of 90 degrees.
+    fn rotation(&self) -> Angle;
 }
 
 /// Geometric transformation which preserves oriented angles and distances (i.e. translation).
 pub trait DisplacementTransform: IsometricRTransform {
-
     /// Get the displacement vector.
     fn displacement(&self) -> Vector<Self::SourceCoord>;
 }
 
-
+// // Blanket implementation.
+// impl<Tf: DisplacementTransform> IsometricRTransform for Tf {
+//     fn rotation(&self) -> Angle {
+//         Angle::R0
+//     }
+// }
+//
+// /// A geometric displacement transformation.
+// pub struct Displacement<T> {
+//     disp: Vector<T>
+// }
+//
+// impl<T: Copy> DisplacementTransform<Coord=T> for Displacement<T> {
+//     fn displacement(&self) -> Vector<Self::SourceCoord> {
+//         *self.disp
+//     }
+// }
 
 
 /// Description of a transformation in the euclidean plane by a 2x2 matrix `A`.
@@ -268,7 +290,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
 
     /// Create a rotation arount `rotation_center` by an integer multiple of 90 degrees.
     pub fn rotate90_around(angle: Angle, rotation_center: Point<T>) -> Self {
-        Self::translate(Point::zero()-rotation_center)
+        Self::translate(Point::zero() - rotation_center)
             .then(&Self::rotate90(angle))
             .then(&Self::translate(rotation_center))
     }
