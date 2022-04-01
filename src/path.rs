@@ -126,8 +126,8 @@ impl<T: Copy + Mul<Output=T>> Path<T> {
         }
     }
 }
-impl<T: CoordinateType> Path<T> {
 
+impl<T: CoordinateType> Path<T> {
     /// Rotate the path by a multiple of 90 degrees around the origin `(0, 0)`.
     pub fn rotate_ortho(&self, angle: Angle) -> Self {
         Path {
@@ -290,12 +290,32 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     type Output = Path<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        if let Some(new_width) = Dst::from(self.width) {
-            self.points.try_cast()
-                .map(|ps| Path::new(ps, new_width))
-        } else {
-            // Failed to cast the width.
-            None
+        let new_width = Dst::from(self.width);
+        let new_points = self.points.try_cast();
+        let new_path_type = match self.path_type {
+            PathEndType::Extended(begin_ext, end_ext) => {
+                let new_begin_ext = Dst::from(begin_ext);
+                let new_end_ext = Dst::from(end_ext);
+                match (new_begin_ext, new_end_ext) {
+                    (Some(b), Some(e)) => Some(PathEndType::Extended(b, e)),
+                    _ => None
+                }
+            }
+            PathEndType::Flat => Some(PathEndType::Flat),
+            PathEndType::Round => Some(PathEndType::Round),
+        };
+
+        match (new_width, new_points, new_path_type) {
+            (Some(width), Some(points), Some(path_type)) =>
+                Some(Path {
+                    points,
+                    width,
+                    path_type,
+                }),
+            _ => {
+                // Failed to cast some values.
+                None
+            }
         }
     }
 }
