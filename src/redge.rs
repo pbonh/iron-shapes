@@ -627,21 +627,13 @@ impl<T: CoordinateType> REdge<T> {
 
     /// Rotate the edge by a multiple of 90 degrees around `(0, 0)`.
     pub fn rotate_ortho(&self, a: Angle) -> Self {
-        match a {
-            Angle::R0 => *self,
-            Angle::R90 => REdge::new_raw(T::zero() - self.start,
-                                         T::zero() - self.end,
-                                         self.offset,
-                                         self.orientation.other()),
-            Angle::R180 => REdge::new_raw(T::zero() - self.start,
-                                          T::zero() - self.end,
-                                          T::zero() - self.offset,
-                                          self.orientation),
-            Angle::R270 => REdge::new_raw(self.start,
-                                          self.end,
-                                          T::zero() - self.offset,
-                                          self.orientation.other())
-        }
+
+        let (p1, p2) = (self.start(), self.end());
+
+        let new_p1 = p1.rotate_ortho(a);
+        let new_p2 = p2.rotate_ortho(a);
+
+        Self::new(new_p1, new_p2)
     }
 }
 
