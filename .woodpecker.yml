@@ -8,3 +8,7 @@ pipeline:
         commands:
             - cargo check
             - cargo test
+    reuse:
+        image: fsfe/reuse:latest
+        commands:
+            - reuse lint
