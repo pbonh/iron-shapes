@@ -69,15 +69,24 @@ pub trait IntoEdges<T> {
 }
 
 /// Return type for the edge-edge intersection functions.
-/// Stores all possible results of a edge to edge intersection.
+/// Stores all possible results of an edge to edge intersection.
+///
+/// # Note on coordinate types:
+/// There are two coordinate types (which may be the same concrete type):
+/// * `OriginalCoord` is the coordinate type used to define the edge end-points. An intersection at the end-points
+/// can be expressed with this coordinate type.
+/// * `IntersectionCoord` is the coordinate type used to express intersection points somewhere in the middle of the edge.
+/// This may differ from the coordinate type of the end-points. For example if the end-points are stored in integer coordinates
+/// the intersection may require rational coordinates. But in special cases such as axis-aligned edges, the intersection point
+/// can indeed be expressed in integer coordinates.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum EdgeIntersection<TP, TO, Edge> {
+pub enum EdgeIntersection<IntersectionCoord, OriginalCoord, Edge> {
     /// No intersection.
     None,
     /// Intersection in a single point but not on an endpoint of an edge.
-    Point(Point<TP>),
+    Point(Point<IntersectionCoord>),
     /// Intersection in an endpoint of an edge.
-    EndPoint(Point<TO>),
+    EndPoint(Point<OriginalCoord>),
     /// Full or partial overlap.
     Overlap(Edge),
 }
