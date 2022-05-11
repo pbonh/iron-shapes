@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2022 Thomas Kramer <code@tkramer.ch>
+
+SPDX-License-Identifier: CC-BY-SA-4.0
+-->
+
 # libreda-shapes - Euclidean geometry for LibrEDA
 This is library is a collection of geometric primitives together with some fundamental algorithms.
 
