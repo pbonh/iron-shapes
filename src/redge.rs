@@ -114,6 +114,16 @@ impl REdgeOrientation {
             Self::Vertical => Self::Horizontal,
         }
     }
+
+    /// Check if the orientation is horizontal.
+    pub fn is_horizontal(self) -> bool {
+        self == Self::Horizontal
+    }
+
+    /// Check if the orientation is vertical.
+    pub fn is_vertical(self) -> bool {
+        self == Self::Vertical
+    }
 }
 
 /// An rectilinear edge (horizontal or vertical line segment) is represented by its starting point and end point.
@@ -296,14 +306,28 @@ impl<T: CoordinateType> REdge<T> {
     /// Get a vector of unit length pointing in the same direction as the edge.
     /// Returns `None` if the length of the edge is zero.
     pub fn direction(&self) -> Option<Vector<T>> {
-        let v = self.vector();
-        let length = self.length();
-        if length > T::zero() {
-            Some(v / length)
+
+        let _0 = T::zero();
+        let _1 = T::one();
+        let _1_minus = _0 - _1;
+
+        let d = if self.start < self.end {
+            Some(Vector::new(_1, _0))
+        } else if self.start > self.end {
+            Some(Vector::new(_1_minus, _0))
         } else {
             None
-        }
+        };
+
+        let d = if self.orientation.is_vertical() {
+            d.map(|d| d.rotate_ortho(Angle::R90))
+        } else {
+            d
+        };
+
+        d
     }
+
 
     /// Tells on which side of the edge a point is.
     ///
@@ -612,7 +636,6 @@ impl<T: CoordinateType> REdge<T> {
 
     /// Rotate the edge by a multiple of 90 degrees around `(0, 0)`.
     pub fn rotate_ortho(&self, a: Angle) -> Self {
-
         let (p1, p2) = (self.start(), self.end());
 
         let new_p1 = p1.rotate_ortho(a);
@@ -621,6 +644,7 @@ impl<T: CoordinateType> REdge<T> {
         Self::new(new_p1, new_p2)
     }
 }
+
 
 #[test]
 fn test_rotate_ortho() {
@@ -667,6 +691,7 @@ mod tests {
     use crate::redge::{REdge, RLineIntersection, REdgeIntersection};
     use crate::point::Point;
     use crate::types::*;
+    use crate::vector::Vector;
 
     #[test]
     fn test_is_parallel() {
@@ -960,6 +985,20 @@ mod tests {
         assert!(!e2.is_coincident(&e1));
     }
 
+    #[test]
+    fn test_direction() {
+        let e_up = REdge::new((0, 0), (0, 2));
+        assert_eq!(e_up.direction(), Some(Vector::new(0, 1)));
+
+        let e_down = REdge::new((0, 0), (0, -2));
+        assert_eq!(e_down.direction(), Some(Vector::new(0, -1)));
+
+        let e_right = REdge::new((0, 0), (2, 0));
+        assert_eq!(e_right.direction(), Some(Vector::new(1, 0)));
+
+        let e_left = REdge::new((0, 0), (-2, 0));
+        assert_eq!(e_left.direction(), Some(Vector::new(-1, 0)));
+    }
 
     // #[test]
     // fn test_intersection_of_random_edges() {

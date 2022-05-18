@@ -191,6 +191,8 @@ impl<T: PartialOrd + Copy> Rect<T> {
     }
 
     /// Compute the boolean intersection of two rectangles.
+    /// This function excludes the boundaries, hence a zero-area intersection is considered `None`.
+    /// See `intersection_inclusive_bounds()` zero-area intersections should be returned as `Some(rectangle)`.
     ///
     /// # Example
     ///
@@ -217,6 +219,37 @@ impl<T: PartialOrd + Copy> Rect<T> {
         let ury = min(self.upper_right.y, other.upper_right.y);
 
         if llx < urx && lly < ury {
+            Some(Rect::new((llx, lly), (urx, ury)))
+        } else {
+            None
+        }
+    }
+
+    /// Compute the boolean intersection of two rectangles and include the boundaries.
+    /// This allows to get zero-area intersection results for example if the two
+    /// rectangles touch on a boundary or one of the rectangle is already zero-area.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// // Create two rectangles which intersect in a single point.
+    /// let a = Rect::new((0, 0), (2, 2));
+    /// let b = Rect::new((2, 2), (3, 3));
+    ///
+    /// // Compute the intersection.
+    /// assert_eq!(a.intersection_inclusive_bounds(&b), Some(Rect::new((2, 2), (2, 2))));
+    ///
+    /// ```
+    pub fn intersection_inclusive_bounds(&self, other: &Self) -> Option<Self> {
+        let llx = max(self.lower_left.x, other.lower_left.x);
+        let lly = max(self.lower_left.y, other.lower_left.y);
+
+        let urx = min(self.upper_right.x, other.upper_right.x);
+        let ury = min(self.upper_right.y, other.upper_right.y);
+
+        if llx <= urx && lly <= ury {
             Some(Rect::new((llx, lly), (urx, ury)))
         } else {
             None

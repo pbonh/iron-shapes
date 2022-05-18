@@ -329,7 +329,7 @@ impl<T> Vector<T>
     }
 
     /// Return the normal vector onto this vector.
-    /// The normal has length 0.
+    /// The normal has length `1`.
     ///
     /// # Panics
     /// Panics if the vector has length 0.
@@ -338,6 +338,7 @@ impl<T> Vector<T>
         self.normalized().rotate_ortho(Angle::R90)
     }
 }
+
 
 impl<T: Copy + NumCast> Vector<T>
 {
