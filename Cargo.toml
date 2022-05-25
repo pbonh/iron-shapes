@@ -6,7 +6,7 @@
 name = "iron-shapes"
 version = "0.0.7"
 authors = ["Thomas Kramer <code@tkramer.ch>"]
-edition = "2018"
+edition = "2021"
 license = "AGPL-3.0-or-later"
 description = "Basic data types and routines for computational geometry focused on VLSI chip design."
 keywords = ["geometry", "euclidean", "vlsi"]

@@ -458,3 +458,4 @@ impl<T: Copy> TryBoundingBox<T> for Point<T> {
         Some(self.bounding_box())
     }
 }
+

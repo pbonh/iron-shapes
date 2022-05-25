@@ -51,3 +51,7 @@ pub mod transform;
 pub mod redge;
 pub mod repetition;
 pub mod algorithms;
+mod concepts;
+mod isotropy;
+mod interval;
+mod concepts_impl;

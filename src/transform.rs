@@ -49,7 +49,7 @@ pub trait SimilarityTransform: AffineTransform {
 
 /// Geometric transformation which preserves angles and ratios of distances.
 /// Adds resizing by integer numbers to the [`IsometricRTransform`].
-pub trait SimilarityRTransform: SimilarityTransform<SourceCoord=Self::Coord, DestinationCoord=Self::Coord> {
+pub trait SimilarityTransform90: SimilarityTransform<SourceCoord=Self::Coord, DestinationCoord=Self::Coord> {
     /// Type or source and destination coordinates.
     type Coord;
     // TODO
@@ -62,7 +62,7 @@ pub trait IsometricTransform: SimilarityTransform {
 
 /// Geometric transformation which preserves angles and distances (e.g. euclidean transform) but
 /// allows only rotations by a multiple of 90 degrees.
-pub trait IsometricRTransform: IsometricTransform + SimilarityRTransform {
+pub trait IsometricTransform90: IsometricTransform + SimilarityTransform90 {
     // TODO
 
     /// Return the rotation by a multiple of 90 degrees.
@@ -70,7 +70,7 @@ pub trait IsometricRTransform: IsometricTransform + SimilarityRTransform {
 }
 
 /// Geometric transformation which preserves oriented angles and distances (i.e. translation).
-pub trait DisplacementTransform: IsometricRTransform {
+pub trait DisplacementTransform: IsometricTransform90 {
     /// Get the displacement vector.
     fn displacement(&self) -> Vector<Self::SourceCoord>;
 }
