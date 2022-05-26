@@ -169,7 +169,7 @@ impl<T: PartialEq> PartialEq for REdge<T> {
     }
 }
 
-impl<T: Copy> REdge<T> {
+impl<T> REdge<T> {
     /// Create a new rectilinear edge.
     ///
     /// # Parameters
@@ -186,7 +186,10 @@ impl<T: Copy> REdge<T> {
             orientation,
         }
     }
+}
 
+impl<T: Copy> REdge<T> {
+    
     /// Get the start point of the edge.
     pub fn start(&self) -> Point<T> {
         match self.orientation {
