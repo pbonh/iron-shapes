@@ -2,9 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+
+//! A one dimensional interval.
+
 use crate::CoordinateType;
 use crate::cmp::{max, min};
 
+/// A one dimensional interval which is represented by a start and end coordinate.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Interval<T>(Option<(T, T)>)

@@ -189,7 +189,7 @@ impl<T> REdge<T> {
 }
 
 impl<T: Copy> REdge<T> {
-    
+
     /// Get the start point of the edge.
     pub fn start(&self) -> Point<T> {
         match self.orientation {

@@ -1,8 +1,14 @@
-use crate::concepts::{PointConcept, IntCoordinates};
-use crate::isotropy::Orientation2D;
+// SPDX-FileCopyrightText: 2022 Thomas Kramer
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! Implement the geometry concepts for the default data types.
+
+use crate::concepts::*;
+use crate::isotropy::*;
 use crate::prelude::Point;
 
-impl PointConcept<IntCoordinates> for Point<i32> {
+impl PointConcept<I32Coordinates> for Point<i32> {
 
     fn new(x: i32, y: i32) -> Self {
         Point::new(x, y)
@@ -22,4 +28,16 @@ impl PointConcept<IntCoordinates> for Point<i32> {
         };
         *c = value
     }
+}
+
+/// Coordinate types based on `i32` as main coordinate type.
+pub struct I32Coordinates;
+
+impl CoordinateConcept for I32Coordinates {
+    type Coord = i32;
+    type Area = f64;
+    type ManhattanArea = i64;
+    type UnsignedArea = f64;
+    type CoordinateDifference = i32;
+    type CoordinateDistance = f64;
 }
