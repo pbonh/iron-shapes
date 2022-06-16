@@ -78,6 +78,16 @@ impl Orientation2D {
             (Vertical, High) => Up
         }
     }
+
+    /// Check if orientation is vertical.
+    pub fn is_vertical(&self) -> bool {
+        self == &Self::Vertical
+    }
+
+    /// Check if orientation is horizontal.
+    pub fn is_horizontal(&self) -> bool {
+        self == &Self::Vertical
+    }
 }
 
 /// Directions along the coordinate axes in two dimensions.

@@ -28,3 +28,4 @@ pub use crate::text::*;
 pub use crate::transform::*;
 
 pub use crate::isotropy::*;
+pub use crate::interval::*;
