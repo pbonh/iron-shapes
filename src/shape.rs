@@ -115,7 +115,7 @@ impl<T: CoordinateType + NumCast> DoubledOrientedArea<T> for Geometry<T> {
             Geometry::Path(p) => {
                 // TODO: Find a way without type conversions.
                 T::from(FloatType::round(
-                    p.area_approx::<FloatType>() * (2.0 as FloatType)
+                    p.area_approx::<FloatType>() * 2.0_f64
                 )).unwrap()
             }
             Geometry::Text(_) => T::zero(),

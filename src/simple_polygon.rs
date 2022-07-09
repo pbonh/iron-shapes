@@ -224,7 +224,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
     ///
     /// ```
     pub fn lower_left_vertex(&self) -> Point<T> {
-        debug_assert!(self.points.len() > 0);
+        debug_assert!(!self.points.is_empty());
 
         self.lower_left_vertex_with_index().1
     }
@@ -232,7 +232,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// Get the vertex with lowest x-coordinate and its index.
     /// Prefer lower y-coordinates to break ties.
     fn lower_left_vertex_with_index(&self) -> (usize, Point<T>) {
-        debug_assert!(self.points.len() > 0);
+        debug_assert!(!self.points.is_empty());
 
         // Find minimum.
         let min = self.points
@@ -242,7 +242,7 @@ impl<T: CoordinateType> SimplePolygon<T> {
                 p1.partial_cmp(&p2).unwrap());
         let (idx, point) = min.unwrap();
 
-        (idx, point.clone().into())
+        (idx, *point)
     }
 }
 

@@ -322,13 +322,11 @@ impl<T: CoordinateType> REdge<T> {
             None
         };
 
-        let d = if self.orientation.is_vertical() {
+        if self.orientation.is_vertical() {
             d.map(|d| d.rotate_ortho(Angle::R90))
         } else {
             d
-        };
-
-        d
+        }
     }
 
 
@@ -463,12 +461,10 @@ impl<T: CoordinateType> REdge<T> {
 
             if side2 == Side::Center {
                 ContainsResult::OnBounds
+            } else if side1 == side2 {
+                ContainsResult::No
             } else {
-                if side1 == side2 {
-                    ContainsResult::No
-                } else {
-                    ContainsResult::WithinBounds
-                }
+                ContainsResult::WithinBounds
             }
         }
     }

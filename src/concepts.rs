@@ -12,7 +12,6 @@
 
 use num_traits::{Num, Signed, Float};
 use crate::isotropy::*;
-use crate::traits::Scale;
 
 /// Define a type used for coordinates.
 pub trait CoordinateBase {

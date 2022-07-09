@@ -218,10 +218,10 @@ impl<T: CoordinateType + NumCast> Path<T> {
         // Create caps.
         let start_cap = edges.first()
             .map(|e| create_flat_cap(e.reversed(), width, start_ext))
-            .unwrap_or_else(|| Vec::new());
+            .unwrap_or_else(Vec::new);
         let end_cap = edges.last()
             .map(|e| create_flat_cap(*e, width, end_ext))
-            .unwrap_or_else(|| Vec::new());
+            .unwrap_or_else(Vec::new);
 
         // Pre-compute normals (scaled by half the width).
         let normals: Vec<Vector<f64>> = edges.iter()

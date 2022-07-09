@@ -6,7 +6,6 @@
 //! A one dimensional interval.
 
 use crate::CoordinateType;
-use crate::cmp::{max, min};
 
 /// A one dimensional interval which is represented by a start and end coordinate.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

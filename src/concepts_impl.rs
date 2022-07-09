@@ -7,7 +7,7 @@
 use crate::concepts::*;
 use crate::isotropy::*;
 use crate::prelude as types;
-use crate::prelude::{IntoEdges, Translate, Scale, CoordinateType};
+use crate::prelude::{IntoEdges, Scale, CoordinateType};
 
 
 /// Coordinate types based on `i32` as main coordinate type.
@@ -163,7 +163,7 @@ impl<C> PolygonSet<C> for types::Rect<C::Coord>
         todo!()
     }
 
-    fn scaled(mut self, scale: C::Coord) -> Self {
+    fn scaled(self, scale: C::Coord) -> Self {
         self.scale(scale);
         self
     }
