@@ -459,12 +459,10 @@ impl<T: CoordinateType> Edge<T> {
 
             if side2 == Side::Center {
                 ContainsResult::OnBounds
+            } else if side1 == side2 {
+                ContainsResult::No
             } else {
-                if side1 == side2 {
-                    ContainsResult::No
-                } else {
-                    ContainsResult::WithinBounds
-                }
+                ContainsResult::WithinBounds
             }
         }
     }
@@ -495,7 +493,7 @@ impl<T: CoordinateType> Edge<T> {
 //            // For rectilinear edges this implies that they touch somewhere or overlap.
 //            true
 //        } else {
-            match self.crossed_by_line(&other) {
+            match self.crossed_by_line(other) {
                 ContainsResult::No => ContainsResult::No,
                 r => r.min(other.crossed_by_line(self))
             }
@@ -861,8 +859,8 @@ impl<T: CoordinateType + NumCast> Edge<T> {
         let d = (self.vector()).cast();
 
         // Orthogonal projection of point onto the line.
-        let projection = self.start.cast() + d * d.dot(p) / d.norm2_squared();
-        projection
+
+        self.start.cast() + d * d.dot(p) / d.norm2_squared()
     }
 
     /// Find the mirror image of `point`.

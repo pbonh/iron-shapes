@@ -383,7 +383,7 @@ mod tests {
 
     #[test]
     fn test_end_point_intersection_at_negative_x() {
-        let p = |a: isize, b: isize| Point::new(a, b);
+        let p = Point::new;
 
         // Negative coordinates.
         let e1 = Edge::new(p(-1, 2), p(0, 0));

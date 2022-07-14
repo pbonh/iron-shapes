@@ -165,7 +165,7 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     /// ```
     pub fn try_new<P>(points: Vec<P>) -> Option<Self>
         where P: Copy + Into<Point<T>> {
-        if points.len() == 0 {
+        if points.is_empty() {
             // Empty polygon.
             Some(Self { half_points: Vec::new() })
         } else if let Some(last) = points.last() {
@@ -278,10 +278,10 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         let min = self.points()
             .enumerate()
             .min_by(|(_, p1), (_, p2)|
-                p1.partial_cmp(&p2).unwrap());
+                p1.partial_cmp(p2).unwrap());
         let (idx, point) = min.unwrap();
 
-        (idx, point.clone().into())
+        (idx, point)
     }
 
     /// Get the orientation of the polygon,
@@ -523,8 +523,7 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimpleRPolygon<T> {
                 let end = self.half_points[self.next(i)];
                 let offset = self.half_points[i];
 
-                let sub_area = (start - end) * offset;
-                sub_area
+                (start - end) * offset
             })
             .fold(T::zero(), |acc, area| acc + area);
 

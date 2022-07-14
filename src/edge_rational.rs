@@ -283,8 +283,8 @@ mod tests {
     fn test_line_intersection_rational() {
         // Helper constructors.
         let rp = |a: i64, b: i64| Point::new(Rational64::from(a), Rational64::from(b));
-        let r = |a: i64, b: i64| Rational64::new(a, b);
-        let i = |a: i64| Rational64::from(a);
+        let r = Rational64::new;
+        let i = Rational64::from;
 
         let e1 = Edge::new(rp(0, 0), rp(2, 2));
         let e2 = Edge::new(rp(1, 0), rp(0, 1));

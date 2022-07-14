@@ -36,7 +36,7 @@ impl<T> RegularRepetition<T>
     /// * `a, b`: Lattice vectors.
     /// * `n, m`: Number of repetitions in directions `a` and `b`.
     pub fn new(a: Vector<T>, b: Vector<T>, n: u32, m: u32) -> Self {
-        return RegularRepetition { a, b, n, m };
+        RegularRepetition { a, b, n, m }
     }
 
     /// Create a repetition along the x and y axis.
@@ -92,7 +92,7 @@ impl<T> IrregularRepetition<T>
 
     /// Create a new irregular repetition from a list of offsets.
     pub fn new(offsets: Vec<Vector<T>>) -> Self {
-        return IrregularRepetition { offsets };
+        IrregularRepetition { offsets }
     }
 
     /// Iterate over each offsets of this repetition.
