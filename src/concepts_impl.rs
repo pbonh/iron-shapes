@@ -101,7 +101,7 @@ impl<C> Polygon90<C> for types::Rect<C::Coord>
 impl<C> Polygon<C> for types::Rect<C::Coord>
     where C: CoordinateConcept {
     fn set(&mut self, iter: ()) {
-        unimplemented!()
+        todo!()
     }
 }
 
@@ -151,16 +151,14 @@ impl<C> PolygonSet<C> for types::Rect<C::Coord>
     }
 
     fn convolved(mut self, p: &Self::Point) -> Self {
-        // self.convolve(p);
-        // self
-        todo!()
+        self.lower_left = self.lower_left + p;
+        self.upper_right = self.upper_right + p;
+        self
     }
 
     fn convolve(&mut self, p: &Self::Point) {
-        // let v: types::Vector<C::Coord> = p.into();
-        // self.upper_right = self.upper_right + v;
-        // self.lower_left = self.lower_left + v;
-        todo!()
+        self.lower_left = self.lower_left + p;
+        self.upper_right = self.upper_right + p;
     }
 
     fn scaled(self, scale: C::Coord) -> Self {
@@ -169,7 +167,8 @@ impl<C> PolygonSet<C> for types::Rect<C::Coord>
     }
 
     fn scale(&mut self, scale: C::Coord) {
-        todo!()
+        self.upper_right = self.upper_right * scale;
+        self.lower_left = self.lower_left * scale;
     }
 
     fn all_points(&self) -> Self::AllPoints {
