@@ -379,7 +379,7 @@ impl<T: CoordinateType> REdge<T> {
 //    }
 
     /// Compute the manhattan distance of a point to the edge.
-    pub fn manhattan_distance_to_edge(self, p: Point<T>) -> T {
+    pub fn manhattan_distance_to_point(self, p: Point<T>) -> T {
         let projected = self.projection(p);
 
         if self.contains_point(projected).inclusive_bounds() {
@@ -767,13 +767,13 @@ mod tests {
         let e = REdge::new((0, 0), (10, 0));
         let p = Point::new(2, 3);
 
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(5, 0)), 0);
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(5, 1)), 1);
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(5, -1)), 1);
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(-1, 0)), 1);
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(-1, -1)), 2);
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(11, 1)), 2);
-        assert_eq!(e.manhattan_distance_to_edge(Point::new(11, -1)), 2);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(5, 0)), 0);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(5, 1)), 1);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(5, -1)), 1);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(-1, 0)), 1);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(-1, -1)), 2);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(11, 1)), 2);
+        assert_eq!(e.manhattan_distance_to_point(Point::new(11, -1)), 2);
     }
 
     #[test]
