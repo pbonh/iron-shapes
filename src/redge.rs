@@ -189,7 +189,6 @@ impl<T> REdge<T> {
 }
 
 impl<T: Copy> REdge<T> {
-
     /// Get the start point of the edge.
     pub fn start(&self) -> Point<T> {
         match self.orientation {
@@ -309,7 +308,6 @@ impl<T: CoordinateType> REdge<T> {
     /// Get a vector of unit length pointing in the same direction as the edge.
     /// Returns `None` if the length of the edge is zero.
     pub fn direction(&self) -> Option<Vector<T>> {
-
         let _0 = T::zero();
         let _1 = T::one();
         let _1_minus = _0 - _1;
@@ -379,6 +377,23 @@ impl<T: CoordinateType> REdge<T> {
 //
 //        min1.min(min2)
 //    }
+
+    /// Compute the manhattan distance of a point to the edge.
+    pub fn manhattan_distance_to_edge(self, p: Point<T>) -> T {
+        let projected = self.projection(p);
+
+        if self.contains_point(projected).inclusive_bounds() {
+            self.distance_to_line(p)
+        } else {
+            let dist_to_point1 = (self.start() - p).norm1();
+            let dist_to_point2 = (self.end() - p).norm1();
+            if dist_to_point1 < dist_to_point2 {
+                dist_to_point1
+            } else {
+                dist_to_point2
+            }
+        }
+    }
 
 
     /// Test if point lies on the edge.
@@ -745,6 +760,20 @@ mod tests {
 
         assert_eq!(xaxis.distance_to_line(p), p.y);
         assert_eq!(yaxis.distance_to_line(p), p.x);
+    }
+
+    #[test]
+    fn test_manhattan_distance_to_edge() {
+        let e = REdge::new((0, 0), (10, 0));
+        let p = Point::new(2, 3);
+
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(5, 0)), 0);
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(5, 1)), 1);
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(5, -1)), 1);
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(-1, 0)), 1);
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(-1, -1)), 2);
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(11, 1)), 2);
+        assert_eq!(e.manhattan_distance_to_edge(Point::new(11, -1)), 2);
     }
 
     #[test]
