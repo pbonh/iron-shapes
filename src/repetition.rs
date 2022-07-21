@@ -76,6 +76,11 @@ impl<T> RegularRepetition<T>
     pub fn len(&self) -> usize {
         (self.n as usize) * (self.m as usize)
     }
+
+    /// Check if number of repetitions is zero.
+    pub fn is_empty(&self) -> bool {
+        self.n == 0 || self.m == 0
+    }
 }
 
 /// Describe a non-equispaced repetition by storing a list of offsets.
@@ -104,6 +109,11 @@ impl<T> IrregularRepetition<T>
     pub fn len(&self) -> usize {
         self.offsets.len()
     }
+
+    /// Check if there's no repetition at all.
+    pub fn is_empty(&self) -> bool {
+        self.offsets.is_empty()
+    }
 }
 
 /// Describe the regular or irregular repetition of a geometrical object.
@@ -124,6 +134,14 @@ impl<T> Repetition<T>
         match self {
             Repetition::Regular(r) => r.len(),
             Repetition::Irregular(r) => r.len()
+        }
+    }
+
+    /// Check if there is no repetition at all.
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Repetition::Regular(r) => r.is_empty(),
+            Repetition::Irregular(r) => r.is_empty()
         }
     }
 

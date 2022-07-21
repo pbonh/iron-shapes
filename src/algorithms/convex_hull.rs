@@ -64,9 +64,8 @@ pub fn convex_hull<T>(points: Vec<Point<T>>) -> SimplePolygon<T>
     } else {
         let build_half_hull =
             |l: Edge<T>, points: &[Point<T>]| {
-                let mut stack = Vec::new();
                 // Push starting point on stack.
-                stack.push(l.start);
+                let mut stack = vec![l.start];
 
                 for &pi in points {
                     // Skip all points that are not strictly right of `l`.

@@ -227,7 +227,7 @@ impl<T: PartialEq> REdge<T> {
     /// Test if this edge is either horizontal or vertical.
     #[inline]
     pub fn is_ortho(&self) -> bool {
-        !self.is_degenerate() && true
+        !self.is_degenerate()
     }
 
     /// Test if this edge is horizontal.

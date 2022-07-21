@@ -43,9 +43,7 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
     ///
     /// ```
     pub fn line_intersection_rounded(&self, other: Edge<T>) -> LineIntersection<T, T> {
-        if self.is_degenerate() {
-            LineIntersection::None
-        } else if other.is_degenerate() {
+        if self.is_degenerate() || other.is_degenerate() {
             LineIntersection::None
         } else {
 
