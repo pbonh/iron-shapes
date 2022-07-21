@@ -164,34 +164,22 @@ pub enum ContainsResult {
 impl ContainsResult {
     /// Tells if the point is contained but does not lie on the bounds.
     pub fn is_within_bounds(&self) -> bool {
-        match self {
-            ContainsResult::WithinBounds => true,
-            _ => false
-        }
+        matches!(self, ContainsResult::WithinBounds)
     }
 
     /// Tells if the point is contained or lies on the bounds.
     pub fn inclusive_bounds(&self) -> bool {
-        match self {
-            ContainsResult::WithinBounds | ContainsResult::OnBounds => true,
-            _ => false
-        }
+        matches!(self, ContainsResult::WithinBounds | ContainsResult::OnBounds)
     }
 
     /// Check if the point neither is on the bounds nor within the bounds.
     pub fn on_bounds(&self) -> bool {
-        match self {
-            ContainsResult::OnBounds => true,
-            _ => false
-        }
+        matches!(self, ContainsResult::OnBounds)
     }
 
     /// Check if the point lies on the bounds.
     pub fn is_no(&self) -> bool {
-        match self {
-            ContainsResult::No => true,
-            _ => false
-        }
+        matches!(self, ContainsResult::No)
     }
 
     /// Returns the stronger result of the both.
