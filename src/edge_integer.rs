@@ -5,6 +5,7 @@
 
 //! Edge intersection functions for integer coordinates.
 
+use std::cmp::Ordering;
 use crate::point::Point;
 pub use crate::edge::{Edge, EdgeIntersection, LineIntersection};
 use crate::redge::{REdge, REdgeIntersection};
@@ -276,12 +277,10 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
 
                     // Check if the edges overlap in more than one point, in exactly one point or
                     // in zero points.
-                    if start.0 < end.0 {
-                        EdgeIntersection::Overlap(Edge::new(start.1, end.1))
-                    } else if start.0 == end.0 {
-                        EdgeIntersection::EndPoint(start.1)
-                    } else {
-                        EdgeIntersection::None
+                    match start.0.cmp(&end.0) {
+                        Ordering::Less => EdgeIntersection::Overlap(Edge::new(start.1, end.1)),
+                        Ordering::Equal => EdgeIntersection::EndPoint(start.1),
+                        Ordering::Greater => EdgeIntersection::None
                     }
                 }
             }
