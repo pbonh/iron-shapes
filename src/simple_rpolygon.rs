@@ -62,19 +62,20 @@ impl<T> SimpleRPolygon<T> {
     }
 
     /// Get the number of vertices.
+    #[deprecated(note = "use len() instead")]
     pub fn num_points(&self) -> usize {
         self.half_points.len()
     }
 
-    // /// Get the number of vertices.
-    // pub fn len(&self) -> usize {
-    //     self.half_points.len()
-    // }
-    //
-    // /// Check if polygon has no vertices.
-    // pub fn is_empty(&self) -> bool {
-    //     self.half_points.is_empty()
-    // }
+    /// Get the number of vertices.
+    pub fn len(&self) -> usize {
+        self.half_points.len()
+    }
+
+    /// Check if polygon has no vertices.
+    pub fn is_empty(&self) -> bool {
+        self.half_points.is_empty()
+    }
 
     /// Reverse the order of the vertices in-place.
     pub fn reverse(&mut self) {
@@ -122,7 +123,7 @@ impl<T: Copy> SimpleRPolygon<T> {
 
     /// Iterate over the points.
     pub fn points(&self) -> impl Iterator<Item=Point<T>> + '_ {
-        (0..self.num_points()).map(move |i| self.get_point(i))
+        (0..self.len()).map(move |i| self.get_point(i))
     }
 
     /// Get all exterior edges of the polygon.
@@ -144,7 +145,7 @@ impl<T: Copy> SimpleRPolygon<T> {
     ///
     /// ```
     pub fn edges(&self) -> impl Iterator<Item=REdge<T>> + '_ {
-        (0..self.num_points()).map(move |i| {
+        (0..self.len()).map(move |i| {
             let orientation = if i % 2 == 0 {
                 REdgeOrientation::Horizontal
             } else {
@@ -274,7 +275,7 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     ///
     /// ```
     pub fn lower_left_vertex(&self) -> Point<T> {
-        debug_assert!(self.num_points() > 0);
+        debug_assert!(!self.is_empty());
 
         self.lower_left_vertex_with_index().1
     }
@@ -282,7 +283,7 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     /// Get the vertex with lowest x-coordinate and its index.
     /// Prefer lower y-coordinates to break ties.
     fn lower_left_vertex_with_index(&self) -> (usize, Point<T>) {
-        debug_assert!(self.num_points() > 0);
+        debug_assert!(!self.is_empty());
 
         // Find minimum.
         let min = self.points()
@@ -470,14 +471,14 @@ impl<T> SimpleRPolygon<T>
 
     /// Check if the polygon is an axis-aligned rectangle.
     pub fn is_rect(&self) -> bool {
-        self.num_points() == 4
+        self.len() == 4
     }
 }
 
 impl<T> TryBoundingBox<T> for SimpleRPolygon<T>
     where T: Copy + PartialOrd {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        if self.num_points() > 0 {
+        if !self.is_empty() {
             let mut xmax = self.half_points[1];
             let mut ymax = self.half_points[0];
             let mut xmin = xmax;
@@ -526,7 +527,7 @@ impl<T: CoordinateType> DoubledOrientedArea<T> for SimpleRPolygon<T> {
         debug_assert!(self.half_points.len() % 2 == 0);
         // Iterate over all horizontal edges. Compute the area
         // as the sum of (oriented edge length) * (edge distance to origin).
-        let area: T = (0..self.num_points())
+        let area: T = (0..self.len())
             .step_by(2)
             .map(move |i| {
                 let start = self.half_points[self.prev(i)];
