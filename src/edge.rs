@@ -315,9 +315,7 @@ impl<T: CoordinateType> Edge<T> {
             } else if a.y.is_zero() {
                 // Both horizontal?
                 b.y.is_zero()
-            } else if b.x.is_zero() {
-                false
-            } else if b.y.is_zero() {
+            } else if b.x.is_zero() || b.y.is_zero() {
                 false
             } else {
                 a.cross_prod(b).is_zero()
@@ -369,11 +367,10 @@ impl<T: CoordinateType> Edge<T> {
         let other_end_in_self = self.contains_point(other.end).inclusive_bounds();
 
         let share_more_than_one_point =
-            self.end != other.start && self.start != other.end && (
-                other_start_in_self && self_end_in_other ||
-                    other_end_in_self && self_start_in_other ||
-                    other_start_in_self && other_end_in_self ||
-                    self_start_in_other && self_end_in_other);
+            self.end != other.start
+                && self.start != other.end
+                && (self_start_in_other || other_start_in_self)
+                && (other_end_in_self || self_end_in_other);
 
         // Sharing more than one point should imply that the edges are parallel.
         debug_assert!(if share_more_than_one_point { self.is_parallel(other) } else { true });
@@ -542,9 +539,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
 
         debug_assert!(tolerance >= F::zero(), "Tolerance cannot be negative.");
 
-        if self.is_degenerate() {
-            LineIntersection::None
-        } else if other.is_degenerate() {
+        if self.is_degenerate() || other.is_degenerate(){
             LineIntersection::None
         } else {
 
@@ -837,8 +832,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
 
         let area = b.cross_prod(a);
 
-        let distance = F::from(area).unwrap() / a.length();
-        distance
+        F::from(area).unwrap() / a.length() // distance
     }
 
     /// Calculate distance from point to the edge.
