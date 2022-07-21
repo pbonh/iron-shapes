@@ -34,6 +34,11 @@ impl<T> PointString<T> {
     pub fn len(&self) -> usize {
         self.points.len()
     }
+
+    /// Check if string has zero length.
+    pub fn is_empty(&self) -> bool {
+        self.points.is_empty()
+    }
 }
 
 impl<T: Copy> PointString<T> {

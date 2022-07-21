@@ -66,6 +66,16 @@ impl<T> SimpleRPolygon<T> {
         self.half_points.len()
     }
 
+    // /// Get the number of vertices.
+    // pub fn len(&self) -> usize {
+    //     self.half_points.len()
+    // }
+    //
+    // /// Check if polygon has no vertices.
+    // pub fn is_empty(&self) -> bool {
+    //     self.half_points.is_empty()
+    // }
+
     /// Reverse the order of the vertices in-place.
     pub fn reverse(&mut self) {
         self.half_points.reverse();

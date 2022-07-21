@@ -18,7 +18,7 @@ use crate::prelude::REdge;
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
-#[derive(Clone, Copy, Hash, Debug)]
+#[derive(Clone, Copy, Hash, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rect<T> {
     /// Lower left corner of the rectangle.
@@ -26,15 +26,6 @@ pub struct Rect<T> {
     /// Upper right corner of the rectangle.
     pub upper_right: Point<T>,
 }
-
-impl<T: PartialEq> Eq for Rect<T> {}
-
-impl<T: PartialEq> PartialEq for Rect<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.lower_left == other.lower_left && self.upper_right == other.upper_right
-    }
-}
-
 
 impl<T: PartialOrd + Copy> Rect<T> {
     /// Construct the bounding box of the two points. Order does not matter.

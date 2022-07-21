@@ -70,6 +70,11 @@ impl<T> SimplePolygon<T> {
         self.points.len()
     }
 
+    /// Check if polygon has no vertices.
+    pub fn is_empty(&self) -> bool {
+        self.points.is_empty()
+    }
+
     /// Shortcut for `self.points.iter()`.
     pub fn iter(&self) -> Iter<Point<T>> {
         self.points.iter()

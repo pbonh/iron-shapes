@@ -18,6 +18,8 @@ use crate::point::Point;
 use num_rational::Ratio;
 use num_traits::Zero;
 
+use std::cmp::Ordering;
+
 pub use crate::edge::{Edge, LineIntersection, EdgeIntersection};
 use crate::traits::BoundingBox;
 use crate::CoordinateType;
@@ -51,9 +53,7 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
      ///
      /// ```
     pub fn line_intersection_rational(&self, other: Edge<Ratio<T>>) -> LineIntersection<Ratio<T>, Ratio<T>> {
-        if self.is_degenerate() {
-            LineIntersection::None
-        } else if other.is_degenerate() {
+        if self.is_degenerate() || other.is_degenerate()  {
             LineIntersection::None
         } else {
             // TODO: faster implementation if both lines are orthogonal
@@ -229,12 +229,10 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
 
                     // Check if the edges overlap in more than one point, in exactly one point or
                     // in zero points.
-                    if start.0 < end.0 {
-                        EdgeIntersection::Overlap(Edge::new(start.1, end.1))
-                    } else if start.0 == end.0 {
-                        EdgeIntersection::EndPoint(start.1)
-                    } else {
-                        EdgeIntersection::None
+                    match start.0.cmp(&end.0) {
+                        Ordering::Less => EdgeIntersection::Overlap(Edge::new(start.1, end.1)),
+                        Ordering::Equal => EdgeIntersection::EndPoint(start.1),
+                        Ordering::Greater => EdgeIntersection::None
                     }
                 }
             }

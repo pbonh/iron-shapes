@@ -165,6 +165,11 @@ impl<T: Copy> Polygon<T> {
         self.exterior.len()
     }
 
+    /// Check if polygon has no vertices.
+    pub fn is_empty(&self) -> bool {
+        self.exterior.is_empty()
+    }
+
     /// Get all exterior edges of the polygon.
     pub fn edges(&self) -> Vec<Edge<T>> {
         self.exterior.edges()

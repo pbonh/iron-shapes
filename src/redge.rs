@@ -127,7 +127,7 @@ impl REdgeOrientation {
 }
 
 /// An rectilinear edge (horizontal or vertical line segment) is represented by its starting point and end point.
-#[derive(Clone, Copy, Hash, Debug)]
+#[derive(Clone, Copy, Hash, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct REdge<T> {
     /// Start-coordinate of the edge.
@@ -156,16 +156,6 @@ impl<T: CoordinateType> EdgeIntersect for REdge<T> {
 
     fn edge_intersection(&self, other: &Self) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, REdge<T>> {
         REdge::edge_intersection(self, other)
-    }
-}
-
-impl<T: PartialEq> Eq for REdge<T> {}
-
-impl<T: PartialEq> PartialEq for REdge<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.start == other.start && self.end == other.end &&
-            self.offset == other.offset &&
-            self.orientation == other.orientation
     }
 }
 
@@ -765,7 +755,6 @@ mod tests {
     #[test]
     fn test_manhattan_distance_to_edge() {
         let e = REdge::new((0, 0), (10, 0));
-        let p = Point::new(2, 3);
 
         assert_eq!(e.manhattan_distance_to_point(Point::new(5, 0)), 0);
         assert_eq!(e.manhattan_distance_to_point(Point::new(5, 1)), 1);

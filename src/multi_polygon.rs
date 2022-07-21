@@ -46,6 +46,11 @@ impl<T> MultiPolygon<T> {
         self.polygons.len()
     }
 
+    /// Check if polygon is empty.
+    pub fn is_empty(&self) -> bool {
+        self.polygons.is_empty()
+    }
+
     /// Insert a polygon into the region.
     pub fn insert(&mut self, polygon: Polygon<T>) {
         self.polygons.push(polygon)

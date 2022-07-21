@@ -56,6 +56,11 @@ impl<T> Path<T> {
     pub fn len(&self) -> usize {
         self.points.len()
     }
+
+    /// Check if path has zero length.
+    pub fn is_empty(&self) -> bool {
+        self.points.is_empty()
+    }
 }
 
 impl<T: Copy> Path<T> {
