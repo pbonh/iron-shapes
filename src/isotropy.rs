@@ -86,7 +86,7 @@ impl Orientation2D {
 
     /// Check if orientation is horizontal.
     pub fn is_horizontal(&self) -> bool {
-        self == &Self::Vertical
+        self == &Self::Horizontal
     }
 }
 
