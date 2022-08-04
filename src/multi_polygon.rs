@@ -13,6 +13,7 @@ use crate::polygon::Polygon;
 pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
 
 use std::iter::FromIterator;
+use crate::edge::Edge;
 use crate::traits::{TryBoundingBox, TryIntoBoundingBox};
 use crate::prelude::Rect;
 
@@ -22,7 +23,7 @@ use crate::prelude::Rect;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MultiPolygon<T> {
     /// The list of polygons which defines the content of this multi polygon.
-    pub polygons: Vec<Polygon<T>>
+    pub polygons: Vec<Polygon<T>>,
 }
 
 impl<T> MultiPolygon<T> {
@@ -54,6 +55,15 @@ impl<T> MultiPolygon<T> {
     /// Insert a polygon into the region.
     pub fn insert(&mut self, polygon: Polygon<T>) {
         self.polygons.push(polygon)
+    }
+}
+
+impl<T: Copy> MultiPolygon<T> {
+
+    /// Iterate over all edges of the polygons including holes.
+    pub fn all_edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
+        self.polygons.iter()
+            .flat_map(|p| p.all_edges_iter())
     }
 }
 
@@ -112,7 +122,7 @@ impl<T> IntoIterator for MultiPolygon<T> {
 
 impl<T: CoordinateType> TryBoundingBox<T> for MultiPolygon<T> {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        self.polygons.iter() .try_into_bounding_box()
+        self.polygons.iter().try_into_bounding_box()
     }
 }
 
