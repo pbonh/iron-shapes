@@ -331,6 +331,20 @@ impl<T: CoordinateType> SimpleTransform<T> {
             .translate(self.displacement)
     }
 
+    /// Inverse-transform a single point.
+    pub fn inverse_transform_point(&self, p: Point<T>) -> Point<T> {
+
+        let p = p.translate(Vector::zero()-self.displacement)
+            .scale(T::one() / self.magnification)
+            .rotate_ortho(-self.rotation);
+
+        if self.mirror {
+            p.mirror_x()
+        } else {
+            p
+        }
+    }
+
     /// Convert to a matrix transformation.
     pub fn to_matrix_transform(&self) -> Matrix3dTransform<T> {
         if self.mirror {
@@ -359,6 +373,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
             displacement: d.v(),
         }
     }
+
 }
 
 #[test]
