@@ -273,6 +273,13 @@ impl<T: Copy> From<[T; 2]> for Point<T> {
     }
 }
 
+impl<T: Copy> Into<[T; 2]> for Point<T> {
+    #[inline]
+    fn into(self) -> [T; 2] {
+        [self.x, self.y]
+    }
+}
+
 impl<T> fmt::Debug for Point<T>
     where T: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
