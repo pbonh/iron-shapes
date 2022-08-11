@@ -40,8 +40,8 @@ impl From<Direction2D> for Direction1D {
     /// Downcast 2D direction to 1D direction by preserving the sign.
     fn from(d2: Direction2D) -> Self {
         match d2 {
-            Direction2D::Left | Direction2D::Up => Direction1D::High,
-            Direction2D::Right | Direction2D::Down => Direction1D::Low,
+            Direction2D::Right | Direction2D::Up => Direction1D::High,
+            Direction2D::Left | Direction2D::Down => Direction1D::Low,
         }
     }
 }
