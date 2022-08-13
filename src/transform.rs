@@ -17,7 +17,7 @@ use crate::types::Angle;
 use std::ops::Mul;
 use crate::types::FloatType;
 use crate::matrix3d::Matrix3d;
-use num_traits::{Zero, Float, NumCast};
+use num_traits::{Zero, Float, NumCast, One};
 
 /// General geometric transformation.
 pub trait Transformation {
@@ -99,7 +99,7 @@ pub trait DisplacementTransform: IsometricTransform90 {
 #[derive(Clone, Hash, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix2dTransform<T: CoordinateType> {
-    matrix: Matrix2d<T>
+    matrix: Matrix2d<T>,
 }
 
 impl<T: CoordinateType> Matrix2dTransform<T> {
@@ -189,7 +189,7 @@ fn test_matrix_transform_rotations() {
 #[derive(Clone, Hash, PartialEq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rot90Transform {
-    angle: Angle
+    angle: Angle,
 }
 
 impl Rot90Transform {
@@ -239,7 +239,7 @@ impl<T: CoordinateType> Default for SimpleTransform<T> {
     }
 }
 
-impl<T: CoordinateType> SimpleTransform<T> {
+impl<T> SimpleTransform<T> {
     /// Create a new transformation.
     pub fn new(mirror: bool, rotation: Angle, magnification: T, displacement: Vector<T>) -> Self {
         SimpleTransform {
@@ -249,7 +249,9 @@ impl<T: CoordinateType> SimpleTransform<T> {
             displacement,
         }
     }
+}
 
+impl<T: Zero + One> SimpleTransform<T> {
     /// Get the identity transform.
     pub fn identity() -> Self {
         Self::translate(Vector::zero())
@@ -273,13 +275,6 @@ impl<T: CoordinateType> SimpleTransform<T> {
         )
     }
 
-    /// Create a rotation arount `rotation_center` by an integer multiple of 90 degrees.
-    pub fn rotate90_around(angle: Angle, rotation_center: Point<T>) -> Self {
-        Self::translate(Point::zero() - rotation_center)
-            .then(&Self::rotate90(angle))
-            .then(&Self::translate(rotation_center))
-    }
-
     /// Rotate 90 degrees counter-clock wise.
     pub fn rotate_ccw90() -> Self {
         Self::rotate90(Angle::R90)
@@ -288,14 +283,6 @@ impl<T: CoordinateType> SimpleTransform<T> {
     /// Rotate 90 degrees counter-clock wise.
     pub fn rotate_cw90() -> Self {
         Self::rotate90(Angle::R270)
-    }
-
-    /// Create a scaling by a factor.
-    pub fn scale(factor: T) -> Self {
-        Self::new(
-            false, Angle::R0,
-            factor, Vector::zero(),
-        )
     }
 
     /// Create a transformation that mirrors at the x-axis.
@@ -314,10 +301,32 @@ impl<T: CoordinateType> SimpleTransform<T> {
         )
     }
 
+    /// Create a scaling by a factor.
+    pub fn scale(factor: T) -> Self {
+        Self::new(
+            false, Angle::R0,
+            factor, Vector::zero(),
+        )
+    }
+}
+
+
+impl<T> SimpleTransform<T>
+    where T: Copy + Mul<Output=T> {
     /// Transform a distance.
     pub fn transform_distance(&self, d: T) -> T {
         d * self.magnification
     }
+}
+
+impl<T: CoordinateType> SimpleTransform<T> {
+    /// Create a rotation arount `rotation_center` by an integer multiple of 90 degrees.
+    pub fn rotate90_around(angle: Angle, rotation_center: Point<T>) -> Self {
+        Self::translate(Point::zero() - rotation_center)
+            .then(&Self::rotate90(angle))
+            .then(&Self::translate(rotation_center))
+    }
+
 
     /// Transform a single point.
     pub fn transform_point(&self, p: Point<T>) -> Point<T> {
@@ -333,8 +342,7 @@ impl<T: CoordinateType> SimpleTransform<T> {
 
     /// Inverse-transform a single point.
     pub fn inverse_transform_point(&self, p: Point<T>) -> Point<T> {
-
-        let p = p.translate(Vector::zero()-self.displacement)
+        let p = p.translate(Vector::zero() - self.displacement)
             .scale(T::one() / self.magnification)
             .rotate_ortho(-self.rotation);
 
@@ -373,7 +381,6 @@ impl<T: CoordinateType> SimpleTransform<T> {
             displacement: d.v(),
         }
     }
-
 }
 
 #[test]
