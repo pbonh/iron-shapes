@@ -16,7 +16,7 @@ use num_traits::{Float, NumCast};
 pub use num_traits::Zero;
 use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add, DerefMut};
 pub use std::ops::Deref;
-use crate::prelude::Rect;
+use crate::prelude::{Orientation2D, Rect};
 
 /// Shorthand notation for creating a point.
 ///
@@ -104,6 +104,26 @@ impl<T: Copy> Point<T> {
     pub fn v(&self) -> Vector<T> {
         self.location
     }
+
+    /// Get a specific coordinate of the point.
+    #[inline]
+    pub fn get(&self, coord: Orientation2D) -> T {
+        match coord {
+            Orientation2D::Horizontal => self.x,
+            Orientation2D::Vertical => self.y
+        }
+    }
+
+    /// Set a specific coordinate of the point.
+    #[inline]
+    pub fn set(&mut self, coord: Orientation2D, value: T) {
+        match coord {
+            Orientation2D::Horizontal => self.x = value,
+            Orientation2D::Vertical => self.y = value
+        }
+    }
+
+
 }
 
 impl<T: Zero> Point<T> {
