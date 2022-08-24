@@ -318,15 +318,20 @@ impl<T: Copy + Add<Output=T> + Div<Output=T> + One> Rect<T> {
 }
 
 
-impl<T: Copy + Add<Output=T> + Sub<Output=T>> Rect<T> {
+impl<T: Copy + Add<Output=T> + Sub<Output=T> + PartialOrd> Rect<T> {
     /// Create an enlarged copy of this rectangle.
     /// The vertical boundaries will be shifted towards the outside by `add_x`.
     /// The horizontal boundaries will be shifted towards the outside by `add_y`.
     pub fn sized(&self, add_x: T, add_y: T) -> Self {
-        Rect {
-            lower_left: (self.lower_left.x - add_x, self.lower_left.y - add_y).into(),
-            upper_right: (self.upper_right.x + add_x, self.upper_right.y + add_y).into(),
-        }
+        Rect::new(
+            (self.lower_left.x - add_x, self.lower_left.y - add_y),
+            (self.upper_right.x + add_x, self.upper_right.y + add_y)
+        )
+    }
+
+    /// Create an enlarged copy of this rectangle.
+    pub fn sized_isotropic(&self, add: T) -> Self {
+        self.sized(add, add)
     }
 }
 
@@ -438,14 +443,14 @@ mod tests {
 #[derive(Clone)]
 pub struct RectEdgeIterator<T> {
     rect: Rect<T>,
-    pos: u8
+    pos: u8,
 }
 
 impl<T> RectEdgeIterator<T> {
     fn new(rect: Rect<T>) -> Self {
         Self {
             rect,
-            pos: 0
+            pos: 0,
         }
     }
 }
