@@ -41,14 +41,8 @@ impl<'a, I, B, T> TryIntoBoundingBox<T> for I
           B: TryBoundingBox<T> + 'a,
           T: Copy + PartialOrd {
     fn try_into_bounding_box(self) -> Option<Rect<T>> {
-        self.map(|p| p.try_bounding_box())
-            .fold(None, |acc, bbox| {
-                match (acc, bbox) {
-                    (None, None) => None,
-                    (None, Some(b)) | (Some(b), None) => Some(b),
-                    (Some(a), Some(b)) => Some(a.add_rect(&b))
-                }
-            })
+        self.filter_map(|p| p.try_bounding_box())
+            .reduce(|acc, b| acc.add_rect(&b))
     }
 }
 
