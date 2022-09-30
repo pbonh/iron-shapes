@@ -6,15 +6,14 @@
 //! Data structures and functions for dealing with rectangles which consist of
 //! vertical and horizontal edges.
 
-use crate::point::Point;
 use crate::traits::*;
 use crate::cmp::{min, max};
 use crate::CoordinateType;
-use num_traits::{NumCast, One};
+use num_traits::{NumCast, One, Zero};
 use crate::polygon::{ToPolygon, Polygon};
 use std::ops::{Sub, Add, Div, Mul};
 use crate::edge::IntoEdges;
-use crate::prelude::REdge;
+use crate::prelude::{Point, Vector, REdge};
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
@@ -246,23 +245,7 @@ impl<T: PartialOrd + Copy> Rect<T> {
             None
         }
     }
-}
 
-impl<T: Copy + Sub<Output=T>> Rect<T> {
-    /// Compute the width of the rectangle.
-    #[inline]
-    pub fn width(&self) -> T {
-        self.upper_right.x - self.lower_left.x
-    }
-
-    /// Compute the height of the rectangle.
-    #[inline]
-    pub fn height(&self) -> T {
-        self.upper_right.y - self.lower_left.y
-    }
-}
-
-impl<T: Copy + PartialOrd> Rect<T> {
     /// Create the smallest `Rect` that contains the original `Rect` and the `point`.
     ///
     /// # Example
@@ -307,6 +290,72 @@ impl<T: Copy + PartialOrd> Rect<T> {
     }
 }
 
+
+impl<T: Sub<Output=T> + Copy + Ord + Zero> Rect<T> {
+    /// Compute the shortest from the rectangle to the point `p`.
+    /// The distance is zero if the point is inside the rectangle.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iron_shapes::prelude::*;
+    ///
+    /// let r = Rect::new((0,0), (10, 10));
+    ///
+    /// assert_eq!(r.distance_to_point((5, 15).into()), Vector::new(0, 5));
+    ///
+    /// // Distance to point inside the rectangle is zero.
+    /// assert_eq!(r.distance_to_point((5, 5).into()), Vector::new(0, 0));
+    ///
+    /// ```
+    pub fn distance_to_point(&self, p: Point<T>) -> Vector<T> {
+        let ll = self.lower_left();
+        let ul = self.upper_right();
+
+        // Compute x component of distance.
+        let dx_neg = (p.x - ll.x).min(Zero::zero());
+        let dx_pos = (p.x - ul.x).max(Zero::zero());
+        let dx = dx_neg + dx_pos;
+
+        // Compute y component of distance.
+        let dy_neg = (p.y - ll.y).min(Zero::zero());
+        let dy_pos = (p.y - ul.y).max(Zero::zero());
+        let dy = dy_neg + dy_pos;
+
+        Vector::new(dx, dy)
+    }
+}
+
+#[test]
+fn test_distance_to_point() {
+    let rect = Rect::new((10, 10), (20, 20));
+
+    assert_eq!(rect.distance_to_point((15, 15).into()).norm1(), 0);
+    assert_eq!(rect.distance_to_point((10, 10).into()).norm1(), 0);
+    assert_eq!(rect.distance_to_point((10, 20).into()).norm1(), 0);
+
+    assert_eq!(rect.distance_to_point((0, 0).into()).norm1(), 20);
+    assert_eq!(rect.distance_to_point((0, 5).into()).norm1(), 15);
+    assert_eq!(rect.distance_to_point((0, 10).into()).norm1(), 10);
+    assert_eq!(rect.distance_to_point((0, 15).into()).norm1(), 10);
+    assert_eq!(rect.distance_to_point((0, 20).into()).norm1(), 10);
+    assert_eq!(rect.distance_to_point((0, 25).into()).norm1(), 15);
+}
+
+impl<T: Copy + Sub<Output=T>> Rect<T> {
+    /// Compute the width of the rectangle.
+    #[inline]
+    pub fn width(&self) -> T {
+        self.upper_right.x - self.lower_left.x
+    }
+
+    /// Compute the height of the rectangle.
+    #[inline]
+    pub fn height(&self) -> T {
+        self.upper_right.y - self.lower_left.y
+    }
+}
+
 impl<T: Copy + Add<Output=T> + Div<Output=T> + One> Rect<T> {
     /// Get the center point of the rectangle.
     /// When using integer coordinates the resulting
@@ -325,7 +374,7 @@ impl<T: Copy + Add<Output=T> + Sub<Output=T> + PartialOrd> Rect<T> {
     pub fn sized(&self, add_x: T, add_y: T) -> Self {
         Rect::new(
             (self.lower_left.x - add_x, self.lower_left.y - add_y),
-            (self.upper_right.x + add_x, self.upper_right.y + add_y)
+            (self.upper_right.x + add_x, self.upper_right.y + add_y),
         )
     }
 
