@@ -8,7 +8,6 @@
 // Enforce documentation.
 #![deny(missing_docs)]
 
-
 #[cfg(feature = "serde")]
 #[macro_use]
 extern crate serde;
@@ -27,32 +26,32 @@ pub trait AreaType: Num + Copy + PartialOrd + Sized {}
 impl<T: Num + Copy + PartialOrd> AreaType for T {}
 
 pub mod prelude;
- 
+
+pub mod algorithms;
 mod cmp;
-pub mod math;
-pub mod types;
-pub mod traits;
-pub mod vector;
-pub mod point;
-pub mod point_string;
+pub mod concepts;
+pub mod concepts_impl;
 pub mod edge;
-pub mod edge_rational;
 pub mod edge_integer;
-pub mod rect;
-pub mod simple_polygon;
-pub mod simple_rpolygon;
-pub mod polygon;
+pub mod edge_rational;
+pub mod interval;
+pub mod isotropy;
+pub mod math;
 pub mod matrix2d;
 pub mod matrix3d;
 pub mod multi_polygon;
 pub mod path;
-pub mod shape;
-pub mod text;
-pub mod transform;
+pub mod point;
+pub mod point_string;
+pub mod polygon;
+pub mod rect;
 pub mod redge;
 pub mod repetition;
-pub mod algorithms;
-pub mod concepts;
-pub mod isotropy;
-pub mod interval;
-pub mod concepts_impl;
+pub mod shape;
+pub mod simple_polygon;
+pub mod simple_rpolygon;
+pub mod text;
+pub mod traits;
+pub mod transform;
+pub mod types;
+pub mod vector;

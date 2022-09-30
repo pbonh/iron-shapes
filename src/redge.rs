@@ -5,24 +5,23 @@
 
 //! An `REdge` is 'rectilinear' edge which is either horizontal or vertical.
 
-use crate::vector::Vector;
+use crate::cmp;
 use crate::point::Point;
 use crate::rect::Rect;
-use crate::cmp;
+use crate::vector::Vector;
 
 use crate::CoordinateType;
 
 use num_traits::cast::NumCast;
 
-pub use crate::traits::{BoundingBox, TryBoundingBox, RotateOrtho, TryCastCoord};
+pub use crate::traits::{BoundingBox, RotateOrtho, TryBoundingBox, TryCastCoord};
 pub use crate::types::Angle;
 
-pub use super::types::{Side, ContainsResult};
 use super::prelude::{Edge, EdgeIntersection};
+pub use super::types::{ContainsResult, Side};
 use crate::prelude::{EdgeEndpoints, EdgeIntersect};
 use std::convert::TryFrom;
 use std::ops::Sub;
-
 
 /// Return type for the edge-edge intersection functions.
 /// Stores all possible results of a edge to edge intersection.
@@ -70,7 +69,6 @@ impl<T: CoordinateType> Into<Edge<T>> for REdge<T> {
     }
 }
 
-
 impl<T: CoordinateType> TryFrom<&Edge<T>> for REdge<T> {
     type Error = ();
 
@@ -79,7 +77,7 @@ impl<T: CoordinateType> TryFrom<&Edge<T>> for REdge<T> {
     fn try_from(value: &Edge<T>) -> Result<Self, Self::Error> {
         match REdge::try_from_points(value.start, value.end) {
             None => Err(()),
-            Some(e) => Ok(e)
+            Some(e) => Ok(e),
         }
     }
 }
@@ -154,7 +152,10 @@ impl<T: CoordinateType> EdgeIntersect for REdge<T> {
     type Coord = T;
     type IntersectionCoord = T;
 
-    fn edge_intersection(&self, other: &Self) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, REdge<T>> {
+    fn edge_intersection(
+        &self,
+        other: &Self,
+    ) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, REdge<T>> {
         REdge::edge_intersection(self, other)
     }
 }
@@ -183,7 +184,7 @@ impl<T: Copy> REdge<T> {
     pub fn start(&self) -> Point<T> {
         match self.orientation {
             REdgeOrientation::Horizontal => Point::new(self.start, self.offset),
-            REdgeOrientation::Vertical => Point::new(self.offset, self.start)
+            REdgeOrientation::Vertical => Point::new(self.offset, self.start),
         }
     }
 
@@ -191,7 +192,7 @@ impl<T: Copy> REdge<T> {
     pub fn end(&self) -> Point<T> {
         match self.orientation {
             REdgeOrientation::Horizontal => Point::new(self.end, self.offset),
-            REdgeOrientation::Vertical => Point::new(self.offset, self.end)
+            REdgeOrientation::Vertical => Point::new(self.offset, self.end),
         }
     }
 
@@ -223,19 +224,17 @@ impl<T: PartialEq> REdge<T> {
     /// Test if this edge is horizontal.
     #[inline]
     pub fn is_horizontal(&self) -> bool {
-        !self.is_degenerate() &&
-            self.orientation == REdgeOrientation::Horizontal
+        !self.is_degenerate() && self.orientation == REdgeOrientation::Horizontal
     }
 
     /// Test if this edge is vertical.
     #[inline]
     pub fn is_vertical(&self) -> bool {
-        !self.is_degenerate() &&
-            self.orientation == REdgeOrientation::Vertical
+        !self.is_degenerate() && self.orientation == REdgeOrientation::Vertical
     }
 }
 
-impl<T: PartialOrd + Sub<Output=T> + Copy> REdge<T> {
+impl<T: PartialOrd + Sub<Output = T> + Copy> REdge<T> {
     /// Get the length of the edge.
     pub fn length(&self) -> T {
         if self.start < self.end {
@@ -253,7 +252,8 @@ impl<T: CoordinateType> REdge<T> {
     /// # Panics
     /// Panics if the two points are not on the same horizontal or vertical line.
     pub fn new<C>(start: C, end: C) -> Self
-        where C: Into<Point<T>>
+    where
+        C: Into<Point<T>>,
     {
         Self::try_from_points(start, end).expect("Points must be on a vertical or horizontal line.")
     }
@@ -261,7 +261,9 @@ impl<T: CoordinateType> REdge<T> {
     /// Create a new `REdge` from two arguments that implement `Into<Point>`.
     /// The two points must lie either on a vertical or horizontal line, otherwise `None` is returned.
     pub fn try_from_points<C>(start: C, end: C) -> Option<Self>
-        where C: Into<Point<T>> {
+    where
+        C: Into<Point<T>>,
+    {
         let s = start.into();
         let e = end.into();
 
@@ -291,7 +293,7 @@ impl<T: CoordinateType> REdge<T> {
     pub fn vector(&self) -> Vector<T> {
         match self.orientation {
             REdgeOrientation::Horizontal => Vector::new(self.end - self.start, T::zero()),
-            REdgeOrientation::Vertical => Vector::new(T::zero(), self.end - self.start)
+            REdgeOrientation::Vertical => Vector::new(T::zero(), self.end - self.start),
         }
     }
 
@@ -317,7 +319,6 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
-
     /// Tells on which side of the edge a point is.
     ///
     /// # Panics
@@ -331,7 +332,7 @@ impl<T: CoordinateType> REdge<T> {
 
         let p_offset = match self.orientation {
             REdgeOrientation::Horizontal => T::zero() - point.y,
-            REdgeOrientation::Vertical => point.x
+            REdgeOrientation::Vertical => point.x,
         };
 
         if p_offset < self.offset {
@@ -352,21 +353,20 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
-
     //    /// Find minimal distance between two edges.
-//    pub fn distance_to_edge(self, other: Edge<T>) -> f64 {
-//        let d1 = self.distance(other.start);
-//        let d2 = self.distance(other.end);
-//        let d3 = other.distance(self.start);
-//        let d4 = other.distance(self.end);
-//
-//        let min1 = d1.min(d2);
-//        let min2 = d3.min(d4);
-//
-//        // TODO: if intersects
-//
-//        min1.min(min2)
-//    }
+    //    pub fn distance_to_edge(self, other: Edge<T>) -> f64 {
+    //        let d1 = self.distance(other.start);
+    //        let d2 = self.distance(other.end);
+    //        let d3 = other.distance(self.start);
+    //        let d4 = other.distance(self.end);
+    //
+    //        let min1 = d1.min(d2);
+    //        let min2 = d3.min(d4);
+    //
+    //        // TODO: if intersects
+    //
+    //        min1.min(min2)
+    //    }
 
     /// Compute the manhattan distance of a point to the edge.
     pub fn manhattan_distance_to_point(self, p: Point<T>) -> T {
@@ -385,13 +385,12 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
-
     /// Test if point lies on the edge.
     /// Includes start and end points of edge.
     pub fn contains_point(&self, point: Point<T>) -> ContainsResult {
         let (p_offset, p_projected) = match self.orientation {
             REdgeOrientation::Horizontal => (point.y, point.x),
-            REdgeOrientation::Vertical => (point.x, point.y)
+            REdgeOrientation::Vertical => (point.x, point.y),
         };
 
         if p_offset != self.offset || self.is_degenerate() {
@@ -399,7 +398,8 @@ impl<T: CoordinateType> REdge<T> {
         } else if p_projected == self.start || p_projected == self.end {
             ContainsResult::OnBounds
         } else if (p_projected >= self.start && p_projected <= self.end)
-            || (p_projected >= self.end && p_projected <= self.start) {
+            || (p_projected >= self.end && p_projected <= self.start)
+        {
             ContainsResult::WithinBounds
         } else {
             ContainsResult::No
@@ -410,21 +410,21 @@ impl<T: CoordinateType> REdge<T> {
     pub fn line_contains_point(&self, point: Point<T>) -> bool {
         let p_offset = match self.orientation {
             REdgeOrientation::Horizontal => point.y,
-            REdgeOrientation::Vertical => point.x
+            REdgeOrientation::Vertical => point.x,
         };
         p_offset == self.offset
     }
-
 
     /// Test if two edges are parallel.
     pub fn is_parallel(&self, other: &REdge<T>) -> bool {
         self.orientation == other.orientation
     }
 
-
     /// Test if two edges are collinear, i.e. are on the same line.
     pub fn is_collinear(&self, other: &REdge<T>) -> bool
-        where T: CoordinateType {
+    where
+        T: CoordinateType,
+    {
         self.is_parallel(other) && self.offset == other.offset
     }
 
@@ -437,18 +437,16 @@ impl<T: CoordinateType> REdge<T> {
         //         .intersection(&zInterval::new(other.start, other.end))
         //         .is_empty()
 
-        self.is_collinear(other) && (
-            self.start <= other.start && other.start <= self.end ||
-                self.start <= other.end && other.end <= self.end ||
-                self.end <= other.start && other.start <= self.start ||
-                self.end <= other.end && other.end <= self.start ||
-                other.start <= self.start && self.start <= other.end ||
-                other.start <= self.end && self.end <= other.end ||
-                other.end <= self.start && self.start <= other.start ||
-                other.end <= self.end && self.end <= other.start
-        )
+        self.is_collinear(other)
+            && (self.start <= other.start && other.start <= self.end
+                || self.start <= other.end && other.end <= self.end
+                || self.end <= other.start && other.start <= self.start
+                || self.end <= other.end && other.end <= self.start
+                || other.start <= self.start && self.start <= other.end
+                || other.start <= self.end && self.end <= other.end
+                || other.end <= self.start && self.start <= other.start
+                || other.end <= self.end && self.end <= other.start)
     }
-
 
     /// Test if this edge is crossed by the line defined by the other edge.
     ///
@@ -483,7 +481,6 @@ impl<T: CoordinateType> REdge<T> {
     /// Test if two edges intersect.
     /// If the edges coincide, they also intersect.
     pub fn edges_intersect(&self, other: &REdge<T>) -> ContainsResult {
-
         // Two edges intersect if the start and end point of one edge
         // lie on opposite sides of the other edge.
 
@@ -495,7 +492,6 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
-
     /// Calculate the distance from the point to the line given by the edge.
     ///
     /// Distance will be positive if the point lies on the right side of the edge and negative
@@ -505,7 +501,7 @@ impl<T: CoordinateType> REdge<T> {
 
         let diff = match self.orientation {
             REdgeOrientation::Horizontal => self.offset - point.y,
-            REdgeOrientation::Vertical => point.x - self.offset
+            REdgeOrientation::Vertical => point.x - self.offset,
         };
 
         if self.start > self.end {
@@ -525,22 +521,22 @@ impl<T: CoordinateType> REdge<T> {
         }
     }
 
-
     /// Find the perpendicular projection of a point onto the line of the edge.
     pub fn projection(&self, point: Point<T>) -> Point<T> {
         assert!(!self.is_degenerate());
 
         match self.orientation {
             REdgeOrientation::Horizontal => (point.x, self.offset),
-            REdgeOrientation::Vertical => (self.offset, point.y)
-        }.into()
+            REdgeOrientation::Vertical => (self.offset, point.y),
+        }
+        .into()
     }
 
     /// Compute the intersection of the two lines defined by the edges.
     pub fn line_intersection(&self, other: &REdge<T>) -> RLineIntersection<T> {
         match (self.orientation, other.orientation) {
-            (REdgeOrientation::Horizontal, REdgeOrientation::Horizontal) |
-            (REdgeOrientation::Vertical, REdgeOrientation::Vertical) => {
+            (REdgeOrientation::Horizontal, REdgeOrientation::Horizontal)
+            | (REdgeOrientation::Vertical, REdgeOrientation::Vertical) => {
                 if self.offset == other.offset {
                     RLineIntersection::Collinear
                 } else {
@@ -559,8 +555,8 @@ impl<T: CoordinateType> REdge<T> {
     /// Compute the intersection between two edges.
     pub fn edge_intersection(&self, other: &REdge<T>) -> REdgeIntersection<T> {
         match (self.orientation, other.orientation) {
-            (REdgeOrientation::Horizontal, REdgeOrientation::Horizontal) |
-            (REdgeOrientation::Vertical, REdgeOrientation::Vertical) => {
+            (REdgeOrientation::Horizontal, REdgeOrientation::Horizontal)
+            | (REdgeOrientation::Vertical, REdgeOrientation::Vertical) => {
                 if self.offset == other.offset {
                     // Sort start and end such that start comes first.
                     let (s1, e1) = if self.start < self.end {
@@ -602,8 +598,13 @@ impl<T: CoordinateType> REdge<T> {
                             REdgeOrientation::Vertical => Point::new(self.offset, s),
                             REdgeOrientation::Horizontal => Point::new(s, self.offset),
                         };
-                        debug_assert!(p == self.start() || p == self.end() || p == other.start() || p == other.end(),
-                                      "`p` must be an end point.");
+                        debug_assert!(
+                            p == self.start()
+                                || p == self.end()
+                                || p == other.start()
+                                || p == other.end(),
+                            "`p` must be an end point."
+                        );
                         REdgeIntersection::EndPoint(p)
                     }
                 } else {
@@ -614,19 +615,24 @@ impl<T: CoordinateType> REdge<T> {
                 let (horizontal, vertical) = match (o1, o2) {
                     (REdgeOrientation::Horizontal, REdgeOrientation::Vertical) => (self, other),
                     (REdgeOrientation::Vertical, REdgeOrientation::Horizontal) => (other, self),
-                    _ => panic!()
+                    _ => panic!(),
                 };
                 let p = Point::new(vertical.offset, horizontal.offset);
-                let is_on_horizontal = (horizontal.start <= p.x && p.x <= horizontal.end) ||
-                    (horizontal.end <= p.x && p.x <= horizontal.start);
-                let is_on_vertical = (vertical.start <= p.y && p.y <= vertical.end) ||
-                    (vertical.end <= p.y && p.y <= vertical.start);
+                let is_on_horizontal = (horizontal.start <= p.x && p.x <= horizontal.end)
+                    || (horizontal.end <= p.x && p.x <= horizontal.start);
+                let is_on_vertical = (vertical.start <= p.y && p.y <= vertical.end)
+                    || (vertical.end <= p.y && p.y <= vertical.start);
                 if is_on_horizontal && is_on_vertical {
                     let is_endpoint_horizontal = p.x == horizontal.start || p.x == horizontal.end;
                     let is_endpoint_vertical = p.y == vertical.start || p.y == vertical.end;
                     if is_endpoint_horizontal || is_endpoint_vertical {
-                        debug_assert!(p == self.start() || p == self.end() || p == other.start() || p == other.end(),
-                                      "`p` must be an end point.");
+                        debug_assert!(
+                            p == self.start()
+                                || p == self.end()
+                                || p == other.start()
+                                || p == other.end(),
+                            "`p` must be an end point."
+                        );
                         REdgeIntersection::EndPoint(p)
                     } else {
                         REdgeIntersection::Point(p)
@@ -648,7 +654,6 @@ impl<T: CoordinateType> REdge<T> {
         Self::new(new_p1, new_p2)
     }
 }
-
 
 #[test]
 fn test_rotate_ortho() {
@@ -675,25 +680,26 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     type Output = REdge<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        match (Dst::from(self.start), Dst::from(self.end), Dst::from(self.offset)) {
-            (Some(s), Some(e), Some(o)) => Some(
-                REdge {
-                    start: s,
-                    end: e,
-                    offset: o,
-                    orientation: self.orientation,
-                }
-            ),
-            _ => None
+        match (
+            Dst::from(self.start),
+            Dst::from(self.end),
+            Dst::from(self.offset),
+        ) {
+            (Some(s), Some(e), Some(o)) => Some(REdge {
+                start: s,
+                end: e,
+                offset: o,
+                orientation: self.orientation,
+            }),
+            _ => None,
         }
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::redge::{REdge, RLineIntersection, REdgeIntersection};
     use crate::point::Point;
+    use crate::redge::{REdge, REdgeIntersection, RLineIntersection};
     use crate::types::*;
     use crate::vector::Vector;
 
@@ -873,13 +879,15 @@ mod tests {
         assert_eq!(e2.edges_intersect(&e1), ContainsResult::OnBounds);
     }
 
-
     #[test]
     fn test_line_intersection() {
         let v = REdge::new((7, 1), (7, 2));
         let h = REdge::new((100, 77), (101, 77));
 
-        assert_eq!(v.line_intersection(&h), RLineIntersection::Point(Point::new(7, 77)));
+        assert_eq!(
+            v.line_intersection(&h),
+            RLineIntersection::Point(Point::new(7, 77))
+        );
 
         assert_eq!(v.line_intersection(&v), RLineIntersection::Collinear);
         assert_eq!(h.line_intersection(&h), RLineIntersection::Collinear);
@@ -889,20 +897,31 @@ mod tests {
         assert_eq!(v1.line_intersection(&v2), RLineIntersection::None);
     }
 
-
     #[test]
     fn test_edge_intersection() {
         // Point intersection inside both edges.
         let e1 = REdge::new((0, 0), (0, 2));
         let e2 = REdge::new((-1, 1), (1, 1));
-        assert_eq!(e1.edge_intersection(&e2), REdgeIntersection::Point(Point::new(0, 1)));
-        assert_eq!(e2.edge_intersection(&e1), REdgeIntersection::Point(Point::new(0, 1)));
+        assert_eq!(
+            e1.edge_intersection(&e2),
+            REdgeIntersection::Point(Point::new(0, 1))
+        );
+        assert_eq!(
+            e2.edge_intersection(&e1),
+            REdgeIntersection::Point(Point::new(0, 1))
+        );
 
         // Point intersection on the end of one edge.
         let e1 = REdge::new((0, 0), (0, 1));
         let e2 = REdge::new((-1, 0), (1, 0));
-        assert_eq!(e1.edge_intersection(&e2), REdgeIntersection::EndPoint(Point::new(0, 0)));
-        assert_eq!(e2.edge_intersection(&e1), REdgeIntersection::EndPoint(Point::new(0, 0)));
+        assert_eq!(
+            e1.edge_intersection(&e2),
+            REdgeIntersection::EndPoint(Point::new(0, 0))
+        );
+        assert_eq!(
+            e2.edge_intersection(&e1),
+            REdgeIntersection::EndPoint(Point::new(0, 0))
+        );
 
         // No intersection
         let e1 = REdge::new((0, 0), (0, 1));
@@ -918,18 +937,14 @@ mod tests {
 
     #[test]
     fn test_edge_intersection_overlap() {
-
         // Overlapping edges. Same orientations.
         let e1 = REdge::new((1, 1), (1, 3));
         let e2 = REdge::new((1, 1), (1, 2));
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection(&e2),
-                   REdgeIntersection::Overlap(e2));
-        assert_eq!(e2.edge_intersection(&e1),
-                   REdgeIntersection::Overlap(e2));
-
+        assert_eq!(e1.edge_intersection(&e2), REdgeIntersection::Overlap(e2));
+        assert_eq!(e2.edge_intersection(&e1), REdgeIntersection::Overlap(e2));
 
         // Overlapping edges. Opposing orientations.
         let e1 = REdge::new((1, 1), (1, 3));
@@ -937,11 +952,11 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection(&e2),
-                   REdgeIntersection::Overlap(e2.reversed()));
-        assert_eq!(e2.edge_intersection(&e1),
-                   REdgeIntersection::Overlap(e2));
-
+        assert_eq!(
+            e1.edge_intersection(&e2),
+            REdgeIntersection::Overlap(e2.reversed())
+        );
+        assert_eq!(e2.edge_intersection(&e1), REdgeIntersection::Overlap(e2));
 
         // Overlapping edges. One is fully contained in the other. Same orientations.
         let e1 = REdge::new((1, 1), (1, 100));
@@ -949,10 +964,8 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection(&e2),
-                   REdgeIntersection::Overlap(e2));
-        assert_eq!(e2.edge_intersection(&e1),
-                   REdgeIntersection::Overlap(e2));
+        assert_eq!(e1.edge_intersection(&e2), REdgeIntersection::Overlap(e2));
+        assert_eq!(e2.edge_intersection(&e1), REdgeIntersection::Overlap(e2));
 
         // Overlapping edges. One is fully contained in the other. Opposing orientations.
         let e1 = REdge::new((1, 1), (1, 100));
@@ -960,11 +973,11 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection(&e2),
-                   REdgeIntersection::Overlap(e2.reversed()));
-        assert_eq!(e2.edge_intersection(&e1),
-                   REdgeIntersection::Overlap(e2));
-
+        assert_eq!(
+            e1.edge_intersection(&e2),
+            REdgeIntersection::Overlap(e2.reversed())
+        );
+        assert_eq!(e2.edge_intersection(&e1), REdgeIntersection::Overlap(e2));
 
         // Collinear edge, touch in exactly one point.
         let e1 = REdge::new((0, 0), (0, 1));
@@ -972,10 +985,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection(&e2),
-                   REdgeIntersection::EndPoint(Point::new(0, 1)));
-        assert_eq!(e2.edge_intersection(&e1),
-                   REdgeIntersection::EndPoint(Point::new(0, 1)));
+        assert_eq!(
+            e1.edge_intersection(&e2),
+            REdgeIntersection::EndPoint(Point::new(0, 1))
+        );
+        assert_eq!(
+            e2.edge_intersection(&e1),
+            REdgeIntersection::EndPoint(Point::new(0, 1))
+        );
     }
 
     #[test]
@@ -994,7 +1011,6 @@ mod tests {
         let e2 = REdge::new((1, 0), (3, 0));
         assert!(e1.is_coincident(&e2));
         assert!(e2.is_coincident(&e1));
-
 
         let e1 = REdge::new((0, 0), (0, 1));
         let e2 = REdge::new((0, 0), (1, 0));

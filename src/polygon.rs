@@ -7,20 +7,20 @@
 
 use crate::CoordinateType;
 
-use crate::point::Point;
 use crate::edge::Edge;
+use crate::point::Point;
 use crate::rect::Rect;
 
-pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
+pub use crate::traits::{BoundingBox, DoubledOrientedArea, MapPointwise, WindingNumber};
 
-use crate::types::*;
 pub use crate::simple_polygon::*;
+use crate::types::*;
 
-use std::iter::FromIterator;
-use std::cmp::{Ord, PartialEq};
 use crate::traits::TryCastCoord;
-use num_traits::{NumCast, Num};
 use itertools::Itertools;
+use num_traits::{Num, NumCast};
+use std::cmp::{Ord, PartialEq};
+use std::iter::FromIterator;
 
 /// A polygon possibly with holes. The polygon is defined by a hull and a list of holes
 /// which are both `SimplePolygon`s.
@@ -52,8 +52,9 @@ macro_rules! polygon {
 
 /// Create a polygon from a `Vec` of values convertible to `Point`s.
 impl<'a, T, P> From<&'a Vec<P>> for Polygon<T>
-    where T: CoordinateType,
-          Point<T>: From<&'a P>
+where
+    T: CoordinateType,
+    Point<T>: From<&'a P>,
 {
     fn from(vec: &'a Vec<P>) -> Self {
         Polygon {
@@ -63,11 +64,11 @@ impl<'a, T, P> From<&'a Vec<P>> for Polygon<T>
     }
 }
 
-
 /// Create a polygon from a `Vec` of values convertible to `Point`s.
 impl<T, P> From<Vec<P>> for Polygon<T>
-    where T: Copy,
-          Point<T>: From<P>
+where
+    T: Copy,
+    Point<T>: From<P>,
 {
     fn from(vec: Vec<P>) -> Self {
         Polygon {
@@ -77,14 +78,15 @@ impl<T, P> From<Vec<P>> for Polygon<T>
     }
 }
 
-
 /// Create a polygon from a iterator of values convertible to `Point`s.
 impl<T, P> FromIterator<P> for Polygon<T>
-    where T: Copy,
-          P: Into<Point<T>>
+where
+    T: Copy,
+    P: Into<Point<T>>,
 {
     fn from_iter<I>(iter: I) -> Self
-        where I: IntoIterator<Item=P>
+    where
+        I: IntoIterator<Item = P>,
     {
         let exterior: SimplePolygon<T> = SimplePolygon::from_iter(iter);
         Polygon {
@@ -95,8 +97,7 @@ impl<T, P> FromIterator<P> for Polygon<T>
 }
 
 /// Create a polygon from a simple polygon.
-impl<T> From<SimplePolygon<T>> for Polygon<T>
-{
+impl<T> From<SimplePolygon<T>> for Polygon<T> {
     fn from(simple_polygon: SimplePolygon<T>) -> Self {
         Polygon {
             exterior: simple_polygon,
@@ -107,7 +108,8 @@ impl<T> From<SimplePolygon<T>> for Polygon<T>
 
 /// Create a polygon from a simple polygon.
 impl<T> From<&SimplePolygon<T>> for Polygon<T>
-    where T: Copy
+where
+    T: Copy,
 {
     fn from(simple_polygon: &SimplePolygon<T>) -> Self {
         Polygon {
@@ -119,25 +121,31 @@ impl<T> From<&SimplePolygon<T>> for Polygon<T>
 
 /// Create a polygon from a rectangle.
 impl<T> From<Rect<T>> for Polygon<T>
-    where T: Copy
+where
+    T: Copy,
 {
     fn from(rect: Rect<T>) -> Self {
-        Polygon::from(
-            vec![rect.lower_left(), rect.lower_right(),
-                 rect.upper_right(), rect.upper_left()]
-        )
+        Polygon::from(vec![
+            rect.lower_left(),
+            rect.lower_right(),
+            rect.upper_right(),
+            rect.upper_left(),
+        ])
     }
 }
 
 /// Create a polygon from a rectangle.
 impl<T> From<&Rect<T>> for Polygon<T>
-    where T: Copy
+where
+    T: Copy,
 {
     fn from(rect: &Rect<T>) -> Self {
-        Polygon::from(
-            vec![rect.lower_left(), rect.lower_right(),
-                 rect.upper_right(), rect.upper_left()]
-        )
+        Polygon::from(vec![
+            rect.lower_left(),
+            rect.lower_right(),
+            rect.upper_right(),
+            rect.upper_left(),
+        ])
     }
 }
 
@@ -146,7 +154,6 @@ pub trait ToPolygon<T> {
     /// Convert the geometric object into a polygon.
     fn to_polygon(&self) -> Polygon<T>;
 }
-
 
 impl<T> Polygon<T> {
     /// Create empty polygon without any vertices.
@@ -157,7 +164,6 @@ impl<T> Polygon<T> {
         }
     }
 }
-
 
 impl<T: Copy> Polygon<T> {
     /// Get the number of vertices.
@@ -176,26 +182,30 @@ impl<T: Copy> Polygon<T> {
     }
 
     /// Iterate over all edges of the polygon, including interior edges.
-    pub fn all_edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
-        self.exterior.edges_iter()
-            .chain(
-                self.interiors.iter()
-                    .flat_map(|interior| interior.edges_iter())
-            )
+    pub fn all_edges_iter(&self) -> impl Iterator<Item = Edge<T>> + '_ {
+        self.exterior.edges_iter().chain(
+            self.interiors
+                .iter()
+                .flat_map(|interior| interior.edges_iter()),
+        )
     }
 }
 
 impl<T: CoordinateType> Polygon<T> {
     /// Create a new polygon from a sequence of points.
     pub fn new<I>(i: I) -> Self
-        where I: Into<Self> {
+    where
+        I: Into<Self>,
+    {
         i.into()
     }
 
     /// Create a new polygon from a hull and a list of holes.
     pub fn new_with_holes<E, I>(exterior: E, holes: Vec<I>) -> Self
-        where E: Into<SimplePolygon<T>>,
-              I: Into<SimplePolygon<T>> {
+    where
+        E: Into<SimplePolygon<T>>,
+        I: Into<SimplePolygon<T>>,
+    {
         Polygon {
             exterior: exterior.into(),
             interiors: holes.into_iter().map(|i| i.into()).collect(),
@@ -207,7 +217,9 @@ impl<T: CoordinateType> Polygon<T> {
     /// Implements Andrew's Monotone Chain algorithm.
     /// See: <http://geomalgorithms.com/a10-_hull-1.html>
     pub fn convex_hull(&self) -> Polygon<T>
-        where T: Ord {
+    where
+        T: Ord,
+    {
         self.exterior.convex_hull().into()
     }
 
@@ -230,7 +242,6 @@ impl<T: CoordinateType> Polygon<T> {
         self.exterior.lower_left_vertex()
     }
 
-
     /// Get the orientation of the exterior polygon.
     ///
     /// # Examples
@@ -247,13 +258,17 @@ impl<T: CoordinateType> Polygon<T> {
     ///
     /// ```
     pub fn orientation<Area>(&self) -> Orientation
-        where Area: Num + From<T> + PartialOrd {
+    where
+        Area: Num + From<T> + PartialOrd,
+    {
         self.exterior.orientation::<Area>()
     }
 }
 
 impl<T> TryBoundingBox<T> for Polygon<T>
-    where T: Copy + PartialOrd {
+where
+    T: Copy + PartialOrd,
+{
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         // TODO: What if holes exceed the exterior boundary?
         let bbox = self.exterior.try_bounding_box();
@@ -268,11 +283,15 @@ impl<T> TryBoundingBox<T> for Polygon<T>
         } else {
             // If the bounding box of the hull is not defined there should also be no
             // defined bounding boxes for the holes.
-            let num_internal_bboxes = self.interiors.iter()
+            let num_internal_bboxes = self
+                .interiors
+                .iter()
                 .filter_map(|p| p.try_bounding_box())
                 .count();
-            debug_assert_eq!(num_internal_bboxes, 0,
-                             "Polygon with empty zero-vertex hull cannot contain holes.");
+            debug_assert_eq!(
+                num_internal_bboxes, 0,
+                "Polygon with empty zero-vertex hull cannot contain holes."
+            );
         }
 
         bbox
@@ -280,7 +299,9 @@ impl<T> TryBoundingBox<T> for Polygon<T>
 }
 
 impl<T> WindingNumber<T> for Polygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Calculate the winding number of the polygon around this point.
     ///
     /// TODO: Define how point on edges and vertices is handled.
@@ -288,28 +309,28 @@ impl<T> WindingNumber<T> for Polygon<T>
     /// See: <http://geomalgorithms.com/a03-_inclusion.html>
     fn winding_number(&self, point: Point<T>) -> isize {
         let ext = self.exterior.winding_number(point);
-        let int: isize = self.interiors.iter()
-            .map(|p| p.winding_number(point))
-            .sum();
+        let int: isize = self.interiors.iter().map(|p| p.winding_number(point)).sum();
         ext + int
     }
 }
 
 impl<T> MapPointwise<T> for Polygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         Polygon {
             exterior: self.exterior.transform(&tf),
-            interiors: self.interiors.iter()
-                .map(|p| p.transform(&tf))
-                .collect(),
+            interiors: self.interiors.iter().map(|p| p.transform(&tf)).collect(),
         }
     }
 }
 
 impl<T, A> DoubledOrientedArea<A> for Polygon<T>
-    where T: CoordinateType,
-          A: Num + From<T> {
+where
+    T: CoordinateType,
+    A: Num + From<T>,
+{
     /// Calculates the doubled oriented area.
     ///
     /// Using doubled area allows to compute in the integers because the area
@@ -334,7 +355,9 @@ impl<T, A> DoubledOrientedArea<A> for Polygon<T>
     /// ```
     fn area_doubled_oriented(&self) -> A {
         let ext: A = self.exterior.area_doubled_oriented();
-        let int = self.interiors.iter()
+        let int = self
+            .interiors
+            .iter()
             .map(|p| p.area_doubled_oriented())
             .fold(A::zero(), |a, b| a + b);
         ext + int
@@ -344,27 +367,34 @@ impl<T, A> DoubledOrientedArea<A> for Polygon<T>
 impl<T: PartialEq> Eq for Polygon<T> {}
 
 impl<T> PartialEq for Polygon<T>
-    where T: PartialEq {
+where
+    T: PartialEq,
+{
     /// Equality test for polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied
     /// such that the both lists of vertices match exactly.
     fn eq(&self, rhs: &Self) -> bool {
-
         // TODO: Equality check for polygons with holes.
-        assert!(self.interiors.is_empty() && rhs.interiors.is_empty(),
-                "Equality check for polygons with holes not yet implemented.");
+        assert!(
+            self.interiors.is_empty() && rhs.interiors.is_empty(),
+            "Equality check for polygons with holes not yet implemented."
+        );
 
         self.exterior == rhs.exterior
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Polygon<T> {
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst>
+    for Polygon<T>
+{
     type Output = Polygon<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
         if let Some(new_hull) = self.exterior.try_cast() {
-            let new_holes: Vec<_> = self.interiors.iter()
+            let new_holes: Vec<_> = self
+                .interiors
+                .iter()
                 .map(|hole| hole.try_cast())
                 .while_some()
                 .collect();
@@ -416,8 +446,8 @@ mod tests {
 
     #[test]
     fn test_bounding_box() {
-        use crate::traits::TryBoundingBox;
         use crate::rect::Rect;
+        use crate::traits::TryBoundingBox;
         let coords = vec![(1, 0), (-1, -2), (1, 0), (42, 37)];
 
         let poly: Polygon<i32> = (&coords).into();
@@ -468,13 +498,11 @@ mod tests {
         let exp_hull = Polygon::new(vec![(0, 0), (7, 0)]);
         assert_eq!(poly.convex_hull(), exp_hull);
 
-
         // Degenerate case. All points are equal.
         let poly4 = Polygon::new(vec![(0, 0), (0, 0), (0, 0)]);
         let exp_hull4 = Polygon::new(vec![(0, 0)]);
         assert_eq!(poly4.convex_hull(), exp_hull4);
     }
-
 
     #[test]
     fn test_partial_eq() {

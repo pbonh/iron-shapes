@@ -30,7 +30,6 @@ impl FastInvSqrt for f64 {
     }
 }
 
-
 /// Fast approximate computation of 1/sqrt(x).
 /// The error should be below 0.2%.
 ///
@@ -99,7 +98,10 @@ fn test_fast_invsqrt_64() {
 /// assert_eq!(int_sqrt_floor(25), 5);
 /// ```
 pub fn int_sqrt_floor<T: PrimInt>(n: T) -> T {
-    assert!(n >= T::zero(), "Cannot compute the square root of a negative number.");
+    assert!(
+        n >= T::zero(),
+        "Cannot compute the square root of a negative number."
+    );
     let _1 = T::one();
     let _2 = _1 + _1;
     let mut x = n;
@@ -110,7 +112,6 @@ pub fn int_sqrt_floor<T: PrimInt>(n: T) -> T {
     }
     x
 }
-
 
 #[test]
 pub fn test_int_sqrt_floor_i32() {

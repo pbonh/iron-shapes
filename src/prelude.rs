@@ -5,27 +5,27 @@
 
 //! The prelude can be used to conveniently import the commonly used data types.
 
-pub use crate::vector::*;
-pub use crate::point::*;
 pub use crate::edge::*;
 pub use crate::edge_integer::*;
 pub use crate::edge_rational::*;
-pub use crate::rect::*;
-pub use crate::polygon::*;
-pub use crate::point_string::*;
-pub use crate::simple_polygon::*;
-pub use crate::simple_rpolygon::*;
 pub use crate::multi_polygon::*;
 pub use crate::path::*;
+pub use crate::point::*;
+pub use crate::point_string::*;
+pub use crate::polygon::*;
+pub use crate::rect::*;
 pub use crate::redge::*;
 pub use crate::repetition::*;
 pub use crate::shape::*;
+pub use crate::simple_polygon::*;
+pub use crate::simple_rpolygon::*;
+pub use crate::vector::*;
 
+pub use crate::text::*;
 pub use crate::traits;
 pub use crate::traits::*;
-pub use crate::types::*;
-pub use crate::text::*;
 pub use crate::transform::*;
+pub use crate::types::*;
 
-pub use crate::isotropy::*;
 pub use crate::interval::*;
+pub use crate::isotropy::*;

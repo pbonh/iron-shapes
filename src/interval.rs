@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-
 //! A one dimensional interval.
 
 use crate::CoordinateType;
@@ -11,7 +10,8 @@ use crate::CoordinateType;
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Interval<T>(T, T)
-    where T: CoordinateType;
+where
+    T: CoordinateType;
 
 impl<T: CoordinateType> Interval<T> {
     /// Create a new interval.
@@ -29,7 +29,6 @@ impl<T: CoordinateType> Interval<T> {
     pub fn end(&self) -> T {
         self.1
     }
-
 
     // /// Compute the intersection of two intervals.
     // pub fn intersection(&self, other: &Self) -> Self {

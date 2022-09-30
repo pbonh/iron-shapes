@@ -16,22 +16,23 @@ pub enum Direction1D {
     High,
 }
 
-
 impl Direction1D {
     /// Return the opposite direction.
     pub fn reversed(self) -> Self {
         match self {
             Direction1D::Low => Direction1D::High,
-            Direction1D::High => Direction1D::Low
+            Direction1D::High => Direction1D::Low,
         }
     }
 
     /// Map `Low` to `-1` and `High` to `+1`.
     pub fn sign<N>(&self) -> N
-        where N: Signed {
+    where
+        N: Signed,
+    {
         match self {
             Direction1D::Low => N::one().neg(),
-            Direction1D::High => N::one()
+            Direction1D::High => N::one(),
         }
     }
 }
@@ -57,25 +58,24 @@ pub enum Orientation2D {
 }
 
 impl Orientation2D {
-
     /// Get the orthogonal orientation.
     pub fn other(self) -> Self {
         match self {
             Orientation2D::Horizontal => Self::Vertical,
-            Orientation2D::Vertical => Self::Horizontal
+            Orientation2D::Vertical => Self::Horizontal,
         }
     }
 
     /// Get the positive or negative direction aligned with this orientation.
     pub fn direction(self, d1: Direction1D) -> Direction2D {
-        use Orientation2D::*;
         use Direction1D::*;
         use Direction2D::*;
+        use Orientation2D::*;
         match (self, d1) {
             (Horizontal, Low) => Right,
             (Horizontal, High) => Left,
             (Vertical, Low) => Down,
-            (Vertical, High) => Up
+            (Vertical, High) => Up,
         }
     }
 
@@ -105,14 +105,13 @@ pub enum Direction2D {
 }
 
 impl Direction2D {
-
     /// Get the opposite direction.
     pub fn reversed(self) -> Self {
         match self {
             Direction2D::Left => Self::Right,
             Direction2D::Up => Self::Down,
             Direction2D::Right => Self::Left,
-            Direction2D::Down => Self::Up
+            Direction2D::Down => Self::Up,
         }
     }
 
@@ -126,7 +125,9 @@ impl Direction2D {
 
     /// Get the sign of the direction.
     pub fn sign<N>(self) -> N
-        where N: Signed {
+    where
+        N: Signed,
+    {
         let d1: Direction1D = self.into();
         d1.sign()
     }

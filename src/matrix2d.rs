@@ -28,7 +28,8 @@ pub struct Matrix2d<T: CoordinateType> {
 }
 
 impl<T> Matrix2d<T>
-    where T: CoordinateType
+where
+    T: CoordinateType,
 {
     /// Create a new 2x2 matrix with entries of the form:
     /// ```txt
@@ -36,12 +37,7 @@ impl<T> Matrix2d<T>
     ///  [ m21, m22 ]]
     /// ```
     pub fn new(m11: T, m12: T, m21: T, m22: T) -> Self {
-        Matrix2d {
-            m11,
-            m12,
-            m21,
-            m22,
-        }
+        Matrix2d { m11, m12, m21, m22 }
     }
 
     /// Return the identity matrix.
@@ -52,8 +48,10 @@ impl<T> Matrix2d<T>
     /// Compute product of the matrix with a scalar.
     pub fn mul_scalar(&self, rhs: T) -> Self {
         Matrix2d::new(
-            self.m11 * rhs, self.m12 * rhs,
-            self.m21 * rhs, self.m22 * rhs,
+            self.m11 * rhs,
+            self.m12 * rhs,
+            self.m21 * rhs,
+            self.m22 * rhs,
         )
     }
 
@@ -74,16 +72,12 @@ impl<T> Matrix2d<T>
         let c12 = a.m11 * b.m12 + a.m12 * b.m22;
         let c21 = a.m21 * b.m11 + a.m22 * b.m21;
         let c22 = a.m21 * b.m12 + a.m22 * b.m22;
-        Self::new(
-            c11, c12,
-            c21, c22,
-        )
+        Self::new(c11, c12, c21, c22)
     }
 
     /// Compute the transpose of the matrix.
     pub fn transpose(&self) -> Self {
-        Self::new(self.m11, self.m21,
-                  self.m12, self.m22)
+        Self::new(self.m11, self.m21, self.m12, self.m22)
     }
 
     /// Compute the determinant of this matrix.
@@ -109,8 +103,12 @@ impl<T> Matrix2d<T>
         let det = self.determinant();
         if !det.is_zero() {
             let z = T::zero();
-            Some(Self::new(self.m22 / det, z - self.m12 / det,
-                           z - self.m21 / det, self.m11 / det))
+            Some(Self::new(
+                self.m22 / det,
+                z - self.m12 / det,
+                z - self.m21 / det,
+                self.m11 / det,
+            ))
         } else {
             None
         }
@@ -131,7 +129,10 @@ fn test_matrix_multiplication() {
     assert_eq!(id.mul_matrix(&id), id);
     assert_eq!(b.mul_matrix(&id), b);
     assert_eq!(id.mul_matrix(&b), b);
-    assert_eq!(a.mul_matrix(&b), Matrix2d::new(19.0, 22.0, 15.0 + 28.0, 18.0 + 32.0));
+    assert_eq!(
+        a.mul_matrix(&b),
+        Matrix2d::new(19.0, 22.0, 15.0 + 28.0, 18.0 + 32.0)
+    );
 }
 
 #[test]

@@ -6,8 +6,8 @@
 //! Abstractions for geometrical shapes.
 
 use crate::prelude::*;
-use crate::traits::{TryBoundingBox, MapPointwise};
-use num_traits::{NumCast, Num};
+use crate::traits::{MapPointwise, TryBoundingBox};
+use num_traits::{Num, NumCast};
 
 /// Abstracted geometrical shape.
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
@@ -50,13 +50,13 @@ impl<T: CoordinateType> Geometry<T> {
 
 /// Implement `From` for `Geometry`.
 macro_rules! geometry_from {
- ( $t:tt ) => {
-       impl<T> From<$t<T>> for Geometry<T> {
+    ( $t:tt ) => {
+        impl<T> From<$t<T>> for Geometry<T> {
             fn from(x: $t<T>) -> Geometry<T> {
                 Geometry::$t(x)
             }
         }
- };
+    };
 }
 
 // Implement `From<_<T>> for Geometry<T>` for all shapes.
@@ -80,11 +80,10 @@ impl<T: Copy + PartialOrd + Num> TryBoundingBox<T> for Geometry<T> {
             Geometry::SimpleRPolygon(e) => e.try_bounding_box(),
             Geometry::Polygon(e) => e.try_bounding_box(),
             Geometry::Path(p) => p.try_bounding_box(),
-            Geometry::Text(t) => t.try_bounding_box()
+            Geometry::Text(t) => t.try_bounding_box(),
         }
     }
 }
-
 
 // impl<T: CoordinateType> MapPointwise<T> for Geometry<T> {
 //     /// Point wise transformation.
@@ -114,9 +113,7 @@ impl<T: CoordinateType + NumCast> DoubledOrientedArea<T> for Geometry<T> {
             Geometry::Polygon(e) => e.area_doubled_oriented(),
             Geometry::Path(p) => {
                 // TODO: Find a way without type conversions.
-                T::from(FloatType::round(
-                    p.area_approx::<FloatType>() * 2.0_f64
-                )).unwrap()
+                T::from(FloatType::round(p.area_approx::<FloatType>() * 2.0_f64)).unwrap()
             }
             Geometry::Text(_) => T::zero(),
         }
@@ -158,7 +155,9 @@ impl<T: CoordinateType + NumCast> Into<Polygon<T>> for Geometry<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Geometry<T> {
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst>
+    for Geometry<T>
+{
     type Output = Geometry<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
@@ -183,10 +182,13 @@ fn test_convert_to_polygon() {
         Edge::new((0, 0), (1, 1)).into(),
         Rect::new((0, 0), (1, 1)).into(),
         SimplePolygon::from(vec![(0, 0), (1, 0), (1, 1)]).into(),
-        Polygon::new(vec![(0, 0), (1, 0), (1, 1)]).into()
+        Polygon::new(vec![(0, 0), (1, 0), (1, 1)]).into(),
     ];
 
     for g in geometries {
-        assert_eq!(g.area_doubled_oriented(), g.to_polygon().area_doubled_oriented());
+        assert_eq!(
+            g.area_doubled_oriented(),
+            g.to_polygon().area_doubled_oriented()
+        );
     }
 }

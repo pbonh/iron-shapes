@@ -10,16 +10,16 @@ use crate::CoordinateType;
 use crate::point::Point;
 use crate::rect::Rect;
 
-pub use crate::traits::{DoubledOrientedArea, TryBoundingBox, MapPointwise, WindingNumber};
+pub use crate::traits::{DoubledOrientedArea, MapPointwise, TryBoundingBox, WindingNumber};
 
 use crate::types::*;
 
-use std::cmp::{Ord, PartialEq};
-use num_traits::NumCast;
-use crate::traits::TryCastCoord;
-use crate::simple_polygon::SimplePolygon;
-use crate::redge::{REdge, REdgeOrientation};
 use crate::prelude::SimpleTransform;
+use crate::redge::{REdge, REdgeOrientation};
+use crate::simple_polygon::SimplePolygon;
+use crate::traits::TryCastCoord;
+use num_traits::NumCast;
+use std::cmp::{Ord, PartialEq};
 
 /// A `SimpleRPolygon` is a rectilinear polygon. It does not contain holes but can be self-intersecting.
 /// The vertices are stored in an implicit format (one coordinate of two neighbour vertices is always the same
@@ -32,7 +32,7 @@ use crate::prelude::SimpleTransform;
 pub struct SimpleRPolygon<T> {
     /// Vertices of the polygon.
     /// Begin with a y-coordinate. First edge is horizontal.
-    half_points: Vec<T>
+    half_points: Vec<T>,
 }
 
 impl<T: PartialEq> Eq for SimpleRPolygon<T> {}
@@ -57,7 +57,7 @@ impl<T> SimpleRPolygon<T> {
     /// Create empty polygon without any vertices.
     pub fn empty() -> Self {
         Self {
-            half_points: Vec::new()
+            half_points: Vec::new(),
         }
     }
 
@@ -87,7 +87,7 @@ impl<T> SimpleRPolygon<T> {
     fn prev(&self, i: usize) -> usize {
         match i {
             0 => self.half_points.len() - 1,
-            x => x - 1
+            x => x - 1,
         }
     }
 
@@ -95,11 +95,10 @@ impl<T> SimpleRPolygon<T> {
     fn next(&self, i: usize) -> usize {
         match i {
             _ if i == self.half_points.len() - 1 => 0,
-            x => x + 1
+            x => x + 1,
         }
     }
 }
-
 
 impl<T: Clone> SimpleRPolygon<T> {
     /// Create a copy of this polygon whose vertices are ordered in reversed order.
@@ -109,7 +108,6 @@ impl<T: Clone> SimpleRPolygon<T> {
         result
     }
 }
-
 
 impl<T: Copy> SimpleRPolygon<T> {
     /// Get `i`-th point of the polygon.
@@ -122,7 +120,7 @@ impl<T: Copy> SimpleRPolygon<T> {
     }
 
     /// Iterate over the points.
-    pub fn points(&self) -> impl Iterator<Item=Point<T>> + '_ {
+    pub fn points(&self) -> impl Iterator<Item = Point<T>> + '_ {
         (0..self.len()).map(move |i| self.get_point(i))
     }
 
@@ -144,7 +142,7 @@ impl<T: Copy> SimpleRPolygon<T> {
     /// ]);
     ///
     /// ```
-    pub fn edges(&self) -> impl Iterator<Item=REdge<T>> + '_ {
+    pub fn edges(&self) -> impl Iterator<Item = REdge<T>> + '_ {
         (0..self.len()).map(move |i| {
             let orientation = if i % 2 == 0 {
                 REdgeOrientation::Horizontal
@@ -152,10 +150,12 @@ impl<T: Copy> SimpleRPolygon<T> {
                 REdgeOrientation::Vertical
             };
 
-            REdge::new_raw(self.half_points[self.prev(i)],
-                           self.half_points[self.next(i)],
-                           self.half_points[i],
-                           orientation)
+            REdge::new_raw(
+                self.half_points[self.prev(i)],
+                self.half_points[self.next(i)],
+                self.half_points[i],
+                orientation,
+            )
         })
     }
 }
@@ -175,16 +175,24 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     ///
     /// ```
     pub fn try_new<P>(points: Vec<P>) -> Option<Self>
-        where P: Copy + Into<Point<T>> {
+    where
+        P: Copy + Into<Point<T>>,
+    {
         if points.is_empty() {
             // Empty polygon.
-            Some(Self { half_points: Vec::new() })
+            Some(Self {
+                half_points: Vec::new(),
+            })
         } else if let Some(last) = points.last() {
             let mut half_points = Vec::new();
 
             let mut last: Point<T> = (*last).into();
             #[derive(PartialEq, Eq, Debug)]
-            enum Orientation { None, Vertical, Horizontal }
+            enum Orientation {
+                None,
+                Vertical,
+                Horizontal,
+            }
 
             let mut orientation = Orientation::None;
 
@@ -238,11 +246,10 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         }
     }
 
-
     /// Apply the transformation to this rectilinear polygon.
     pub fn transformed(&self, tf: &SimpleTransform<T>) -> Self {
-        Self::try_new(self.points().map(|p| tf.transform_point(p)).collect())
-            .unwrap() // Unwrap should be fine because the edges will remain axis-aligned under the Simple Transform.
+        Self::try_new(self.points().map(|p| tf.transform_point(p)).collect()).unwrap()
+        // Unwrap should be fine because the edges will remain axis-aligned under the Simple Transform.
     }
 
     /// Convert to a `SimplePolygon`.
@@ -255,10 +262,11 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     /// Implements Andrew's Monotone Chain algorithm.
     /// See: <http://geomalgorithms.com/a10-_hull-1.html>
     pub fn convex_hull(&self) -> SimplePolygon<T>
-        where T: Ord {
+    where
+        T: Ord,
+    {
         crate::algorithms::convex_hull::convex_hull(self.points().collect())
     }
-
 
     /// Get the vertex with lowest x-coordinate. Prefer lower y-coordinates to break ties.
     ///
@@ -286,10 +294,10 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
         debug_assert!(!self.is_empty());
 
         // Find minimum.
-        let min = self.points()
+        let min = self
+            .points()
             .enumerate()
-            .min_by(|(_, p1), (_, p2)|
-                p1.partial_cmp(p2).unwrap());
+            .min_by(|(_, p1), (_, p2)| p1.partial_cmp(p2).unwrap());
         let (idx, point) = min.unwrap();
 
         (idx, point)
@@ -312,7 +320,6 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
     ///
     /// ```
     pub fn orientation(&self) -> Orientation {
-
         // Find the orientation by the polygon area.
 
         let area2 = self.area_doubled_oriented();
@@ -326,7 +333,6 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
             Orientation::Straight
         }
     }
-
 
     // TODO:
     // /// Decompose into non-overlapping rectangles.
@@ -362,7 +368,9 @@ impl<T: CoordinateType> SimpleRPolygon<T> {
 }
 
 impl<T> WindingNumber<T> for SimpleRPolygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Calculate the winding number of the polygon around this point.
     ///
     /// TODO: Define how point on edges and vertices is handled.
@@ -379,14 +387,17 @@ impl<T> WindingNumber<T> for SimpleRPolygon<T>
         // 4. the edge-ray intersection point must be strictly right of the point P.
 
         for e in self.edges() {
-            if e.start().y <= point.y { // Crosses upward?
-                if e.end().y > point.y { // Crosses really upward?
+            if e.start().y <= point.y {
+                // Crosses upward?
+                if e.end().y > point.y {
+                    // Crosses really upward?
                     // Yes, crosses upward.
                     if e.side_of(point) == Side::Left {
                         winding_number += 1;
                     }
                 }
-            } else if e.end().y <= point.y { // Crosses downward?
+            } else if e.end().y <= point.y {
+                // Crosses downward?
                 // Yes, crosses downward.
                 // `e.start.y > point.y` needs not to be checked anymore.
                 if e.side_of(point) == Side::Right {
@@ -402,7 +413,12 @@ impl<T> WindingNumber<T> for SimpleRPolygon<T>
 impl<T: CoordinateType> From<Rect<T>> for SimpleRPolygon<T> {
     fn from(r: Rect<T>) -> Self {
         Self {
-            half_points: vec![r.lower_left.y, r.upper_right.x, r.upper_right.y, r.lower_left.x]
+            half_points: vec![
+                r.lower_left.y,
+                r.upper_right.x,
+                r.upper_right.y,
+                r.lower_left.x,
+            ],
         }
     }
 }
@@ -412,8 +428,15 @@ fn test_from_rect() {
     use super::rect::Rect;
     let r = Rect::new((0, 1), (2, 3));
     let p = SimpleRPolygon::from(r);
-    assert_eq!(p.points().collect::<Vec<_>>(),
-               [Point::new(0, 1), Point::new(2, 1), Point::new(2, 3), Point::new(0, 3)]);
+    assert_eq!(
+        p.points().collect::<Vec<_>>(),
+        [
+            Point::new(0, 1),
+            Point::new(2, 1),
+            Point::new(2, 3),
+            Point::new(0, 3)
+        ]
+    );
 }
 
 // /// Create a polygon from a type that is convertible into an iterator of values convertible to `Point`s.
@@ -467,8 +490,9 @@ fn test_from_rect() {
 // }
 
 impl<T> SimpleRPolygon<T>
-    where T: Copy + PartialOrd {
-
+where
+    T: Copy + PartialOrd,
+{
     /// Check if the polygon is an axis-aligned rectangle.
     pub fn is_rect(&self) -> bool {
         self.len() == 4
@@ -476,22 +500,31 @@ impl<T> SimpleRPolygon<T>
 }
 
 impl<T> TryBoundingBox<T> for SimpleRPolygon<T>
-    where T: Copy + PartialOrd {
+where
+    T: Copy + PartialOrd,
+{
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         if !self.is_empty() {
             let mut xmax = self.half_points[1];
             let mut ymax = self.half_points[0];
             let mut xmin = xmax;
             let mut ymin = ymax;
-            self.half_points.chunks(2)
-                .for_each(|c| {
-                    let x = c[1];
-                    let y = c[0];
-                    if x > xmax { xmax = x };
-                    if x < xmin { xmin = x };
-                    if y > ymax { ymax = y };
-                    if y < ymin { ymin = y };
-                });
+            self.half_points.chunks(2).for_each(|c| {
+                let x = c[1];
+                let y = c[0];
+                if x > xmax {
+                    xmax = x
+                };
+                if x < xmin {
+                    xmin = x
+                };
+                if y > ymax {
+                    ymax = y
+                };
+                if y < ymin {
+                    ymin = y
+                };
+            });
 
             Some(Rect::new((xmin, ymin), (xmax, ymax)))
         } else {
@@ -570,13 +603,14 @@ impl<T: PartialEq> PartialEq for SimpleRPolygon<T> {
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for SimpleRPolygon<T> {
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst>
+    for SimpleRPolygon<T>
+{
     type Output = SimpleRPolygon<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        let new_half_points: Option<Vec<_>> = self.half_points.iter()
-            .map(|&p| Dst::from(p))
-            .collect();
+        let new_half_points: Option<Vec<_>> =
+            self.half_points.iter().map(|&p| Dst::from(p)).collect();
 
         new_half_points.map(|p| SimpleRPolygon { half_points: p })
     }
@@ -595,8 +629,7 @@ fn test_create_rpolygon() {
     assert_eq!(p.half_points, vec![]);
 
     // Intermediate vertices on straight lines are removed.
-    let p = SimpleRPolygon::try_new(vec![(0, 0), (1, 0), (1, 1),
-                                         (1, 2), (0, 2), (0, 1)]).unwrap();
+    let p = SimpleRPolygon::try_new(vec![(0, 0), (1, 0), (1, 1), (1, 2), (0, 2), (0, 1)]).unwrap();
 
     assert_eq!(p.half_points, vec![0, 1, 2, 0]);
 }

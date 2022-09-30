@@ -49,7 +49,7 @@ impl Angle {
             1 => Angle::R90,
             2 => Angle::R180,
             3 => Angle::R270,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -68,7 +68,6 @@ impl Sub for Angle {
     fn sub(self, rhs: Self) -> Self::Output {
         Self::from_u32(self.as_int() + 4 - rhs.as_int())
     }
-
 }
 
 impl Neg for Angle {
@@ -116,7 +115,7 @@ impl Side {
         match self {
             Side::Left => Side::Right,
             Side::Center => Side::Center,
-            Side::Right => Side::Left
+            Side::Right => Side::Left,
         }
     }
 }
@@ -169,7 +168,10 @@ impl ContainsResult {
 
     /// Tells if the point is contained or lies on the bounds.
     pub fn inclusive_bounds(&self) -> bool {
-        matches!(self, ContainsResult::WithinBounds | ContainsResult::OnBounds)
+        matches!(
+            self,
+            ContainsResult::WithinBounds | ContainsResult::OnBounds
+        )
     }
 
     /// Check if the point neither is on the bounds nor within the bounds.

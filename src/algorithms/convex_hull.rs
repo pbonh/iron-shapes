@@ -5,7 +5,7 @@
 
 //! Compute the convex hull of a list of points.
 
-use crate::prelude::{Point, SimplePolygon, Edge, Side};
+use crate::prelude::{Edge, Point, Side, SimplePolygon};
 use num_traits::Num;
 
 /// Get the convex hull of the polygon.
@@ -13,8 +13,9 @@ use num_traits::Num;
 /// Implements Andrew's Monotone Chain algorithm.
 /// See: <http://geomalgorithms.com/a10-_hull-1.html>
 pub fn convex_hull<T>(points: Vec<Point<T>>) -> SimplePolygon<T>
-    where T: Num + Ord + Copy {
-
+where
+    T: Num + Ord + Copy,
+{
     // Sort points by coordinates.
     let p = {
         let mut p = points;
@@ -31,14 +32,23 @@ pub fn convex_hull<T>(points: Vec<Point<T>>) -> SimplePolygon<T>
     let maxmax = p.len() - 1;
     let p_maxmax = p[maxmax];
     // minmax = index of P with min x first and max y second
-    let minmax = p.iter().enumerate()
+    let minmax = p
+        .iter()
+        .enumerate()
         .take_while(|(_, p)| p.x == p_minmin.x)
-        .last().unwrap().0;
+        .last()
+        .unwrap()
+        .0;
     let p_minmax = p[minmax];
     // maxmin = index of P with max x first and min y second
-    let maxmin = p.iter().enumerate().rev()
+    let maxmin = p
+        .iter()
+        .enumerate()
+        .rev()
         .take_while(|(_, p)| p.x == p_maxmax.x)
-        .last().unwrap().0;
+        .last()
+        .unwrap()
+        .0;
     let p_maxmin = p[maxmin];
 
     debug_assert!(minmin <= minmax);
@@ -47,12 +57,12 @@ pub fn convex_hull<T>(points: Vec<Point<T>>) -> SimplePolygon<T>
 
     debug_assert!(p.iter().all(|&p| p_minmin <= p));
     debug_assert!(p.iter().all(|&p| p_maxmax >= p));
-    debug_assert!(p.iter().all(|&p|
-        p_minmax.x < p.x || (p_minmax.x == p.x && p_minmax.y >= p.y)
-    ));
-    debug_assert!(p.iter().all(|&p|
-        p_maxmin.x > p.x || (p_maxmin.x == p.x && p_maxmin.y <= p.y)
-    ));
+    debug_assert!(p
+        .iter()
+        .all(|&p| p_minmax.x < p.x || (p_minmax.x == p.x && p_minmax.y >= p.y)));
+    debug_assert!(p
+        .iter()
+        .all(|&p| p_maxmin.x > p.x || (p_maxmin.x == p.x && p_maxmin.y <= p.y)));
 
     // Handle degenerate case where all x coordinates are equal.
     if p_minmin.x == p_maxmax.x {
@@ -62,31 +72,30 @@ pub fn convex_hull<T>(points: Vec<Point<T>>) -> SimplePolygon<T>
             SimplePolygon::new(vec![p_minmin, p_maxmax])
         }
     } else {
-        let build_half_hull =
-            |l: Edge<T>, points: &[Point<T>]| {
-                // Push starting point on stack.
-                let mut stack = vec![l.start];
+        let build_half_hull = |l: Edge<T>, points: &[Point<T>]| {
+            // Push starting point on stack.
+            let mut stack = vec![l.start];
 
-                for &pi in points {
-                    // Skip all points that are not strictly right of `l`.
-                    if l.side_of(pi) == Side::Right {
-                        while stack.len() >= 2 {
-                            let pt1 = stack[stack.len() - 1];
-                            let pt2 = stack[stack.len() - 2];
+            for &pi in points {
+                // Skip all points that are not strictly right of `l`.
+                if l.side_of(pi) == Side::Right {
+                    while stack.len() >= 2 {
+                        let pt1 = stack[stack.len() - 1];
+                        let pt2 = stack[stack.len() - 2];
 
-                            if Edge::new(pt2, pt1).side_of(pi) == Side::Left {
-                                // `pi` is strictly left of the line defined by the top two elements
-                                // on the stack.
-                                break;
-                            }
-                            stack.pop();
+                        if Edge::new(pt2, pt1).side_of(pi) == Side::Left {
+                            // `pi` is strictly left of the line defined by the top two elements
+                            // on the stack.
+                            break;
                         }
-                        stack.push(pi);
+                        stack.pop();
                     }
+                    stack.push(pi);
                 }
+            }
 
-                stack
-            };
+            stack
+        };
 
         // Compute the lower hull.
         let l_min = Edge::new(p_minmin, p_maxmin);

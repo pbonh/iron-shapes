@@ -20,40 +20,43 @@ use num_traits::Zero;
 
 use std::cmp::Ordering;
 
-pub use crate::edge::{Edge, LineIntersection, EdgeIntersection};
+pub use crate::edge::{Edge, EdgeIntersection, LineIntersection};
 use crate::traits::BoundingBox;
 use crate::CoordinateType;
 
 impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
     /// Compute the intersection point of the lines defined by the two edges.
-     ///
-     /// Degenerate lines don't intersect by definition.
-     ///
-     /// Returns `LineIntersection::None` iff the two lines don't intersect.
-     /// Returns `LineIntersection::Collinear` iff both lines are equal.
-     /// Returns `LineIntersection::Point(p,(a,b,c))` iff the lines intersect in exactly one point `p`.
-     /// `f` is a value such that `self.start + self.vector()*a/c == p` and
-     /// `other.start + other.vector()*b/c == p`.
-     ///
-     /// # Examples
-     ///
-     /// ```
-     /// extern crate num_rational;
-     /// use num_rational::Ratio;
-     /// use iron_shapes::point::Point;
-     /// use iron_shapes::edge_rational::*;
-     ///
-     /// let r = |i| Ratio::from_integer(i);
-     ///
-     /// let e1 = Edge::new((r(0), r(0)), (r(2), r(2)));
-     /// let e2 = Edge::new((r(0), r(2)), (r(2), r(0)));
-     ///
-     /// assert_eq!(e1.line_intersection_rational(e2),
-     ///     LineIntersection::Point(Point::new(r(1), r(1)), (r(4), r(4), r(8))));
-     ///
-     /// ```
-    pub fn line_intersection_rational(&self, other: Edge<Ratio<T>>) -> LineIntersection<Ratio<T>, Ratio<T>> {
-        if self.is_degenerate() || other.is_degenerate()  {
+    ///
+    /// Degenerate lines don't intersect by definition.
+    ///
+    /// Returns `LineIntersection::None` iff the two lines don't intersect.
+    /// Returns `LineIntersection::Collinear` iff both lines are equal.
+    /// Returns `LineIntersection::Point(p,(a,b,c))` iff the lines intersect in exactly one point `p`.
+    /// `f` is a value such that `self.start + self.vector()*a/c == p` and
+    /// `other.start + other.vector()*b/c == p`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// extern crate num_rational;
+    /// use num_rational::Ratio;
+    /// use iron_shapes::point::Point;
+    /// use iron_shapes::edge_rational::*;
+    ///
+    /// let r = |i| Ratio::from_integer(i);
+    ///
+    /// let e1 = Edge::new((r(0), r(0)), (r(2), r(2)));
+    /// let e2 = Edge::new((r(0), r(2)), (r(2), r(0)));
+    ///
+    /// assert_eq!(e1.line_intersection_rational(e2),
+    ///     LineIntersection::Point(Point::new(r(1), r(1)), (r(4), r(4), r(8))));
+    ///
+    /// ```
+    pub fn line_intersection_rational(
+        &self,
+        other: Edge<Ratio<T>>,
+    ) -> LineIntersection<Ratio<T>, Ratio<T>> {
+        if self.is_degenerate() || other.is_degenerate() {
             LineIntersection::None
         } else {
             // TODO: faster implementation if both lines are orthogonal
@@ -92,8 +95,8 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
 
                 // Check that the intersection point lies on the lines indeed.
                 // TODO: uncomment this checks
-//                debug_assert!(self.cast().line_contains_point_approx(p, 1e-4));
-//                debug_assert!(other.cast().line_contains_point_approx(p, 1e-2));
+                //                debug_assert!(self.cast().line_contains_point_approx(p, 1e-4));
+                //                debug_assert!(other.cast().line_contains_point_approx(p, 1e-2));
 
                 // debug_assert!({
                 //     let j = ca_cross_ab / s;
@@ -102,8 +105,11 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
                 // });
 
                 let positions = if s < Ratio::zero() {
-                    (Ratio::zero() - ac_cross_cd,
-                     Ratio::zero() - ca_cross_ab, Ratio::zero() - s)
+                    (
+                        Ratio::zero() - ac_cross_cd,
+                        Ratio::zero() - ca_cross_ab,
+                        Ratio::zero() - s,
+                    )
                 } else {
                     (ac_cross_cd, ca_cross_ab, s)
                 };
@@ -113,10 +119,12 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
         }
     }
 
-
     /// Compute the intersection with another edge.
-    pub fn edge_intersection_rational(&self, other: &Edge<Ratio<T>>) -> EdgeIntersection<Ratio<T>, Ratio<T>, Edge<Ratio<T>>> {
-//        debug_assert!(tolerance >= Ratio::zero(), "Tolerance cannot be negative.");
+    pub fn edge_intersection_rational(
+        &self,
+        other: &Edge<Ratio<T>>,
+    ) -> EdgeIntersection<Ratio<T>, Ratio<T>, Edge<Ratio<T>>> {
+        //        debug_assert!(tolerance >= Ratio::zero(), "Tolerance cannot be negative.");
 
         // Swap direction of other edge such that both have the same direction.
         let other = if (self.start < self.end) != (other.start < other.end) {
@@ -137,7 +145,8 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
         // TODO: optimize for chained edges (start1 == end2 ^ start2 == end1)
 
         // Are the edges equal but not degenerate?
-        let fully_coincident = (same_start_start & same_end_end) ^ (same_start_end & same_end_start);
+        let fully_coincident =
+            (same_start_start & same_end_end) ^ (same_start_end & same_end_start);
 
         let result = if self.is_degenerate() {
             // First degenerate case
@@ -169,12 +178,13 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
 
                 // Intersection in one point:
                 LineIntersection::Point(p, (pos1, pos2, len)) => {
-                    if pos1 >= Ratio::zero() && pos1 <= len
-                        && pos2 >= Ratio::zero() && pos2 <= len {
+                    if pos1 >= Ratio::zero() && pos1 <= len && pos2 >= Ratio::zero() && pos2 <= len
+                    {
                         if pos1 == Ratio::zero()
                             || pos1 == len
                             || pos2 == Ratio::zero()
-                            || pos2 == len {
+                            || pos2 == len
+                        {
                             EdgeIntersection::EndPoint(p)
                         } else {
                             EdgeIntersection::Point(p)
@@ -214,25 +224,17 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
                     };
 
                     // Find maximum by distance.
-                    let start = if start1.0 < start2.0 {
-                        start2
-                    } else {
-                        start1
-                    };
+                    let start = if start1.0 < start2.0 { start2 } else { start1 };
 
                     // Find minimum by distance.
-                    let end = if end1.0 < end2.0 {
-                        end1
-                    } else {
-                        end2
-                    };
+                    let end = if end1.0 < end2.0 { end1 } else { end2 };
 
                     // Check if the edges overlap in more than one point, in exactly one point or
                     // in zero points.
                     match start.0.cmp(&end.0) {
                         Ordering::Less => EdgeIntersection::Overlap(Edge::new(start.1, end.1)),
                         Ordering::Equal => EdgeIntersection::EndPoint(start.1),
-                        Ordering::Greater => EdgeIntersection::None
+                        Ordering::Greater => EdgeIntersection::None,
                     }
                 }
             }
@@ -241,12 +243,15 @@ impl<T: CoordinateType + num_integer::Integer> Edge<Ratio<T>> {
         // Sanity check for the result.
         debug_assert!({
             match result {
-                EdgeIntersection::Point(p) => self.contains_point(p).is_within_bounds()
-                    && other.contains_point(p).is_within_bounds(),
-                EdgeIntersection::EndPoint(p) => self.contains_point(p).on_bounds()
-                    || other.contains_point(p).on_bounds(),
+                EdgeIntersection::Point(p) => {
+                    self.contains_point(p).is_within_bounds()
+                        && other.contains_point(p).is_within_bounds()
+                }
+                EdgeIntersection::EndPoint(p) => {
+                    self.contains_point(p).on_bounds() || other.contains_point(p).on_bounds()
+                }
                 EdgeIntersection::None => self.edges_intersect(&other).is_no(),
-                EdgeIntersection::Overlap(_) => true
+                EdgeIntersection::Overlap(_) => true,
             }
         });
 
@@ -269,13 +274,14 @@ mod tests {
 
     #[test]
     fn test_rational_edge() {
-        let e = Edge::new((Rational64::from(0), Rational64::from(0)),
-                          (Rational64::from(1), Rational64::from(1)));
+        let e = Edge::new(
+            (Rational64::from(0), Rational64::from(0)),
+            (Rational64::from(1), Rational64::from(1)),
+        );
         let v = e.vector();
         assert!(v.norm2_squared() == Rational64::from(2));
         assert!(!e.is_degenerate());
     }
-
 
     #[test]
     fn test_line_intersection_rational() {
@@ -288,14 +294,13 @@ mod tests {
         let e2 = Edge::new(rp(1, 0), rp(0, 1));
         let e3 = Edge::new(rp(1, 0), rp(3, 2));
 
-        assert_eq!(e1.line_intersection_rational(e2),
-                   LineIntersection::Point(
-                       Point::new(r(1, 2), r(1, 2)),
-                       (i(1), i(2), i(4))));
+        assert_eq!(
+            e1.line_intersection_rational(e2),
+            LineIntersection::Point(Point::new(r(1, 2), r(1, 2)), (i(1), i(2), i(4)))
+        );
 
         // Parallel lines should not intersect
         assert_eq!(e1.line_intersection_rational(e3), LineIntersection::None);
-
 
         let e4 = Edge::new(rp(-320, 2394), rp(94, -4482));
         let e5 = Edge::new(rp(71, 133), rp(-1373, 13847));
@@ -320,7 +325,10 @@ mod tests {
         let e2 = Edge::new(rp(4, 4), rp(8, 8)).scale(scale);
         assert!(!e1.is_coincident(&e2));
         assert!(e1.is_parallel(&e2));
-        assert_eq!(e1.line_intersection_rational(e2), LineIntersection::Collinear);
+        assert_eq!(
+            e1.line_intersection_rational(e2),
+            LineIntersection::Collinear
+        );
     }
 
     #[test]

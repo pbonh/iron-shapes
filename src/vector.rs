@@ -7,17 +7,17 @@
 //! `Vector`s consist of an `x` and `y` coordinate value and describe a translation in the plane.
 
 use std::fmt;
-use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Div, DivAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use num_traits::{Float, NumCast};
 pub use num_traits::Zero;
+use num_traits::{Float, NumCast};
 
-pub use crate::CoordinateType;
-pub use crate::types::Orientation;
+use crate::point::Point;
+use crate::traits::{MapPointwise, TryCastCoord};
 pub use crate::traits::{Mirror, RotateOrtho};
 pub use crate::types::Angle;
-use crate::traits::{MapPointwise, TryCastCoord};
-use crate::point::Point;
+pub use crate::types::Orientation;
+pub use crate::CoordinateType;
 
 /// [`Vector`] defines a two dimensional vector with x and y components in the Euclidean plane.
 #[derive(Copy, Clone, Default, PartialEq, Eq, Hash)]
@@ -43,7 +43,9 @@ pub struct Vector<T> {
 /// ```
 #[macro_export]
 macro_rules! vector {
- ($x:expr, $y:expr) => {Vector::new($x, $y)}
+    ($x:expr, $y:expr) => {
+        Vector::new($x, $y)
+    };
 }
 
 impl<T: Copy> Into<(T, T)> for Vector<T> {
@@ -89,14 +91,17 @@ impl<T: Copy> From<[T; 2]> for Vector<T> {
 }
 
 impl<T> fmt::Debug for Vector<T>
-    where T: fmt::Debug {
+where
+    T: fmt::Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({:?}, {:?})", &self.x, &self.y)
     }
 }
 
 impl<T> fmt::Display for Vector<T>
-    where T: fmt::Display + Copy
+where
+    T: fmt::Display + Copy,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {})", self.x, self.y)
@@ -116,7 +121,12 @@ impl<T: Zero> Zero for Vector<T> {
     /// assert_eq!(a, b);
     /// ```
     #[inline]
-    fn zero() -> Self { Vector { x: T::zero(), y: T::zero() } }
+    fn zero() -> Self {
+        Vector {
+            x: T::zero(),
+            y: T::zero(),
+        }
+    }
 
     /// Check if this is the zero-vector.
     ///
@@ -146,8 +156,7 @@ impl<T> Vector<T> {
     }
 }
 
-
-impl<T: Copy + Zero + PartialOrd + Sub<Output=T>> Vector<T> {
+impl<T: Copy + Zero + PartialOrd + Sub<Output = T>> Vector<T> {
     /// Get 1-norm of vector, i.e. the sum of the absolute values of its components.
     ///
     /// # Examples
@@ -160,15 +169,19 @@ impl<T: Copy + Zero + PartialOrd + Sub<Output=T>> Vector<T> {
     pub fn norm1(&self) -> T {
         let xabs = if self.x < T::zero() {
             T::zero() - self.x
-        } else { self.x };
+        } else {
+            self.x
+        };
         let yabs = if self.y < T::zero() {
             T::zero() - self.y
-        } else { self.y };
+        } else {
+            self.y
+        };
         xabs + yabs
     }
 }
 
-impl<T: Copy + Zero + PartialOrd + Mul<Output=T> + Sub<Output=T>> Vector<T> {
+impl<T: Copy + Zero + PartialOrd + Mul<Output = T> + Sub<Output = T>> Vector<T> {
     /// Check if `other` is oriented clockwise or counter-clockwise respective to `self`.
     ///
     /// # Examples
@@ -199,7 +212,7 @@ impl<T: Copy + Zero + PartialOrd + Mul<Output=T> + Sub<Output=T>> Vector<T> {
     }
 }
 
-impl<T: Copy + Mul<Output=T> + Add<Output=T>> Vector<T> {
+impl<T: Copy + Mul<Output = T> + Add<Output = T>> Vector<T> {
     /// Get squared 2-norm of vector.
     ///
     /// # Examples
@@ -230,8 +243,7 @@ impl<T: Copy + Mul<Output=T> + Add<Output=T>> Vector<T> {
     }
 }
 
-
-impl<T: Copy + Mul<Output=T> + Sub<Output=T>> Vector<T> {
+impl<T: Copy + Mul<Output = T> + Sub<Output = T>> Vector<T> {
     /// Calculate cross product.
     ///
     /// # Examples
@@ -294,13 +306,14 @@ impl<T: Copy + NumCast, Dst: Copy + NumCast> TryCastCoord<T, Dst> for Vector<T> 
     fn try_cast(&self) -> Option<Self::Output> {
         match (Dst::from(self.x), Dst::from(self.y)) {
             (Some(x), Some(y)) => Some(Vector::new(x, y)),
-            _ => None
+            _ => None,
         }
     }
 }
 
 impl<T> Vector<T>
-    where T: Copy + Float + Mul<Output=T> + Add<Output=T>
+where
+    T: Copy + Float + Mul<Output = T> + Add<Output = T>,
 {
     /// Get 2-norm of vector (length of vector).
     ///
@@ -339,9 +352,7 @@ impl<T> Vector<T>
     }
 }
 
-
-impl<T: Copy + NumCast> Vector<T>
-{
+impl<T: Copy + NumCast> Vector<T> {
     /// Calculate length of vector.
     ///
     /// Similar to `Vector::norm2` but does potentially return another data type for the length.
@@ -367,7 +378,8 @@ impl<T: Copy + NumCast> Vector<T>
 
 /// Vector addition.
 impl<T> Add for Vector<T>
-    where T: Add<Output=T>
+where
+    T: Add<Output = T>,
 {
     type Output = Self;
 
@@ -381,7 +393,8 @@ impl<T> Add for Vector<T>
 }
 
 impl<T> AddAssign for Vector<T>
-    where T: AddAssign
+where
+    T: AddAssign,
 {
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
@@ -392,7 +405,8 @@ impl<T> AddAssign for Vector<T>
 
 /// Vector subtraction.
 impl<T> Sub for Vector<T>
-    where T: Sub<Output=T>
+where
+    T: Sub<Output = T>,
 {
     type Output = Self;
 
@@ -406,7 +420,8 @@ impl<T> Sub for Vector<T>
 }
 
 impl<T> SubAssign for Vector<T>
-    where T: SubAssign
+where
+    T: SubAssign,
 {
     #[inline]
     fn sub_assign(&mut self, rhs: Self) {
@@ -416,7 +431,8 @@ impl<T> SubAssign for Vector<T>
 }
 
 impl<T> Neg for Vector<T>
-    where T: Neg<Output=T>
+where
+    T: Neg<Output = T>,
 {
     type Output = Self;
 
@@ -431,8 +447,9 @@ impl<T> Neg for Vector<T>
 
 /// Scalar multiplication.
 impl<T, M> Mul<M> for Vector<T>
-    where T: CoordinateType + Mul<M, Output=T>,
-          M: Copy
+where
+    T: CoordinateType + Mul<M, Output = T>,
+    M: Copy,
 {
     type Output = Self;
 
@@ -446,8 +463,9 @@ impl<T, M> Mul<M> for Vector<T>
 
 /// In-place scalar multiplication.
 impl<T, M> MulAssign<M> for Vector<T>
-    where T: Copy + MulAssign<M>,
-          M: Copy
+where
+    T: Copy + MulAssign<M>,
+    M: Copy,
 {
     #[inline]
     fn mul_assign(&mut self, rhs: M) {
@@ -458,8 +476,9 @@ impl<T, M> MulAssign<M> for Vector<T>
 
 /// Scalar division.
 impl<T, D> Div<D> for Vector<T>
-    where T: Copy + Div<D, Output=T>,
-          D: Copy
+where
+    T: Copy + Div<D, Output = T>,
+    D: Copy,
 {
     type Output = Self;
 
@@ -474,8 +493,9 @@ impl<T, D> Div<D> for Vector<T>
 
 /// Assigning scalar division.
 impl<T, D> DivAssign<D> for Vector<T>
-    where T: Copy + DivAssign<D>,
-          D: Copy
+where
+    T: Copy + DivAssign<D>,
+    D: Copy,
 {
     #[inline]
     fn div_assign(&mut self, rhs: D) {
@@ -484,10 +504,12 @@ impl<T, D> DivAssign<D> for Vector<T>
     }
 }
 
-
 impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
     #[inline]
-    fn transform<F>(&self, transformation: F) -> Self where F: Fn(Point<T>) -> Point<T> {
+    fn transform<F>(&self, transformation: F) -> Self
+    where
+        F: Fn(Point<T>) -> Point<T>,
+    {
         *transformation(Point::from(self))
     }
 }
@@ -495,8 +517,10 @@ impl<T: CoordinateType> MapPointwise<T> for Vector<T> {
 /// Compute the sum of all vectors in the iterator.
 /// If the iterator is empty, (0, 0) is returned.
 impl<T> std::iter::Sum for Vector<T>
-    where T: Zero + Add<Output=T> {
-    fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
+where
+    T: Zero + Add<Output = T>,
+{
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Self::zero(), |acc, v| acc + v)
     }
 }

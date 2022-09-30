@@ -10,12 +10,12 @@ use crate::CoordinateType;
 use crate::point::Point;
 use crate::polygon::Polygon;
 
-pub use crate::traits::{DoubledOrientedArea, BoundingBox, MapPointwise, WindingNumber};
+pub use crate::traits::{BoundingBox, DoubledOrientedArea, MapPointwise, WindingNumber};
 
-use std::iter::FromIterator;
 use crate::edge::Edge;
-use crate::traits::{TryBoundingBox, TryIntoBoundingBox};
 use crate::prelude::Rect;
+use crate::traits::{TryBoundingBox, TryIntoBoundingBox};
+use std::iter::FromIterator;
 
 /// A `MultiPolygon` is a list of polygons. There is no restrictions on the polygons (they can be
 /// intersecting, empty, etc.).
@@ -29,17 +29,12 @@ pub struct MultiPolygon<T> {
 impl<T> MultiPolygon<T> {
     /// Create an empty set of polygons.
     pub fn new() -> Self {
-        Self {
-            polygons: vec![]
-        }
+        Self { polygons: vec![] }
     }
-
 
     /// Create a `MultiPolygon` from a vector of `Polygon`s.
     pub fn from_polygons(polygons: Vec<Polygon<T>>) -> Self {
-        MultiPolygon {
-            polygons
-        }
+        MultiPolygon { polygons }
     }
 
     /// Return the number of polygons.
@@ -59,31 +54,27 @@ impl<T> MultiPolygon<T> {
 }
 
 impl<T: Copy> MultiPolygon<T> {
-
     /// Iterate over all edges of the polygons including holes.
-    pub fn all_edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
-        self.polygons.iter()
-            .flat_map(|p| p.all_edges_iter())
+    pub fn all_edges_iter(&self) -> impl Iterator<Item = Edge<T>> + '_ {
+        self.polygons.iter().flat_map(|p| p.all_edges_iter())
     }
 }
 
 impl<T> WindingNumber<T> for MultiPolygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     fn winding_number(&self, point: Point<T>) -> isize {
-        self.polygons.iter()
-            .map(|p| p.winding_number(point))
-            .sum()
+        self.polygons.iter().map(|p| p.winding_number(point)).sum()
     }
 }
 
 impl<T> MapPointwise<T> for MultiPolygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
-        MultiPolygon::from_polygons(
-            self.polygons.iter()
-                .map(|p| p.transform(&tf))
-                .collect()
-        )
+        MultiPolygon::from_polygons(self.polygons.iter().map(|p| p.transform(&tf)).collect())
     }
 }
 
@@ -95,19 +86,13 @@ impl<T, IP: Into<Polygon<T>>> From<IP> for MultiPolygon<T> {
 
 impl<T> From<Vec<Polygon<T>>> for MultiPolygon<T> {
     fn from(polygons: Vec<Polygon<T>>) -> Self {
-        MultiPolygon {
-            polygons
-        }
+        MultiPolygon { polygons }
     }
 }
 
-
 impl<T, IP: Into<Polygon<T>>> FromIterator<IP> for MultiPolygon<T> {
-    fn from_iter<I: IntoIterator<Item=IP>>(iter: I) -> Self {
-        MultiPolygon::from_polygons(
-            iter.into_iter()
-                .map(|p| p.into()).collect()
-        )
+    fn from_iter<I: IntoIterator<Item = IP>>(iter: I) -> Self {
+        MultiPolygon::from_polygons(iter.into_iter().map(|p| p.into()).collect())
     }
 }
 
@@ -135,5 +120,3 @@ impl<T: CoordinateType> TryBoundingBox<T> for MultiPolygon<T> {
 //        p.into_iter()
 //    }
 //}
-
-

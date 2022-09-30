@@ -6,14 +6,14 @@
 //! Data structures and functions for dealing with rectangles which consist of
 //! vertical and horizontal edges.
 
+use crate::cmp::{max, min};
+use crate::edge::IntoEdges;
+use crate::polygon::{Polygon, ToPolygon};
+use crate::prelude::{Point, REdge, Vector};
 use crate::traits::*;
-use crate::cmp::{min, max};
 use crate::CoordinateType;
 use num_traits::{NumCast, One, Zero};
-use crate::polygon::{ToPolygon, Polygon};
-use std::ops::{Sub, Add, Div, Mul};
-use crate::edge::IntoEdges;
-use crate::prelude::{Point, Vector, REdge};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// A rectangle which is oriented along the x an y axis and
 /// represented by its lower left and upper right corner.
@@ -44,7 +44,9 @@ impl<T: PartialOrd + Copy> Rect<T> {
     /// assert_eq!(rect2.lower_left(), Point::new(0, 0));
     /// ```
     pub fn new<C>(c1: C, c2: C) -> Self
-        where C: Into<Point<T>> {
+    where
+        C: Into<Point<T>>,
+    {
         let p1 = c1.into();
         let p2 = c2.into();
 
@@ -66,7 +68,6 @@ impl<T: PartialOrd + Copy> Rect<T> {
         }
     }
 }
-
 
 impl<T: Copy> Rect<T> {
     /// Get the lower left corner.
@@ -110,8 +111,10 @@ impl<T: PartialOrd + Copy> Rect<T> {
     /// assert!(!rect.contains_point(Point::new(10, 21)));
     /// ```
     pub fn contains_point(&self, p: Point<T>) -> bool {
-        self.lower_left.x <= p.x && p.x <= self.upper_right.x &&
-            self.lower_left.y <= p.y && p.y <= self.upper_right.y
+        self.lower_left.x <= p.x
+            && p.x <= self.upper_right.x
+            && self.lower_left.y <= p.y
+            && p.y <= self.upper_right.y
     }
 
     /// Check if rectangle contains the point.
@@ -129,8 +132,10 @@ impl<T: PartialOrd + Copy> Rect<T> {
     /// assert!(!rect.contains_point_exclusive(Point::new(10, 21)));
     /// ```
     pub fn contains_point_exclusive(&self, p: Point<T>) -> bool {
-        self.lower_left.x < p.x && p.x < self.upper_right.x &&
-            self.lower_left.y < p.y && p.y < self.upper_right.y
+        self.lower_left.x < p.x
+            && p.x < self.upper_right.x
+            && self.lower_left.y < p.y
+            && p.y < self.upper_right.y
     }
 
     /// Check if rectangle contains other rectangle.
@@ -167,17 +172,16 @@ impl<T: PartialOrd + Copy> Rect<T> {
     /// assert!(!outer.contains_rectangle_exclusive(&not_inner));
     /// ```
     pub fn contains_rectangle_exclusive(&self, other: &Self) -> bool {
-        self.contains_point_exclusive(other.lower_left) && self.contains_point_exclusive(other.upper_right)
+        self.contains_point_exclusive(other.lower_left)
+            && self.contains_point_exclusive(other.upper_right)
     }
 
     /// Test if the both rectangles touch each other, i.e. if they either share a boundary or are overlapping.
     pub fn touches(&self, other: &Self) -> bool {
-        !(
-            self.lower_left.x > other.upper_right.x ||
-                self.lower_left.y > other.upper_right.y ||
-                self.upper_right.x < other.lower_left.x ||
-                self.upper_right.y < other.lower_left.y
-        )
+        !(self.lower_left.x > other.upper_right.x
+            || self.lower_left.y > other.upper_right.y
+            || self.upper_right.x < other.lower_left.x
+            || self.upper_right.y < other.lower_left.y)
     }
 
     /// Compute the boolean intersection of two rectangles.
@@ -262,10 +266,14 @@ impl<T: PartialOrd + Copy> Rect<T> {
     /// ```
     pub fn add_point(&self, point: Point<T>) -> Self {
         Rect::new(
-            Point::new(min(self.lower_left.x, point.x),
-                       min(self.lower_left.y, point.y)),
-            Point::new(max(self.upper_right.x, point.x),
-                       max(self.upper_right.y, point.y)),
+            Point::new(
+                min(self.lower_left.x, point.x),
+                min(self.lower_left.y, point.y),
+            ),
+            Point::new(
+                max(self.upper_right.x, point.x),
+                max(self.upper_right.y, point.y),
+            ),
         )
     }
 
@@ -285,13 +293,11 @@ impl<T: PartialOrd + Copy> Rect<T> {
     ///
     /// ```
     pub fn add_rect(&self, rect: &Self) -> Self {
-        self.add_point(rect.lower_left)
-            .add_point(rect.upper_right)
+        self.add_point(rect.lower_left).add_point(rect.upper_right)
     }
 }
 
-
-impl<T: Sub<Output=T> + Copy + Ord + Zero> Rect<T> {
+impl<T: Sub<Output = T> + Copy + Ord + Zero> Rect<T> {
     /// Compute the shortest from the rectangle to the point `p`.
     /// The distance is zero if the point is inside the rectangle.
     ///
@@ -342,7 +348,7 @@ fn test_distance_to_point() {
     assert_eq!(rect.distance_to_point((0, 25).into()).norm1(), 15);
 }
 
-impl<T: Copy + Sub<Output=T>> Rect<T> {
+impl<T: Copy + Sub<Output = T>> Rect<T> {
     /// Compute the width of the rectangle.
     #[inline]
     pub fn width(&self) -> T {
@@ -356,7 +362,7 @@ impl<T: Copy + Sub<Output=T>> Rect<T> {
     }
 }
 
-impl<T: Copy + Add<Output=T> + Div<Output=T> + One> Rect<T> {
+impl<T: Copy + Add<Output = T> + Div<Output = T> + One> Rect<T> {
     /// Get the center point of the rectangle.
     /// When using integer coordinates the resulting
     /// coordinates will be truncated to the next integers.
@@ -366,8 +372,7 @@ impl<T: Copy + Add<Output=T> + Div<Output=T> + One> Rect<T> {
     }
 }
 
-
-impl<T: Copy + Add<Output=T> + Sub<Output=T> + PartialOrd> Rect<T> {
+impl<T: Copy + Add<Output = T> + Sub<Output = T> + PartialOrd> Rect<T> {
     /// Create an enlarged copy of this rectangle.
     /// The vertical boundaries will be shifted towards the outside by `add_x`.
     /// The horizontal boundaries will be shifted towards the outside by `add_y`.
@@ -384,7 +389,9 @@ impl<T: Copy + Add<Output=T> + Sub<Output=T> + PartialOrd> Rect<T> {
     }
 }
 
-impl<T: Copy + Add<Output=T> + Sub<Output=T> + Mul<Output=T>> DoubledOrientedArea<T> for Rect<T> {
+impl<T: Copy + Add<Output = T> + Sub<Output = T> + Mul<Output = T>> DoubledOrientedArea<T>
+    for Rect<T>
+{
     /// Calculate doubled oriented area of rectangle.
     fn area_doubled_oriented(&self) -> T {
         let diff = self.upper_right - self.lower_left;
@@ -408,11 +415,12 @@ impl<T: Copy> TryBoundingBox<T> for Rect<T> {
 }
 
 /// Point wise transformation of the two corner points.
-impl<T: Copy + PartialOrd> MapPointwise<T> for Rect<T>
-{
+impl<T: Copy + PartialOrd> MapPointwise<T> for Rect<T> {
     /// Point wise transformation.
     fn transform<F>(&self, transformation: F) -> Self
-        where F: Fn(Point<T>) -> Point<T> {
+    where
+        F: Fn(Point<T>) -> Point<T>,
+    {
         Self::new(
             transformation(self.lower_left),
             transformation(self.upper_right),
@@ -423,20 +431,29 @@ impl<T: Copy + PartialOrd> MapPointwise<T> for Rect<T>
 /// Iterate over all points of the rectangle.
 /// Starts with the lower left corner and iterates counter clock-wise.
 impl<'a, T> IntoIterator for &'a Rect<T>
-    where T: Copy {
+where
+    T: Copy,
+{
     type Item = Point<T>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        vec![self.lower_left(), self.lower_right(),
-             self.upper_right(), self.upper_left()].into_iter()
+        vec![
+            self.lower_left(),
+            self.lower_right(),
+            self.upper_right(),
+            self.upper_left(),
+        ]
+        .into_iter()
     }
 }
 
 /// Iterate over all points of the rectangle.
 /// Starts with the lower left corner and iterates counter clock-wise.
 impl<T> IntoIterator for Rect<T>
-    where T: Copy {
+where
+    T: Copy,
+{
     type Item = Point<T>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -457,7 +474,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
     fn try_cast(&self) -> Option<Self::Output> {
         match (self.lower_left.try_cast(), self.upper_right.try_cast()) {
             (Some(ll), Some(ur)) => Some(Rect::new(ll, ur)),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -472,11 +489,9 @@ mod tests {
         let b = Rect::new((1, 2), (3, 5));
         assert_eq!(a.intersection(&b), Some(Rect::new((1, 2), (2, 4))));
 
-
         let a = Rect::new((0, 0), (2, 2));
         let b = Rect::new((1, 1), (3, 3));
         assert_eq!(a.intersection(&b), Some(Rect::new((1, 1), (2, 2))));
-
 
         let a = Rect::new((0, 0), (1, 1));
         let b = Rect::new((2, 2), (3, 3));
@@ -497,10 +512,7 @@ pub struct RectEdgeIterator<T> {
 
 impl<T> RectEdgeIterator<T> {
     fn new(rect: Rect<T>) -> Self {
-        Self {
-            rect,
-            pos: 0,
-        }
+        Self { rect, pos: 0 }
     }
 }
 
@@ -517,7 +529,7 @@ impl<T: CoordinateType> Iterator for RectEdgeIterator<T> {
                     1 => self.rect.upper_right(),
                     2 => self.rect.upper_left(),
                     3 => self.rect.lower_left(),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             };
             let edge = REdge::new(point(self.pos), point((self.pos + 1) % 4));
@@ -540,10 +552,13 @@ impl<T: CoordinateType> IntoEdges<T> for &Rect<T> {
 fn test_edges_iterator() {
     let rect = Rect::new((1, 2), (3, 4));
     let edges: Vec<_> = rect.into_edges().collect();
-    assert_eq!(edges, vec![
-        REdge::new((3, 2), (3, 4)),
-        REdge::new((3, 4), (1, 4)),
-        REdge::new((1, 4), (1, 2)),
-        REdge::new((1, 2), (3, 2)),
-    ]);
+    assert_eq!(
+        edges,
+        vec![
+            REdge::new((3, 2), (3, 4)),
+            REdge::new((3, 4), (1, 4)),
+            REdge::new((1, 4), (1, 2)),
+            REdge::new((1, 2), (3, 2)),
+        ]
+    );
 }

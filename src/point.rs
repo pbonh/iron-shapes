@@ -5,18 +5,17 @@
 
 //! Points represent a location in the two dimensional plane by an `x` and `y` coordinate.
 
+use crate::traits::{BoundingBox, MapPointwise, TryBoundingBox, TryCastCoord};
 use crate::vector::Vector;
-use crate::traits::{MapPointwise, TryCastCoord, BoundingBox, TryBoundingBox};
-
 
 use std::cmp::{Ord, Ordering};
 use std::fmt;
 
-use num_traits::{Float, NumCast};
-pub use num_traits::Zero;
-use std::ops::{Div, MulAssign, Mul, Neg, Sub, SubAssign, AddAssign, Add, DerefMut};
-pub use std::ops::Deref;
 use crate::prelude::{Orientation2D, Rect};
+pub use num_traits::Zero;
+use num_traits::{Float, NumCast};
+pub use std::ops::Deref;
+use std::ops::{Add, AddAssign, DerefMut, Div, Mul, MulAssign, Neg, Sub, SubAssign};
 
 /// Shorthand notation for creating a point.
 ///
@@ -32,7 +31,9 @@ use crate::prelude::{Orientation2D, Rect};
 /// ```
 #[macro_export]
 macro_rules! point {
- ($x:expr, $y:expr) => {Point::new($x, $y)}
+    ($x:expr, $y:expr) => {
+        Point::new($x, $y)
+    };
 }
 
 /// A point is defined by a x and y coordinate in the euclidean plane.
@@ -40,7 +41,7 @@ macro_rules! point {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Point<T> {
     /// Store the location as a translation from the origin.
-    location: Vector<T>
+    location: Vector<T>,
 }
 
 impl<T: PartialEq> Eq for Point<T> {}
@@ -70,9 +71,7 @@ impl<T> DerefMut for Point<T> {
 impl<T> From<Vector<T>> for Point<T> {
     #[inline]
     fn from(v: Vector<T>) -> Self {
-        Point {
-            location: v
-        }
+        Point { location: v }
     }
 }
 
@@ -94,7 +93,9 @@ impl<T> Point<T> {
     /// Create a new point with `x` and `y` coordinates.
     #[inline]
     pub fn new(x: T, y: T) -> Self {
-        Point { location: Vector::new(x, y) }
+        Point {
+            location: Vector::new(x, y),
+        }
     }
 }
 
@@ -110,7 +111,7 @@ impl<T: Copy> Point<T> {
     pub fn get(&self, coord: Orientation2D) -> T {
         match coord {
             Orientation2D::Horizontal => self.x,
-            Orientation2D::Vertical => self.y
+            Orientation2D::Vertical => self.y,
         }
     }
 
@@ -119,11 +120,9 @@ impl<T: Copy> Point<T> {
     pub fn set(&mut self, coord: Orientation2D, value: T) {
         match coord {
             Orientation2D::Horizontal => self.x = value,
-            Orientation2D::Vertical => self.y = value
+            Orientation2D::Vertical => self.y = value,
         }
     }
-
-
 }
 
 impl<T: Zero> Point<T> {
@@ -139,7 +138,9 @@ impl<T: Zero> Point<T> {
     /// assert_eq!(a, b);
     /// ```
     #[inline]
-    pub fn zero() -> Self { Vector::zero().into() }
+    pub fn zero() -> Self {
+        Vector::zero().into()
+    }
 
     /// Check if this is the zero-Point.
     ///
@@ -155,7 +156,7 @@ impl<T: Zero> Point<T> {
     }
 }
 
-impl<T: Copy + Mul<Output=T> + Add<Output=T> + Sub<Output=T>> Point<T> {
+impl<T: Copy + Mul<Output = T> + Add<Output = T> + Sub<Output = T>> Point<T> {
     /// Compute the squared distance to the `other` point.
     ///
     /// # Examples
@@ -198,7 +199,7 @@ impl<T: Copy + Mul<Output=T> + Add<Output=T> + Sub<Output=T>> Point<T> {
     }
 }
 
-impl<T: Copy + Sub<Output=T> + NumCast> Point<T> {
+impl<T: Copy + Sub<Output = T> + NumCast> Point<T> {
     /// Compute the Euclidean distance betwen two points.
     #[inline]
     pub fn distance<F: Float>(self, other: &Point<T>) -> F {
@@ -218,7 +219,7 @@ impl<T: PartialOrd> PartialOrd for Point<T> {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         match self.x.partial_cmp(&rhs.x) {
             Some(Ordering::Equal) => self.y.partial_cmp(&rhs.y),
-            maybe_ordering => maybe_ordering
+            maybe_ordering => maybe_ordering,
         }
     }
 }
@@ -234,22 +235,22 @@ impl<T: Ord> Ord for Point<T> {
     fn cmp(&self, rhs: &Self) -> Ordering {
         match self.x.cmp(&rhs.x) {
             Ordering::Equal => self.y.cmp(&rhs.y),
-            ordering => ordering
+            ordering => ordering,
         }
     }
 }
-
 
 /// Point wise transformation for a single point.
 impl<T: Copy> MapPointwise<T> for Point<T> {
     /// Point wise transformation.
     #[inline]
     fn transform<F>(&self, transformation: F) -> Self
-        where F: Fn(Point<T>) -> Point<T> {
+    where
+        F: Fn(Point<T>) -> Point<T>,
+    {
         transformation(*self)
     }
 }
-
 
 impl<T: Copy> Into<(T, T)> for Point<T> {
     #[inline]
@@ -301,30 +302,29 @@ impl<T: Copy> Into<[T; 2]> for Point<T> {
 }
 
 impl<T> fmt::Debug for Point<T>
-    where T: fmt::Debug {
+where
+    T: fmt::Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Point({:?}, {:?})", self.x, self.y)
     }
 }
 
 impl<T> fmt::Display for Point<T>
-    where T: fmt::Display
+where
+    T: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {})", self.x, self.y)
     }
 }
 
-
 impl<T: Copy + NumCast> Point<T> {
     /// Convert Point into a Point with floating point data type.
     #[inline]
     pub fn cast_to_float<F: Float + NumCast>(&self) -> Point<F> {
         // TODO: find conversion that does not panic for sure.
-        Point::new(
-            F::from(self.x).unwrap(),
-            F::from(self.y).unwrap(),
-        )
+        Point::new(F::from(self.x).unwrap(), F::from(self.y).unwrap())
     }
 }
 
@@ -335,31 +335,30 @@ impl<T: Copy + NumCast, Dst: Copy + NumCast> TryCastCoord<T, Dst> for Point<T> {
     fn try_cast(&self) -> Option<Self::Output> {
         match (Dst::from(self.x), Dst::from(self.y)) {
             (Some(x), Some(y)) => Some(Point::new(x, y)),
-            _ => None
+            _ => None,
         }
     }
 }
 
 /// Point addition.
 impl<T, V> Add<V> for Point<T>
-    where T: Copy + Add<Output=T>,
-          V: Into<Point<T>>
+where
+    T: Copy + Add<Output = T>,
+    V: Into<Point<T>>,
 {
     type Output = Self;
 
     #[inline]
     fn add(self, rhs: V) -> Self {
         let rhs = rhs.into();
-        Point::new(
-            self.x + rhs.x,
-            self.y + rhs.y,
-        )
+        Point::new(self.x + rhs.x, self.y + rhs.y)
     }
 }
 
 impl<T, V> AddAssign<V> for Point<T>
-    where T: Copy + AddAssign<T>,
-          V: Into<Vector<T>>
+where
+    T: Copy + AddAssign<T>,
+    V: Into<Vector<T>>,
 {
     #[inline]
     fn add_assign(&mut self, rhs: V) {
@@ -370,37 +369,34 @@ impl<T, V> AddAssign<V> for Point<T>
 
 /// Subtract a point.
 impl<T> Sub<Point<T>> for Point<T>
-    where T: Copy + Sub<Output=T>
+where
+    T: Copy + Sub<Output = T>,
 {
     type Output = Vector<T>;
 
     #[inline]
     fn sub(self, rhs: Point<T>) -> Self::Output {
-        Vector::new(
-            self.x - rhs.x,
-            self.y - rhs.y,
-        )
+        Vector::new(self.x - rhs.x, self.y - rhs.y)
     }
 }
 
 /// Subtract a vector.
 impl<T> Sub<Vector<T>> for Point<T>
-    where T: Copy + Sub<Output=T>
+where
+    T: Copy + Sub<Output = T>,
 {
     type Output = Point<T>;
 
     #[inline]
     fn sub(self, rhs: Vector<T>) -> Self::Output {
-        Point::new(
-            self.x - rhs.x,
-            self.y - rhs.y,
-        )
+        Point::new(self.x - rhs.x, self.y - rhs.y)
     }
 }
 
 impl<T, V> SubAssign<V> for Point<T>
-    where T: Copy + SubAssign<T>,
-          V: Into<Vector<T>>
+where
+    T: Copy + SubAssign<T>,
+    V: Into<Vector<T>>,
 {
     #[inline]
     fn sub_assign(&mut self, rhs: V) {
@@ -410,37 +406,34 @@ impl<T, V> SubAssign<V> for Point<T>
 }
 
 impl<T> Neg for Point<T>
-    where T: Copy + Neg<Output=T>
+where
+    T: Copy + Neg<Output = T>,
 {
     type Output = Self;
 
     #[inline]
     fn neg(self) -> Self {
-        Point::new(
-            -self.x,
-            -self.y,
-        )
+        Point::new(-self.x, -self.y)
     }
 }
 
 /// Scalar multiplication.
 impl<T> Mul<T> for Point<T>
-    where T: Copy + Mul<Output=T>
+where
+    T: Copy + Mul<Output = T>,
 {
     type Output = Self;
 
     #[inline]
     fn mul(self, rhs: T) -> Self {
-        Point::new(
-            self.x * rhs,
-            self.y * rhs,
-        )
+        Point::new(self.x * rhs, self.y * rhs)
     }
 }
 
 /// In-place scalar multiplication.
 impl<T> MulAssign<T> for Point<T>
-    where T: Copy + MulAssign<T>
+where
+    T: Copy + MulAssign<T>,
 {
     #[inline]
     fn mul_assign(&mut self, rhs: T) {
@@ -450,23 +443,21 @@ impl<T> MulAssign<T> for Point<T>
 
 /// Scalar division.
 impl<T> Div<T> for Point<T>
-    where T: Copy + Div<Output=T>
+where
+    T: Copy + Div<Output = T>,
 {
     type Output = Self;
 
     #[inline]
     fn div(self, rhs: T) -> Self {
-        Point::new(
-            self.x / rhs,
-            self.y / rhs,
-        )
+        Point::new(self.x / rhs, self.y / rhs)
     }
 }
 
-impl<T: Copy + Zero + Add<Output=T>> std::iter::Sum for Point<T> {
+impl<T: Copy + Zero + Add<Output = T>> std::iter::Sum for Point<T> {
     /// Compute the sum of all points in the iterator.
     /// If the iterator is empty, (0, 0) is returned.
-    fn sum<I: Iterator<Item=Self>>(iter: I) -> Self {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Self::zero(), |acc, p| acc + p)
     }
 }
@@ -475,7 +466,7 @@ impl<T: Copy> BoundingBox<T> for Point<T> {
     fn bounding_box(&self) -> Rect<T> {
         Rect {
             lower_left: *self,
-            upper_right: *self
+            upper_right: *self,
         }
     }
 }
@@ -485,4 +476,3 @@ impl<T: Copy> TryBoundingBox<T> for Point<T> {
         Some(self.bounding_box())
     }
 }
-

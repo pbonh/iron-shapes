@@ -5,17 +5,17 @@
 
 //! Edge intersection functions for integer coordinates.
 
-use std::cmp::Ordering;
-use crate::point::Point;
 pub use crate::edge::{Edge, EdgeIntersection, LineIntersection};
+use crate::point::Point;
 use crate::redge::{REdge, REdgeIntersection};
+use std::cmp::Ordering;
 
 use crate::CoordinateType;
 
-use num_traits::{PrimInt, Zero};
 use crate::traits::BoundingBox;
-use std::fmt::Debug;
+use num_traits::{PrimInt, Zero};
 use std::convert::TryFrom;
+use std::fmt::Debug;
 
 impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
     /// Compute the intersection point of the lines defined by the two edges.
@@ -46,7 +46,6 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
         if self.is_degenerate() || other.is_degenerate() {
             LineIntersection::None
         } else {
-
             // TODO: faster implementation if both lines are orthogonal
 
             let ab = self.vector();
@@ -129,11 +128,14 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
                     let p2: Point<T> = exact_scaled_s / s;
 
                     p == p2
-                }
-                );
+                });
 
                 let positions = if s < T::zero() {
-                    (T::zero() - ac_cross_cd, T::zero() - ca_cross_ab, T::zero() - s)
+                    (
+                        T::zero() - ac_cross_cd,
+                        T::zero() - ca_cross_ab,
+                        T::zero() - s,
+                    )
                 } else {
                     (ac_cross_cd, ca_cross_ab, s)
                 };
@@ -142,7 +144,6 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
             }
         }
     }
-
 
     /// Compute the intersection with another edge.
     /// Coordinates of intersection points are rounded towards zero.
@@ -155,22 +156,26 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
         } else {
             *other
         };
-        debug_assert_eq!(self.start < self.end, other.start < other.end,
-                         "Edges should have the same orientation now.");
+        debug_assert_eq!(
+            self.start < self.end,
+            other.start < other.end,
+            "Edges should have the same orientation now."
+        );
 
         // Try to convert the edges into rectilinear edges.
         if let Ok(a) = REdge::try_from(self) {
             if let Ok(b) = REdge::try_from(&other) {
-
                 return match a.edge_intersection(&b) {
                     REdgeIntersection::None => EdgeIntersection::None,
                     REdgeIntersection::EndPoint(p) => {
-                        debug_assert!(p == a.start() || p == a.end() || p == b.start() || p == b.end());
+                        debug_assert!(
+                            p == a.start() || p == a.end() || p == b.start() || p == b.end()
+                        );
                         EdgeIntersection::EndPoint(p)
-                    },
+                    }
                     REdgeIntersection::Point(p) => EdgeIntersection::Point(p),
                     REdgeIntersection::Overlap(e) => EdgeIntersection::Overlap(e.into()),
-                }
+                };
             }
         }
 
@@ -184,7 +189,8 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
         let same_end_end = self.end == other.end;
 
         // Are the edges equal but not degenerate?
-        let fully_coincident = (same_start_start & same_end_end) ^ (same_start_end & same_end_start);
+        let fully_coincident =
+            (same_start_start & same_end_end) ^ (same_start_end & same_end_start);
 
         let result = if self.is_degenerate() {
             // First degenerate case
@@ -215,12 +221,8 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
                 LineIntersection::None => EdgeIntersection::None,
 
                 LineIntersection::Point(p, (pos1, pos2, len)) => {
-                    if pos1 >= T::zero() && pos1 <= len
-                        && pos2 >= T::zero() && pos2 <= len {
-                        if pos1 == T::zero()
-                            || pos1 == len
-                            || pos2 == T::zero()
-                            || pos2 == len {
+                    if pos1 >= T::zero() && pos1 <= len && pos2 >= T::zero() && pos2 <= len {
+                        if pos1 == T::zero() || pos1 == len || pos2 == T::zero() || pos2 == len {
                             EdgeIntersection::EndPoint(p)
                         } else {
                             EdgeIntersection::Point(p)
@@ -260,25 +262,17 @@ impl<T: CoordinateType + PrimInt + Debug> Edge<T> {
                     };
 
                     // Find maximum by distance.
-                    let start = if start1.0 < start2.0 {
-                        start2
-                    } else {
-                        start1
-                    };
+                    let start = if start1.0 < start2.0 { start2 } else { start1 };
 
                     // Find minimum by distance.
-                    let end = if end1.0 < end2.0 {
-                        end1
-                    } else {
-                        end2
-                    };
+                    let end = if end1.0 < end2.0 { end1 } else { end2 };
 
                     // Check if the edges overlap in more than one point, in exactly one point or
                     // in zero points.
                     match start.0.cmp(&end.0) {
                         Ordering::Less => EdgeIntersection::Overlap(Edge::new(start.1, end.1)),
                         Ordering::Equal => EdgeIntersection::EndPoint(start.1),
-                        Ordering::Greater => EdgeIntersection::None
+                        Ordering::Greater => EdgeIntersection::None,
                     }
                 }
             }
@@ -303,15 +297,17 @@ mod tests {
         let e1 = Edge::new((0, 0), (2, 2));
         let e2 = Edge::new((0, 2), (2, 0));
         let intersection = e1.line_intersection_rounded(e2);
-        assert_eq!(intersection, LineIntersection::Point((1, 1).into(), (4, 4, 8)));
-
+        assert_eq!(
+            intersection,
+            LineIntersection::Point((1, 1).into(), (4, 4, 8))
+        );
 
         let e1 = Edge::new((0, 1), (1, 1));
         let e2 = Edge::new((0, 0), (1, 2));
         let intersection = e1.line_intersection_rounded(e2);
         match intersection {
             LineIntersection::Point(p, _) => assert_eq!(p, Point::new(0, 1)),
-            _ => assert!(false)
+            _ => assert!(false),
         }
 
         let e1 = Edge::new((0, 1), (1, 1));
@@ -319,7 +315,7 @@ mod tests {
         let intersection = e1.line_intersection_rounded(e2);
         match intersection {
             LineIntersection::Point(p, _) => assert_eq!(p, Point::new(0, 1)),
-            _ => assert!(false)
+            _ => assert!(false),
         }
 
         // Test truncation towards zero.
@@ -328,7 +324,7 @@ mod tests {
         let intersection = e1.line_intersection_rounded(e2);
         match intersection {
             LineIntersection::Point(p, _) => assert_eq!(p, Point::new(12345677 / 2, 0)),
-            _ => assert!(false)
+            _ => assert!(false),
         }
 
         // Test truncation towards zero.
@@ -337,39 +333,60 @@ mod tests {
         let intersection = e1.line_intersection_rounded(e2);
         match intersection {
             LineIntersection::Point(p, _) => assert_eq!(p, Point::new(-12345677 / 2, 0)),
-            _ => assert!(false)
+            _ => assert!(false),
         }
     }
 
     #[test]
     fn test_edge_intersection_rounded() {
-
         // Intersection inside the edges.
         let e1 = Edge::new((-10, 0), (10, 0));
         let e2 = Edge::new((-1, -1), (2, 2));
-        assert_eq!(e1.edge_intersection_rounded(&e2), EdgeIntersection::Point((0, 0).into()));
-        assert_eq!(e2.edge_intersection_rounded(&e1), EdgeIntersection::Point((0, 0).into()));
+        assert_eq!(
+            e1.edge_intersection_rounded(&e2),
+            EdgeIntersection::Point((0, 0).into())
+        );
+        assert_eq!(
+            e2.edge_intersection_rounded(&e1),
+            EdgeIntersection::Point((0, 0).into())
+        );
 
         // Intersection on an endpoint.
         let e1 = Edge::new((-10, 0), (10, 0));
         let e2 = Edge::new((0, 0), (2, 2));
-        assert_eq!(e1.edge_intersection_rounded(&e2), EdgeIntersection::EndPoint((0, 0).into()));
-        assert_eq!(e2.edge_intersection_rounded(&e1), EdgeIntersection::EndPoint((0, 0).into()));
-
+        assert_eq!(
+            e1.edge_intersection_rounded(&e2),
+            EdgeIntersection::EndPoint((0, 0).into())
+        );
+        assert_eq!(
+            e2.edge_intersection_rounded(&e1),
+            EdgeIntersection::EndPoint((0, 0).into())
+        );
 
         // Intersection on both endpoint.
         let e1 = Edge::new((0, 0), (10, 0));
         let e2 = Edge::new((0, 0), (2, 2));
-        assert_eq!(e1.edge_intersection_rounded(&e2), EdgeIntersection::EndPoint((0, 0).into()));
-        assert_eq!(e2.edge_intersection_rounded(&e1), EdgeIntersection::EndPoint((0, 0).into()));
-
+        assert_eq!(
+            e1.edge_intersection_rounded(&e2),
+            EdgeIntersection::EndPoint((0, 0).into())
+        );
+        assert_eq!(
+            e2.edge_intersection_rounded(&e1),
+            EdgeIntersection::EndPoint((0, 0).into())
+        );
 
         // Intersection not on an endpoint but rounded down to an endpoint.
         // TODO: Rethink what should happen here. EndPoint or Point?
         let e1 = Edge::new((0, 0), (1, 0));
         let e2 = Edge::new((0, -1), (1, 10));
-        assert_eq!(e1.edge_intersection_rounded(&e2), EdgeIntersection::Point((0, 0).into()));
-        assert_eq!(e2.edge_intersection_rounded(&e1), EdgeIntersection::Point((0, 0).into()));
+        assert_eq!(
+            e1.edge_intersection_rounded(&e2),
+            EdgeIntersection::Point((0, 0).into())
+        );
+        assert_eq!(
+            e2.edge_intersection_rounded(&e1),
+            EdgeIntersection::Point((0, 0).into())
+        );
 
         // No intersection.
         let e1 = Edge::new((-10, 0), (10, 0));
@@ -386,7 +403,9 @@ mod tests {
         let e1 = Edge::new(p(-1, 2), p(0, 0));
         let e2 = Edge::new(p(-1, 2), p(0, 2));
 
-        assert_eq!(e1.edge_intersection_rounded(&e2),
-                   EdgeIntersection::EndPoint(p(-1, 2)));
+        assert_eq!(
+            e1.edge_intersection_rounded(&e2),
+            EdgeIntersection::EndPoint(p(-1, 2))
+        );
     }
 }

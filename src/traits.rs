@@ -5,14 +5,14 @@
 
 //! Common traits for geometrical objects.
 
+use crate::point::Point;
 use crate::rect::Rect;
 use crate::vector::Vector;
-use crate::point::Point;
 
-use num_traits::Zero;
-use num_traits::cast::NumCast;
 use crate::types::Angle;
-use std::ops::{Sub, Add, Mul};
+use num_traits::cast::NumCast;
+use num_traits::Zero;
+use std::ops::{Add, Mul, Sub};
 
 /// Calculation of the 'bounding box', i.e. the smallest rectangle that contains the geometrical object.
 pub trait BoundingBox<T> {
@@ -37,15 +37,16 @@ pub trait TryIntoBoundingBox<T> {
 
 /// Compute the bounding box of many objects that may have a bounding box.
 impl<'a, I, B, T> TryIntoBoundingBox<T> for I
-    where I: Iterator<Item=&'a B>,
-          B: TryBoundingBox<T> + 'a,
-          T: Copy + PartialOrd {
+where
+    I: Iterator<Item = &'a B>,
+    B: TryBoundingBox<T> + 'a,
+    T: Copy + PartialOrd,
+{
     fn try_into_bounding_box(self) -> Option<Rect<T>> {
         self.filter_map(|p| p.try_bounding_box())
             .reduce(|acc, b| acc.add_rect(&b))
     }
 }
-
 
 /// Calculate the doubled oriented area of a geometry.
 /// Using the doubled area allows to compute the area without using fractions. This is especially
@@ -87,18 +88,25 @@ pub trait Scale<T> {
 pub trait MapPointwise<T> {
     /// Point wise transformation.
     fn transform<F>(&self, transformation: F) -> Self
-        where F: Fn(Point<T>) -> Point<T>;
+    where
+        F: Fn(Point<T>) -> Point<T>;
 }
 
 impl<S, T> Scale<T> for S
-    where T: Copy + Mul<Output=T>, S: MapPointwise<T> {
+where
+    T: Copy + Mul<Output = T>,
+    S: MapPointwise<T>,
+{
     fn scale(&self, factor: T) -> S {
         self.transform(|p: Point<T>| p * factor)
     }
 }
 
 impl<S, T> Translate<T> for S
-    where T: Copy + Add<Output=T>, S: MapPointwise<T> {
+where
+    T: Copy + Add<Output = T>,
+    S: MapPointwise<T>,
+{
     fn translate(&self, v: Vector<T>) -> S {
         self.transform(|p: Point<T>| p + v)
     }
@@ -133,7 +141,6 @@ pub trait WindingNumber<T> {
     }
 }
 
-
 /// Rotate by a integer multiple of 90 degrees.
 pub trait RotateOrtho<T> {
     /// Rotate the geometrical shape by a multiple of 90 degrees.
@@ -141,25 +148,19 @@ pub trait RotateOrtho<T> {
 }
 
 impl<S, T> RotateOrtho<T> for S
-    where T: Copy + Zero + Sub<Output=T>, S: MapPointwise<T> {
+where
+    T: Copy + Zero + Sub<Output = T>,
+    S: MapPointwise<T>,
+{
     fn rotate_ortho(&self, a: Angle) -> S {
-        self.transform(|p: Point<T>|
-            match a {
-                Angle::R0 => p,
-                Angle::R90 => Point::new(
-                    T::zero() - p.y,
-                    p.x,
-                ),
-                Angle::R180 => Point::zero() - p.v(),
-                Angle::R270 => Point::new(
-                    p.y,
-                    T::zero() - p.x,
-                )
-            }
-        )
+        self.transform(|p: Point<T>| match a {
+            Angle::R0 => p,
+            Angle::R90 => Point::new(T::zero() - p.y, p.x),
+            Angle::R180 => Point::zero() - p.v(),
+            Angle::R270 => Point::new(p.y, T::zero() - p.x),
+        })
     }
 }
-
 
 /// Mirror at the x or y axis.
 pub trait Mirror<T> {
@@ -170,7 +171,10 @@ pub trait Mirror<T> {
 }
 
 impl<S, T> Mirror<T> for S
-    where T: Copy + Zero + Sub<Output=T>, S: MapPointwise<T> {
+where
+    T: Copy + Zero + Sub<Output = T>,
+    S: MapPointwise<T>,
+{
     /// Return the geometrical object mirrored at the `x` axis.
     fn mirror_x(&self) -> S {
         self.transform(|p| Point::new(T::zero() - p.x, p.y))
@@ -191,8 +195,10 @@ impl<S, T> Mirror<T> for S
 
 /// This trait defines the type-casting of the coordinate types for geometrical objects.
 pub trait TryCastCoord<Src, Dst>
-    where Src: NumCast,
-          Dst: NumCast {
+where
+    Src: NumCast,
+    Dst: NumCast,
+{
     /// Output type of the cast. This is likely the same geometrical type just with other
     /// coordinate types.
     type Output;

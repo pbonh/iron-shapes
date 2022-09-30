@@ -5,20 +5,20 @@
 
 //! An edge is a line segment from a start-point to a end-point.
 
-use crate::vector::Vector;
 use crate::point::Point;
 use crate::rect::Rect;
+use crate::vector::Vector;
 
 use crate::CoordinateType;
 
-use num_traits::Float;
 use num_traits::cast::NumCast;
+use num_traits::Float;
 
 use crate::traits::MapPointwise;
-pub use crate::traits::{BoundingBox, TryBoundingBox, RotateOrtho, TryCastCoord};
+pub use crate::traits::{BoundingBox, RotateOrtho, TryBoundingBox, TryCastCoord};
 pub use crate::types::Angle;
 
-pub use crate::types::{Side, ContainsResult};
+pub use crate::types::{ContainsResult, Side};
 
 /// Get the endpoints of an edge.
 pub trait EdgeEndpoints<T> {
@@ -30,7 +30,9 @@ pub trait EdgeEndpoints<T> {
 
 /// Define the intersection between two edges (i.e. line segments).
 pub trait EdgeIntersect
-    where Self: Sized {
+where
+    Self: Sized,
+{
     /// Numeric type used for expressing the end-point coordinates of the edge.
     type Coord;
     /// Numeric type used for expressing an intersection-point of two edges.
@@ -38,7 +40,10 @@ pub trait EdgeIntersect
     type IntersectionCoord;
 
     /// Compute intersection of two edges.
-    fn edge_intersection(&self, other: &Self) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, Self>;
+    fn edge_intersection(
+        &self,
+        other: &Self,
+    ) -> EdgeIntersection<Self::Coord, Self::IntersectionCoord, Self>;
 }
 
 /// Iterate over edges.
@@ -47,7 +52,7 @@ pub trait IntoEdges<T> {
     /// Type of edge which will be returned.
     type Edge: EdgeEndpoints<T>;
     /// Iterator type.
-    type EdgeIter: Iterator<Item=Self::Edge>;
+    type EdgeIter: Iterator<Item = Self::Edge>;
 
     /// Get an iterator over edges.
     fn into_edges(self) -> Self::EdgeIter;
@@ -141,7 +146,9 @@ impl<T: Copy> EdgeEndpoints<T> for Edge<T> {
 impl<T: Copy> Edge<T> {
     /// Create a new `Edge` from two arguments that implement `Into<Point>`.
     pub fn new<C>(start: C, end: C) -> Self
-        where C: Into<Point<T>> {
+    where
+        C: Into<Point<T>>,
+    {
         Edge {
             start: start.into(),
             end: end.into(),
@@ -166,20 +173,17 @@ impl<T: PartialEq> Edge<T> {
 
     /// Test if this edge is either horizontal or vertical.
     pub fn is_rectilinear(&self) -> bool {
-        !self.is_degenerate() &&
-            (self.start.x == self.end.x || self.start.y == self.end.y)
+        !self.is_degenerate() && (self.start.x == self.end.x || self.start.y == self.end.y)
     }
 
     /// Test if this edge is horizontal.
     pub fn is_horizontal(&self) -> bool {
-        !self.is_degenerate() &&
-            self.start.y == self.end.y
+        !self.is_degenerate() && self.start.y == self.end.y
     }
 
     /// Test if this edge is vertical.
     pub fn is_vertical(&self) -> bool {
-        !self.is_degenerate() &&
-            self.start.x == self.end.x
+        !self.is_degenerate() && self.start.x == self.end.x
     }
 }
 
@@ -251,22 +255,20 @@ impl<T: CoordinateType> Edge<T> {
         }
     }
 
-
-//    /// Find minimal distance between two edges.
-//    pub fn distance_to_edge(self, other: Edge<T>) -> f64 {
-//        let d1 = self.distance(other.start);
-//        let d2 = self.distance(other.end);
-//        let d3 = other.distance(self.start);
-//        let d4 = other.distance(self.end);
-//
-//        let min1 = d1.min(d2);
-//        let min2 = d3.min(d4);
-//
-//        // TODO: if intersects
-//
-//        min1.min(min2)
-//    }
-
+    //    /// Find minimal distance between two edges.
+    //    pub fn distance_to_edge(self, other: Edge<T>) -> f64 {
+    //        let d1 = self.distance(other.start);
+    //        let d2 = self.distance(other.end);
+    //        let d3 = other.distance(self.start);
+    //        let d4 = other.distance(self.end);
+    //
+    //        let min1 = d1.min(d2);
+    //        let min2 = d3.min(d4);
+    //
+    //        // TODO: if intersects
+    //
+    //        min1.min(min2)
+    //    }
 
     /// Test if point lies on the edge.
     /// Includes start and end points of edge.
@@ -300,7 +302,6 @@ impl<T: CoordinateType> Edge<T> {
         }
     }
 
-
     /// Test if two edges are parallel.
     pub fn is_parallel(&self, other: &Edge<T>) -> bool {
         if self.is_degenerate() || other.is_degenerate() {
@@ -323,10 +324,11 @@ impl<T: CoordinateType> Edge<T> {
         }
     }
 
-
     /// Test if two edges are collinear, i.e. are on the same line.
     pub fn is_collinear(&self, other: &Edge<T>) -> bool
-        where T: CoordinateType {
+    where
+        T: CoordinateType,
+    {
         if self.is_degenerate() || other.is_degenerate() {
             false
         } else {
@@ -347,8 +349,7 @@ impl<T: CoordinateType> Edge<T> {
                 // `other` is horizontal
                 self.start.y == other.start.y && self.end.y == other.start.y
             } else {
-                v.cross_prod(a).is_zero() &&
-                    v.cross_prod(b).is_zero()
+                v.cross_prod(a).is_zero() && v.cross_prod(b).is_zero()
             }
         }
     }
@@ -357,7 +358,6 @@ impl<T: CoordinateType> Edge<T> {
     /// Two edges are coincident if they are oriented the same way
     /// and share more than one point (implies that they must be parallel).
     pub fn is_coincident(&self, other: &Edge<T>) -> bool {
-
         // TODO: use is_collinear
         // TODO: approximate version for floating point types
 
@@ -366,26 +366,27 @@ impl<T: CoordinateType> Edge<T> {
         let other_start_in_self = self.contains_point(other.start).inclusive_bounds();
         let other_end_in_self = self.contains_point(other.end).inclusive_bounds();
 
-        let share_more_than_one_point =
-            self.end != other.start
-                && self.start != other.end
-                && (self_start_in_other || other_start_in_self)
-                && (other_end_in_self || self_end_in_other);
+        let share_more_than_one_point = self.end != other.start
+            && self.start != other.end
+            && (self_start_in_other || other_start_in_self)
+            && (other_end_in_self || self_end_in_other);
 
         // Sharing more than one point should imply that the edges are parallel.
-        debug_assert!(if share_more_than_one_point { self.is_parallel(other) } else { true });
+        debug_assert!(if share_more_than_one_point {
+            self.is_parallel(other)
+        } else {
+            true
+        });
 
         let oriented_the_same_way = self.vector().dot(other.vector()) > T::zero();
 
         share_more_than_one_point && oriented_the_same_way
     }
 
-
     /// Test if two edges are approximately parallel.
     /// To be used for float coordinates.
     /// Inspired by algorithm on page 241 of "Geometric Tools for Computer Graphics".
-    pub fn is_parallel_approx(&self, other: &Edge<T>, epsilon_squared: T) -> bool
-    {
+    pub fn is_parallel_approx(&self, other: &Edge<T>, epsilon_squared: T) -> bool {
         if self.is_degenerate() || other.is_degenerate() {
             false
         } else {
@@ -402,7 +403,6 @@ impl<T: CoordinateType> Edge<T> {
             cross_sqr <= len1_sqr * len2_sqr * epsilon_squared
         }
     }
-
 
     /// Test if two edges are approximately collinear, i.e. are on the same line.
     /// Inspired by algorithm on page 241 of "Geometric Tools for Computer Graphics".
@@ -433,11 +433,11 @@ impl<T: CoordinateType> Edge<T> {
         }
     }
 
-
     /// Test if lines defined by the edges intersect.
     /// If the lines are collinear they are also considered intersecting.
     pub fn lines_intersect_approx(&self, other: &Edge<T>, epsilon_squared: T) -> bool {
-        !self.is_parallel_approx(other, epsilon_squared) || self.is_collinear_approx(other, epsilon_squared)
+        !self.is_parallel_approx(other, epsilon_squared)
+            || self.is_collinear_approx(other, epsilon_squared)
     }
 
     /// Test if this edge is crossed by the line defined by the other edge.
@@ -473,7 +473,6 @@ impl<T: CoordinateType> Edge<T> {
     /// Test if two edges intersect.
     /// If the edges coincide, they also intersect.
     pub fn edges_intersect(&self, other: &Edge<T>) -> ContainsResult {
-
         // Two edges intersect if the start and end point of one edge
         // lie on opposite sides of the other edge.
 
@@ -485,23 +484,26 @@ impl<T: CoordinateType> Edge<T> {
             ContainsResult::No
         } else {
             // TODO:
-//        else if self.is_ortho() && other.is_ortho() {
-//            // We know now that the bounding boxes touch each other.
-//            // For rectilinear edges this implies that they touch somewhere or overlap.
-//            true
-//        } else {
+            //        else if self.is_ortho() && other.is_ortho() {
+            //            // We know now that the bounding boxes touch each other.
+            //            // For rectilinear edges this implies that they touch somewhere or overlap.
+            //            true
+            //        } else {
             match self.crossed_by_line(other) {
                 ContainsResult::No => ContainsResult::No,
-                r => r.min(other.crossed_by_line(self))
+                r => r.min(other.crossed_by_line(self)),
             }
         }
     }
 }
 
-
 impl<T: CoordinateType + NumCast> Edge<T> {
     /// Test if point lies on the line defined by the edge.
-    pub fn line_contains_point_approx<F: Float + NumCast>(&self, point: Point<T>, tolerance: F) -> bool {
+    pub fn line_contains_point_approx<F: Float + NumCast>(
+        &self,
+        point: Point<T>,
+        tolerance: F,
+    ) -> bool {
         if self.is_degenerate() {
             self.start == point
         } else {
@@ -534,15 +536,18 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     /// assert_eq!(Point::zero() + e1.vector().cast() * 0.5, Point::new(1., 1.));
     /// ```
     ///
-    pub fn line_intersection_approx<F: Float>(&self, other: &Edge<T>, tolerance: F) -> LineIntersection<F, T> {
+    pub fn line_intersection_approx<F: Float>(
+        &self,
+        other: &Edge<T>,
+        tolerance: F,
+    ) -> LineIntersection<F, T> {
         // TODO: implement algorithm on page 241 of Geometric Tools for Computer Graphics.
 
         debug_assert!(tolerance >= F::zero(), "Tolerance cannot be negative.");
 
-        if self.is_degenerate() || other.is_degenerate(){
+        if self.is_degenerate() || other.is_degenerate() {
             LineIntersection::None
         } else {
-
             // TODO: faster implementation if both lines are orthogonal
 
             let ab = self.vector();
@@ -560,13 +565,13 @@ impl<T: CoordinateType + NumCast> Edge<T> {
             if s_float.abs() <= tolerance * ab.length() * cd.length() {
                 // Lines are parallel
                 // TODO use assertion
-//                debug_assert!(self.is_parallel_approx(other, tolerance));
+                //                debug_assert!(self.is_parallel_approx(other, tolerance));
 
                 // TODO: check more efficiently for collinear lines.
                 if self.line_contains_point_approx(other.start, tolerance) {
                     // If the line defined by `self` contains at least one point of `other` then they are equal.
                     // TODO use assertion
-//                    debug_assert!(self.is_collinear_approx(other, tolerance));
+                    //                    debug_assert!(self.is_collinear_approx(other, tolerance));
                     LineIntersection::Collinear
                 } else {
                     LineIntersection::None
@@ -581,18 +586,25 @@ impl<T: CoordinateType + NumCast> Edge<T> {
                 let ca_cross_ab = ac.cross_prod(ab);
 
                 // Check that the intersection point lies on the lines indeed.
-                debug_assert!(self.cast().line_contains_point_approx(p, tolerance + tolerance));
-                debug_assert!(other.cast().line_contains_point_approx(p, tolerance + tolerance));
+                debug_assert!(self
+                    .cast()
+                    .line_contains_point_approx(p, tolerance + tolerance));
+                debug_assert!(other
+                    .cast()
+                    .line_contains_point_approx(p, tolerance + tolerance));
 
                 debug_assert!({
                     let j = F::from(ca_cross_ab).unwrap() / s_float;
                     let p2: Point<F> = other.start.cast() + cd.cast() * j;
                     (p - p2).norm2_squared() < tolerance + tolerance
-                }
-                );
+                });
 
                 let positions = if s < T::zero() {
-                    (T::zero() - ac_cross_cd, T::zero() - ca_cross_ab, T::zero() - s)
+                    (
+                        T::zero() - ac_cross_cd,
+                        T::zero() - ca_cross_ab,
+                        T::zero() - s,
+                    )
                 } else {
                     (ac_cross_cd, ca_cross_ab, s)
                 };
@@ -602,9 +614,12 @@ impl<T: CoordinateType + NumCast> Edge<T> {
         }
     }
 
-
     /// Compute the intersection with another edge.
-    pub fn edge_intersection_approx<F: Float>(&self, other: &Edge<T>, tolerance: F) -> EdgeIntersection<F, T, Edge<T>> {
+    pub fn edge_intersection_approx<F: Float>(
+        &self,
+        other: &Edge<T>,
+        tolerance: F,
+    ) -> EdgeIntersection<F, T, Edge<T>> {
         debug_assert!(tolerance >= F::zero(), "Tolerance cannot be negative.");
 
         // Swap direction of other edge such that both have the same direction.
@@ -624,7 +639,8 @@ impl<T: CoordinateType + NumCast> Edge<T> {
         let same_end_end = self.end == other.end;
 
         // Are the edges equal but not degenerate?
-        let fully_coincident = (same_start_start & same_end_end) ^ (same_start_end & same_end_start);
+        let fully_coincident =
+            (same_start_start & same_end_end) ^ (same_start_end & same_end_start);
 
         let result = if self.is_degenerate() {
             // First degenerate case
@@ -642,7 +658,8 @@ impl<T: CoordinateType + NumCast> Edge<T> {
             }
         } else if fully_coincident {
             EdgeIntersection::Overlap(*self)
-        } else if !self.bounding_box().touches(&other.bounding_box()) { // TODO: Add tolerance here.
+        } else if !self.bounding_box().touches(&other.bounding_box()) {
+            // TODO: Add tolerance here.
             // If bounding boxes do not touch, then intersection is impossible.
             EdgeIntersection::None
         } else {
@@ -656,12 +673,14 @@ impl<T: CoordinateType + NumCast> Edge<T> {
                 LineIntersection::None => EdgeIntersection::None,
 
                 // Coincident at an endpoint:
-                LineIntersection::Point(_, _) if same_start_start || same_start_end =>
-                    EdgeIntersection::EndPoint(self.start),
+                LineIntersection::Point(_, _) if same_start_start || same_start_end => {
+                    EdgeIntersection::EndPoint(self.start)
+                }
 
                 // Coincident at an endpoint:
-                LineIntersection::Point(_, _) if same_end_start || same_end_end =>
-                    EdgeIntersection::EndPoint(self.end),
+                LineIntersection::Point(_, _) if same_end_start || same_end_end => {
+                    EdgeIntersection::EndPoint(self.end)
+                }
 
                 // Intersection in one point:
                 LineIntersection::Point(p, (pos1, pos2, len)) => {
@@ -673,8 +692,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
                     let pos2 = F::from(pos2).unwrap();
 
                     // Check if the intersection point `p` lies on the edge.
-                    if pos1 >= zero_tol && pos1 <= len_tol
-                        && pos2 >= zero_tol && pos2 <= len_tol {
+                    if pos1 >= zero_tol && pos1 <= len_tol && pos2 >= zero_tol && pos2 <= len_tol {
                         // Intersection
 
                         // TODO: rework
@@ -692,15 +710,14 @@ impl<T: CoordinateType + NumCast> Edge<T> {
                             EdgeIntersection::EndPoint(other.end)
                         } else {
                             // Intersection in-between the endpoints.
-                            debug_assert!({
-                                              let e1 = self.cast();
-                                              let e2 = other.cast();
-                                              p != e1.start
-                                                  && p != e1.end
-                                                  && p != e2.start
-                                                  && p != e2.end
-                                          },
-                                          "Intersection should not be an endpoint.");
+                            debug_assert!(
+                                {
+                                    let e1 = self.cast();
+                                    let e2 = other.cast();
+                                    p != e1.start && p != e1.end && p != e2.start && p != e2.end
+                                },
+                                "Intersection should not be an endpoint."
+                            );
                             EdgeIntersection::Point(p)
                         }
                     } else {
@@ -710,7 +727,7 @@ impl<T: CoordinateType + NumCast> Edge<T> {
                 }
                 LineIntersection::Collinear => {
                     // TODO use assertion
-//                    debug_assert!(self.is_collinear_approx(other, tolerance));
+                    //                    debug_assert!(self.is_collinear_approx(other, tolerance));
 
                     // Project all points of the two edges on the line defined by the first edge
                     // (scaled by the length of the first edge).
@@ -740,18 +757,10 @@ impl<T: CoordinateType + NumCast> Edge<T> {
                     };
 
                     // Find maximum by distance.
-                    let start = if start1.0 < start2.0 {
-                        start2
-                    } else {
-                        start1
-                    };
+                    let start = if start1.0 < start2.0 { start2 } else { start1 };
 
                     // Find minimum by distance.
-                    let end = if end1.0 < end2.0 {
-                        end1
-                    } else {
-                        end2
-                    };
+                    let end = if end1.0 < end2.0 { end1 } else { end2 };
 
                     // Check if the edges overlap in more than one point, in exactly one point or
                     // in zero points.
@@ -767,32 +776,31 @@ impl<T: CoordinateType + NumCast> Edge<T> {
         };
 
         // Check that the result is consistent with the edge intersection test.
-//        debug_assert_eq!(
-//            result != EdgeIntersection::None,
-//            self.edges_intersect(other)
-//        );
+        //        debug_assert_eq!(
+        //            result != EdgeIntersection::None,
+        //            self.edges_intersect(other)
+        //        );
 
-        debug_assert!(
-            if self.edges_intersect(&other).inclusive_bounds() {
-                result != EdgeIntersection::None
-            } else {
-                true
-            }
-        );
+        debug_assert!(if self.edges_intersect(&other).inclusive_bounds() {
+            result != EdgeIntersection::None
+        } else {
+            true
+        });
 
         result
     }
 }
 
-
 impl<T: CoordinateType + NumCast> Edge<T> {
     /// Try to cast into other data type.
     /// When the conversion fails `None` is returned.
     pub fn try_cast<Target: NumCast>(&self) -> Option<Edge<Target>>
-        where Target: CoordinateType {
+    where
+        Target: CoordinateType,
+    {
         match (self.start.try_cast(), self.end.try_cast()) {
             (Some(start), Some(end)) => Some(Edge { start, end }),
-            _ => None
+            _ => None,
         }
     }
 
@@ -801,7 +809,9 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     /// # Panics
     /// Panics when the conversion fails.
     pub fn cast<Target>(&self) -> Edge<Target>
-        where Target: CoordinateType + NumCast {
+    where
+        Target: CoordinateType + NumCast,
+    {
         Edge {
             start: self.start.cast(),
             end: self.end.cast(),
@@ -813,7 +823,9 @@ impl<T: CoordinateType + NumCast> Edge<T> {
     /// # Panics
     /// Panics when the conversion fails.
     pub fn cast_to_float<Target>(&self) -> Edge<Target>
-        where Target: CoordinateType + NumCast + Float {
+    where
+        Target: CoordinateType + NumCast + Float,
+    {
         Edge {
             start: self.start.cast_to_float(),
             end: self.end.cast_to_float(),
@@ -868,7 +880,6 @@ impl<T: CoordinateType + NumCast> Edge<T> {
         let dist: F = self.distance_to_line(point);
         dist.abs()
     }
-
 
     /// Test if point lies approximately on the edge.
     /// Returns true if `point` is up to `tolerance` away from the edge
@@ -930,23 +941,22 @@ impl<T: Copy + NumCast, Dst: Copy + NumCast> TryCastCoord<T, Dst> for Edge<T> {
     fn try_cast(&self) -> Option<Self::Output> {
         match (self.start.try_cast(), self.end.try_cast()) {
             (Some(s), Some(e)) => Some(Edge::new(s, e)),
-            _ => None
+            _ => None,
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
     extern crate rand;
 
-    use std::f64;
+    use super::*;
     use crate::edge::Edge;
     use crate::point::Point;
     use crate::types::*;
-    use super::*;
+    use std::f64;
 
-    use self::rand::distributions::{Uniform, Distribution, Bernoulli};
+    use self::rand::distributions::{Bernoulli, Distribution, Uniform};
     use self::rand::rngs::StdRng;
     use self::rand::SeedableRng;
 
@@ -1121,7 +1131,6 @@ mod tests {
         assert_eq!(e2.edges_intersect(&e1), ContainsResult::OnBounds);
     }
 
-
     #[test]
     fn test_line_intersection() {
         let tol = 1e-12;
@@ -1129,11 +1138,15 @@ mod tests {
         let e2 = Edge::new((1, 0), (0, 1));
         let e3 = Edge::new((1, 0), (3, 2));
 
-        assert_eq!(e1.line_intersection_approx(&e2, tol),
-                   LineIntersection::Point(Point::new(0.5, 0.5), (1, 2, 4)));
+        assert_eq!(
+            e1.line_intersection_approx(&e2, tol),
+            LineIntersection::Point(Point::new(0.5, 0.5), (1, 2, 4))
+        );
         // Parallel lines should not intersect
-        assert_eq!(e1.line_intersection_approx(&e3, tol), LineIntersection::None);
-
+        assert_eq!(
+            e1.line_intersection_approx(&e3, tol),
+            LineIntersection::None
+        );
 
         let e4 = Edge::new((-320., 2394.), (94., -448382.));
         let e5 = Edge::new((71., 133.), (-13733., 1384.));
@@ -1150,9 +1163,11 @@ mod tests {
         let e2 = Edge::new((4., 4.), (8., 8.));
         assert!(!e1.is_coincident(&e2));
         assert!(e1.is_parallel_approx(&e2, tol));
-        assert_eq!(e1.line_intersection_approx(&e2, tol), LineIntersection::Collinear);
+        assert_eq!(
+            e1.line_intersection_approx(&e2, tol),
+            LineIntersection::Collinear
+        );
     }
-
 
     #[test]
     fn test_edge_intersection() {
@@ -1161,28 +1176,40 @@ mod tests {
         let e1 = Edge::new((0, 0), (2, 2));
         let e2 = Edge::new((2, 0), (0, 2));
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::Point(Point::new(1f64, 1f64)));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::Point(Point::new(1f64, 1f64)));
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::Point(Point::new(1f64, 1f64))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::Point(Point::new(1f64, 1f64))
+        );
 
         // Point intersection on the end of one edge.
         let e1 = Edge::new((0, 0), (2, 2));
         let e2 = Edge::new((2, 0), (1, 1));
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::EndPoint(Point::new(1, 1)));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::EndPoint(Point::new(1, 1)));
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::EndPoint(Point::new(1, 1))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::EndPoint(Point::new(1, 1))
+        );
 
         // No intersection
         let e1 = Edge::new((0, 0), (4, 4));
         let e2 = Edge::new((3, 0), (2, 1));
         assert!(!e1.edges_intersect(&e2).inclusive_bounds());
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::None);
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::None);
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::None
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::None
+        );
     }
 
     #[test]
@@ -1194,11 +1221,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::Overlap(Edge::new((1, 0), (2, 0))));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::Overlap(Edge::new((1, 0), (2, 0))));
-
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::Overlap(Edge::new((1, 0), (2, 0)))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::Overlap(Edge::new((1, 0), (2, 0)))
+        );
 
         // Overlapping edges. Opposing orientations.
         let e1 = Edge::new((0, 0), (2, 2));
@@ -1206,11 +1236,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::Overlap(Edge::new((1, 1), (2, 2))));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::Overlap(Edge::new((2, 2), (1, 1))));
-
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::Overlap(Edge::new((1, 1), (2, 2)))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::Overlap(Edge::new((2, 2), (1, 1)))
+        );
 
         // Overlapping edges. One is fully contained in the other. Same orientations.
         let e1 = Edge::new((0, 0), (4, 4));
@@ -1218,10 +1251,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::Overlap(e2));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::Overlap(e2));
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::Overlap(e2)
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::Overlap(e2)
+        );
 
         // Overlapping edges. One is fully contained in the other. Opposing orientations.
         let e1 = Edge::new((0, 0), (4, 4));
@@ -1229,11 +1266,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::Overlap(e2.reversed()));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::Overlap(e2));
-
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::Overlap(e2.reversed())
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::Overlap(e2)
+        );
 
         // Collinear edge, touch in exactly one point.
         let e1 = Edge::new((0, 0), (1, 1));
@@ -1241,10 +1281,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e1.is_collinear(&e2));
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::EndPoint(Point::new(1, 1)));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::EndPoint(Point::new(1, 1)));
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::EndPoint(Point::new(1, 1))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::EndPoint(Point::new(1, 1))
+        );
 
         // Edges touch in exactly one point. Floating point.
         let e1 = Edge::new((1.1, 1.2), (0., 0.));
@@ -1252,10 +1296,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e2.edges_intersect(&e1).inclusive_bounds());
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::EndPoint(Point::new(1.1, 1.2)));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::EndPoint(Point::new(1.1, 1.2)));
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::EndPoint(Point::new(1.1, 1.2))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::EndPoint(Point::new(1.1, 1.2))
+        );
 
         // Intersection on endpoint with floats.
         let e1 = Edge {
@@ -1269,10 +1317,14 @@ mod tests {
         assert!(e1.edges_intersect(&e2).inclusive_bounds());
         assert!(e2.edges_intersect(&e1).inclusive_bounds());
 
-        assert_eq!(e1.edge_intersection_approx(&e2, tol),
-                   EdgeIntersection::EndPoint(Point::new(32.799556599584776, 63.13131890182373)));
-        assert_eq!(e2.edge_intersection_approx(&e1, tol),
-                   EdgeIntersection::EndPoint(Point::new(32.799556599584776, 63.13131890182373)));
+        assert_eq!(
+            e1.edge_intersection_approx(&e2, tol),
+            EdgeIntersection::EndPoint(Point::new(32.799556599584776, 63.13131890182373))
+        );
+        assert_eq!(
+            e2.edge_intersection_approx(&e1, tol),
+            EdgeIntersection::EndPoint(Point::new(32.799556599584776, 63.13131890182373))
+        );
     }
 
     #[test]
@@ -1287,13 +1339,11 @@ mod tests {
         assert!(e1.is_coincident(&e2));
         assert!(e2.is_coincident(&e1));
 
-
         let e1 = Edge::new((0, 0), (1, 1));
         let e2 = Edge::new((1, 1), (2, 2));
         assert!(!e1.is_coincident(&e2));
         assert!(!e2.is_coincident(&e1));
     }
-
 
     #[test]
     fn test_intersection_of_random_edges() {
@@ -1305,20 +1355,19 @@ mod tests {
         let mut rng = StdRng::from_seed(seed1);
 
         let mut rand_edge = || -> Edge<f64> {
-            let points: Vec<(f64, f64)> = (0..2).into_iter()
+            let points: Vec<(f64, f64)> = (0..2)
+                .into_iter()
                 .map(|_| (between.sample(&mut rng), between.sample(&mut rng)))
                 .collect();
 
             Edge::new(points[0], points[1])
         };
 
-
         let bernoulli_rare = Bernoulli::new(0.05).unwrap();
         let bernoulli_50 = Bernoulli::new(0.5).unwrap();
         let mut rng = StdRng::from_seed(seed2);
 
         for _i in 0..1000 {
-
             // Create a random pair of edges. 5% of the edge pairs share an endpoint.
             let (a, b) = {
                 let a = rand_edge();
@@ -1348,10 +1397,16 @@ mod tests {
             };
 
             let intersection_ab = a.edge_intersection_approx(&b, tol);
-            assert_eq!(intersection_ab != EdgeIntersection::None, a.edges_intersect(&b).inclusive_bounds());
+            assert_eq!(
+                intersection_ab != EdgeIntersection::None,
+                a.edges_intersect(&b).inclusive_bounds()
+            );
 
             let intersection_ba = b.edge_intersection_approx(&a, tol);
-            assert_eq!(intersection_ba != EdgeIntersection::None, b.edges_intersect(&a).inclusive_bounds());
+            assert_eq!(
+                intersection_ba != EdgeIntersection::None,
+                b.edges_intersect(&a).inclusive_bounds()
+            );
         }
     }
 }

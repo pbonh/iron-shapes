@@ -10,8 +10,8 @@
 //! * and ["Geometry Template Library for STL-like 2D Operations"](https://www.boost.org/doc/libs/1_44_0/libs/polygon/doc/GTL_boostcon2009.pdf),
 //! [archived](https://web.archive.org/web/20220524201159/https://www.boost.org/doc/libs/1_44_0/libs/polygon/doc/GTL_boostcon2009.pdf)
 
-use num_traits::{Num, Signed, Float};
 use crate::isotropy::*;
+use num_traits::{Float, Num, Signed};
 
 /// Define a type used for coordinates.
 pub trait CoordinateBase {
@@ -20,7 +20,9 @@ pub trait CoordinateBase {
 }
 
 impl<T> CoordinateBase for T
-    where T: Num + Signed + Copy + PartialEq + PartialOrd {
+where
+    T: Num + Signed + Copy + PartialEq + PartialOrd,
+{
     type Coord = T;
 }
 
@@ -37,9 +39,13 @@ pub trait CoordinateConcept: CoordinateBase {
     /// Type for difference between coordinates. Typically the same type as `Coord` when `Coord` is signed.
     type CoordinateDifference: Num + Signed + Copy + PartialEq + From<Self::Coord> + PartialOrd;
     /// Type for distances. Typically a floating point type because distances cannot be represented in integers nor rationals.
-    type CoordinateDistance: Num + Copy + PartialEq + From<Self::CoordinateDifference> + Float + PartialOrd;
+    type CoordinateDistance: Num
+        + Copy
+        + PartialEq
+        + From<Self::CoordinateDifference>
+        + Float
+        + PartialOrd;
 }
-
 
 // macro_rules! crd {
 //  ($t:ty) => {<<Self as $t>::Coord as CoordinateConcept>}
@@ -78,13 +84,18 @@ pub trait PointConcept<C: CoordinateConcept>: PointBase<C> {
 
     /// Compute the 1-norm of the vector pointing from the point to the other.
     fn manhattan_distance(&self, other: &Self) -> C::CoordinateDifference {
-        self.projected_distance(other, Orientation2D::Horizontal) + self.projected_distance(other, Orientation2D::Vertical)
+        self.projected_distance(other, Orientation2D::Horizontal)
+            + self.projected_distance(other, Orientation2D::Vertical)
     }
 
     /// Squared euclidean distance.
     fn distance_squared(&self, other: &Self) -> C::CoordinateDistance {
-        let d_horiz: C::CoordinateDistance = self.projected_distance(other, Orientation2D::Horizontal).into();
-        let d_vert: C::CoordinateDistance = self.projected_distance(other, Orientation2D::Vertical).into();
+        let d_horiz: C::CoordinateDistance = self
+            .projected_distance(other, Orientation2D::Horizontal)
+            .into();
+        let d_vert: C::CoordinateDistance = self
+            .projected_distance(other, Orientation2D::Vertical)
+            .into();
 
         d_horiz * d_horiz + d_vert * d_vert
     }
@@ -119,7 +130,7 @@ pub trait IntoSegments<C: CoordinateConcept> {
     /// Type which represents the segments.
     type Segment: Segment<C>;
     /// Iterator over segments.
-    type SegmentIter: Iterator<Item=Self::Segment>;
+    type SegmentIter: Iterator<Item = Self::Segment>;
 
     /// Iterate over segments/edges of a polygon.
     fn into_segments(self) -> Self::SegmentIter;
@@ -130,7 +141,7 @@ pub trait IntoPoints<C: CoordinateConcept> {
     /// Type of the points.
     type Point: PointConcept<C>;
     /// Iterator over points.
-    type PointIter: Iterator<Item=Self::Point>;
+    type PointIter: Iterator<Item = Self::Point>;
 
     /// Iterate over points.
     fn into_points(self) -> Self::PointIter;
@@ -138,7 +149,9 @@ pub trait IntoPoints<C: CoordinateConcept> {
 
 /// Describe an interval of coordinates by a start value and an end value.
 pub trait Interval<Coord>
-    where Coord: Copy {
+where
+    Coord: Copy,
+{
     /// Get the low or high end.
     fn get(&self, d: Direction1D) -> Coord;
 
@@ -175,7 +188,7 @@ pub trait Rectangle<C: CoordinateConcept>: Polygon90<C> {
 /// Concept of a polygon with axis-aligned edges. The polygon consists of a single closed loop of vertices, i.e. has no holes.
 pub trait Polygon90<C: CoordinateConcept>: Polygon<C> + Polygon90WithHoles<C> {
     /// Iterator over alternating x/y coordinates of the points. Starts with an x coordinate.
-    type CompactIterator: Iterator<Item=C::Coord>;
+    type CompactIterator: Iterator<Item = C::Coord>;
 
     /// Iterate over alternating x/y coordinates of the polygon vertices. Start with an x coordinate.
     fn compact_iter(&self) -> Self::CompactIterator;
@@ -190,7 +203,7 @@ pub trait Polygon90<C: CoordinateConcept>: Polygon<C> + Polygon90WithHoles<C> {
 /// Concept of a polygon which consists of a single closed loop of vertices.
 pub trait Polygon<C: CoordinateConcept>: PolygonWithHoles<C> + IntoPoints<C> {
     /// Set points from an iterator.
-    fn set(&mut self, iter: ());
+    fn set(&mut self, iter: impl Iterator<Item = <Self as PolygonSet<C>>::Point>);
 }
 
 /// Concept of a polygon with axis-aligned edges and holes.
@@ -210,11 +223,11 @@ pub trait PolygonSet<C: CoordinateConcept>: IntoSegments<C> {
     /// Point type used for the vertices.
     type Point: PointConcept<C>;
     /// Type used for the polygon segments.
-    type Segment: Segment<C, Point=Self::Point>;
+    type Segment: Segment<C, Point = Self::Point>;
     // type Polygon: PolygonWithHoles;
     // type PolygonIter: Iterator<Item=Self::Polygon>;
     /// Iterator over all points.
-    type AllPoints: Iterator<Item=Self::Point>;
+    type AllPoints: Iterator<Item = Self::Point>;
 
     /// Get number of polygons.
     fn num_polygons(&self) -> usize;

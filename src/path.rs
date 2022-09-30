@@ -6,24 +6,24 @@
 //! `Path` is essentially a chain of line segments but with a possibly non-zero width.
 //! It can be thought of the shape resulting by a stroke of a thick pen along the line segments.
 
-use crate::vector::Vector;
 use crate::point::Point;
 use crate::point_string::PointString;
+use crate::vector::Vector;
 
 use crate::CoordinateType;
 
-use crate::traits::{Scale, Translate, TryBoundingBox, MapPointwise};
 pub use crate::traits::{BoundingBox, RotateOrtho};
+use crate::traits::{MapPointwise, Scale, Translate, TryBoundingBox};
 pub use crate::types::Angle;
 
-pub use crate::types::{Side, ContainsResult};
+pub use crate::types::{ContainsResult, Side};
 
-use num_traits::{Float, NumCast, Num};
-use crate::simple_polygon::SimplePolygon;
-use std::iter::FromIterator;
 use crate::edge::*;
 use crate::rect::Rect;
+use crate::simple_polygon::SimplePolygon;
 use crate::transform::SimpleTransform;
+use num_traits::{Float, Num, NumCast};
+use std::iter::FromIterator;
 use std::ops::{Add, Mul};
 
 /// Encoding for the type of the beginning and end of the path.
@@ -66,7 +66,9 @@ impl<T> Path<T> {
 impl<T: Copy> Path<T> {
     /// Create new path by taking vertices from a type that implements `Into<PointString<T>>`.
     pub fn new<I>(i: I, width: T) -> Self
-        where I: Into<PointString<T>> {
+    where
+        I: Into<PointString<T>>,
+    {
         Path {
             points: i.into(),
             width,
@@ -76,7 +78,9 @@ impl<T: Copy> Path<T> {
 
     /// Create a path with extended beginning and end.
     pub fn new_extended<I>(i: I, width: T, ext_begin: T, ext_end: T) -> Self
-        where I: Into<PointString<T>> {
+    where
+        I: Into<PointString<T>>,
+    {
         Path {
             points: i.into(),
             width,
@@ -86,7 +90,9 @@ impl<T: Copy> Path<T> {
 
     /// Create a path with rounded beginning and end.
     pub fn new_rounded<I>(i: I, width: T) -> Self
-        where I: Into<PointString<T>> {
+    where
+        I: Into<PointString<T>>,
+    {
         Path {
             points: i.into(),
             width,
@@ -95,7 +101,7 @@ impl<T: Copy> Path<T> {
     }
 }
 
-impl<T: Copy + Add<Output=T>> Path<T> {
+impl<T: Copy + Add<Output = T>> Path<T> {
     /// Translate the path by an offset vector.
     pub fn translate(&self, v: Vector<T>) -> Self {
         Path {
@@ -106,7 +112,7 @@ impl<T: Copy + Add<Output=T>> Path<T> {
     }
 }
 
-impl<T: Copy + Mul<Output=T>> Path<T> {
+impl<T: Copy + Mul<Output = T>> Path<T> {
     /// Scale the path. Scaling center is the origin `(0, 0)`.
     pub fn scale(&self, factor: T) -> Self {
         Path {
@@ -161,10 +167,9 @@ impl<T: CoordinateType + NumCast> Path<T> {
         // Add area of circle if path ends are round.
         match self.path_type {
             PathEndType::Round => base_area + F::from(std::f64::consts::PI).unwrap() * w * w,
-            _ => base_area
+            _ => base_area,
         }
     }
-
 
     /// Convert the path into a polygon.
     /// The polygon can be self-intersecting.
@@ -181,29 +186,32 @@ impl<T: CoordinateType + NumCast> Path<T> {
         let mut points_forward: Vec<Point<f64>> = Vec::new();
         let mut points_backward: Vec<Point<f64>> = Vec::new();
 
-        let edges: Vec<Edge<f64>> = self.points.edges()
+        let edges: Vec<Edge<f64>> = self
+            .points
+            .edges()
             .filter(|e| e.start != e.end) // Skip zero-length edges.
-            .map(|e| e.cast_to_float()).collect();
-
+            .map(|e| e.cast_to_float())
+            .collect();
 
         // Construct rectangular start and end caps.
-        let create_flat_cap = |center_edge: Edge<f64>, width: f64, extension: f64| -> Vec<Point<f64>> {
-            let d = center_edge.vector().normalized();
-            let n = d.rotate_ortho(Angle::R90);
-            let p = center_edge.end;
-            let w_half = width / 2.;
-            if extension == 0. {
-                let p1 = p - n * w_half;
-                let p2 = p + n * w_half;
-                vec![p1, p2]
-            } else {
-                let p1 = p - n * w_half;
-                let p4 = p + n * w_half;
-                let p2 = p1 + d * extension;
-                let p3 = p4 + d * extension;
-                vec![p1, p2, p3, p4]
-            }
-        };
+        let create_flat_cap =
+            |center_edge: Edge<f64>, width: f64, extension: f64| -> Vec<Point<f64>> {
+                let d = center_edge.vector().normalized();
+                let n = d.rotate_ortho(Angle::R90);
+                let p = center_edge.end;
+                let w_half = width / 2.;
+                if extension == 0. {
+                    let p1 = p - n * w_half;
+                    let p2 = p + n * w_half;
+                    vec![p1, p2]
+                } else {
+                    let p1 = p - n * w_half;
+                    let p4 = p + n * w_half;
+                    let p2 = p1 + d * extension;
+                    let p3 = p4 + d * extension;
+                    vec![p1, p2, p3, p4]
+                }
+            };
 
         // Calculate start/end extensions.
         let (start_ext, end_ext) = match self.path_type {
@@ -213,7 +221,7 @@ impl<T: CoordinateType + NumCast> Path<T> {
                 (start_ext, end_ext)
             }
             PathEndType::Flat => (0., 0.),
-            PathEndType::Round => unimplemented!("Not implemented for round path ends.")
+            PathEndType::Round => unimplemented!("Not implemented for round path ends."),
         };
 
         // Path width.
@@ -221,15 +229,18 @@ impl<T: CoordinateType + NumCast> Path<T> {
         let half_width = width * 0.5;
 
         // Create caps.
-        let start_cap = edges.first()
+        let start_cap = edges
+            .first()
             .map(|e| create_flat_cap(e.reversed(), width, start_ext))
             .unwrap_or_else(Vec::new);
-        let end_cap = edges.last()
+        let end_cap = edges
+            .last()
             .map(|e| create_flat_cap(*e, width, end_ext))
             .unwrap_or_else(Vec::new);
 
         // Pre-compute normals (scaled by half the width).
-        let normals: Vec<Vector<f64>> = edges.iter()
+        let normals: Vec<Vector<f64>> = edges
+            .iter()
             .map(|e| e.vector().normal() * half_width)
             .collect();
 
@@ -248,9 +259,7 @@ impl<T: CoordinateType + NumCast> Path<T> {
             match border_intersection_f {
                 LineIntersection::Collinear => {}
                 LineIntersection::None => {}
-                LineIntersection::Point(p, _) => {
-                    points_forward.push(p)
-                }
+                LineIntersection::Point(p, _) => points_forward.push(p),
             }
 
             // Backward.
@@ -259,22 +268,20 @@ impl<T: CoordinateType + NumCast> Path<T> {
             match border_intersection_b {
                 LineIntersection::Collinear => {}
                 LineIntersection::None => {}
-                LineIntersection::Point(p, _) => {
-                    points_backward.push(p)
-                }
+                LineIntersection::Point(p, _) => points_backward.push(p),
             }
         }
 
         // Concatenate forward and backward points including start and end cap.
         SimplePolygon::from_iter(
-            start_cap.iter()
+            start_cap
+                .iter()
                 .chain(points_forward.iter())
                 .chain(end_cap.iter())
-                .chain(points_backward.iter().rev())
+                .chain(points_backward.iter().rev()),
         )
     }
 }
-
 
 impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for Path<T> {
     type Output = Path<Dst>;
@@ -288,7 +295,7 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
                 let new_end_ext = Dst::from(end_ext);
                 match (new_begin_ext, new_end_ext) {
                     (Some(b), Some(e)) => Some(PathEndType::Extended(b, e)),
-                    _ => None
+                    _ => None,
                 }
             }
             PathEndType::Flat => Some(PathEndType::Flat),
@@ -296,12 +303,11 @@ impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T,
         };
 
         match (new_width, new_points, new_path_type) {
-            (Some(width), Some(points), Some(path_type)) =>
-                Some(Path {
-                    points,
-                    width,
-                    path_type,
-                }),
+            (Some(width), Some(points), Some(path_type)) => Some(Path {
+                points,
+                width,
+                path_type,
+            }),
             _ => {
                 // Failed to cast some values.
                 None

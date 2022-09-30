@@ -17,7 +17,9 @@ use num_traits::Zero;
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RegularRepetition<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// First lattice vector.
     a: Vector<T>,
     /// Second lattice vector.
@@ -29,7 +31,9 @@ pub struct RegularRepetition<T>
 }
 
 impl<T> RegularRepetition<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Create a new lattice based repetition.
     ///
     /// # Parameters
@@ -53,12 +57,16 @@ impl<T> RegularRepetition<T>
     /// assert_eq!(offsets, [(0, 0).into(), (0, 1).into()]);
     /// ```
     pub fn new_rectilinear(spacing_x: T, spacing_y: T, num_x: u32, num_y: u32) -> Self {
-        Self::new(Vector::new(spacing_x, T::zero()), Vector::new(T::zero(), spacing_y),
-                  num_x, num_y)
+        Self::new(
+            Vector::new(spacing_x, T::zero()),
+            Vector::new(T::zero(), spacing_y),
+            num_x,
+            num_y,
+        )
     }
 
     /// Iterate over each offsets of this repetition.
-    pub fn iter(self) -> impl Iterator<Item=Vector<T>> {
+    pub fn iter(self) -> impl Iterator<Item = Vector<T>> {
         let mut current = Vector::zero();
         (0..self.m).flat_map(move |_| {
             let mut row = current;
@@ -87,21 +95,24 @@ impl<T> RegularRepetition<T>
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct IrregularRepetition<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Offset vectors of the repetition.
-    offsets: Vec<Vector<T>>
+    offsets: Vec<Vector<T>>,
 }
 
 impl<T> IrregularRepetition<T>
-    where T: CoordinateType {
-
+where
+    T: CoordinateType,
+{
     /// Create a new irregular repetition from a list of offsets.
     pub fn new(offsets: Vec<Vector<T>>) -> Self {
         IrregularRepetition { offsets }
     }
 
     /// Iterate over each offsets of this repetition.
-    pub fn iter(&self) -> impl Iterator<Item=Vector<T>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Vector<T>> + '_ {
         self.offsets.iter().copied()
     }
 
@@ -120,7 +131,9 @@ impl<T> IrregularRepetition<T>
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Repetition<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Lattice based repetition.
     Regular(RegularRepetition<T>),
     /// Repetition with random offsets.
@@ -128,12 +141,14 @@ pub enum Repetition<T>
 }
 
 impl<T> Repetition<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Return the number of offsets in this repetition.
     pub fn len(&self) -> usize {
         match self {
             Repetition::Regular(r) => r.len(),
-            Repetition::Irregular(r) => r.len()
+            Repetition::Irregular(r) => r.len(),
         }
     }
 
@@ -141,16 +156,15 @@ impl<T> Repetition<T>
     pub fn is_empty(&self) -> bool {
         match self {
             Repetition::Regular(r) => r.is_empty(),
-            Repetition::Irregular(r) => r.is_empty()
+            Repetition::Irregular(r) => r.is_empty(),
         }
     }
 
-
     /// Iterate over each offsets of this repetition.
-    pub fn iter(&self) -> Box<dyn Iterator<Item=Vector<T>> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = Vector<T>> + '_> {
         match self {
             Repetition::Regular(r) => Box::new(r.iter()),
-            Repetition::Irregular(r) => Box::new(r.iter())
+            Repetition::Irregular(r) => Box::new(r.iter()),
         }
     }
 }

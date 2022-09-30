@@ -5,14 +5,14 @@
 
 //! A point string is a finite sequence of points.
 
-use crate::point::Point;
 use crate::edge::Edge;
+use crate::point::Point;
 use crate::rect::Rect;
 
 use crate::CoordinateType;
 
-use crate::traits::{MapPointwise, TryCastCoord};
 pub use crate::traits::TryBoundingBox;
+use crate::traits::{MapPointwise, TryCastCoord};
 
 use std::iter::FromIterator;
 use std::slice::Iter;
@@ -26,7 +26,7 @@ use std::ops::Sub;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PointString<T> {
     /// The points defining this point string.
-    pub points: Vec<Point<T>>
+    pub points: Vec<Point<T>>,
 }
 
 impl<T> PointString<T> {
@@ -44,7 +44,9 @@ impl<T> PointString<T> {
 impl<T: Copy> PointString<T> {
     /// Create new point string by taking vertices from a type that implements `Into<PointString<T>>`.
     pub fn new<I>(i: I) -> Self
-        where I: Into<Self> {
+    where
+        I: Into<Self>,
+    {
         i.into()
     }
 
@@ -67,7 +69,7 @@ impl<T: Copy> PointString<T> {
     ///
     /// assert_eq!(edges, vec![Edge::new((0, 0), (1, 0)), Edge::new((1, 0), (2, 0))]);
     /// ```
-    pub fn edges(&self) -> impl Iterator<Item=Edge<T>> + '_ {
+    pub fn edges(&self) -> impl Iterator<Item = Edge<T>> + '_ {
         self.iter()
             .zip(self.iter().skip(1))
             .map(|(a, b)| Edge::new(a, b))
@@ -88,14 +90,15 @@ impl<T: Copy> PointString<T> {
     ///
     /// assert_eq!(edges, vec![Edge::new((2, 0), (1, 0)), Edge::new((1, 0), (0, 0))]);
     /// ```
-    pub fn edges_reversed(&self) -> impl Iterator<Item=Edge<T>> + '_ {
-        self.iter().rev()
+    pub fn edges_reversed(&self) -> impl Iterator<Item = Edge<T>> + '_ {
+        self.iter()
+            .rev()
             .zip(self.iter().rev().skip(1))
             .map(|(a, b)| Edge::new(a, b))
     }
 }
 
-impl<T: Copy + Sub<Output=T> + NumCast> PointString<T> {
+impl<T: Copy + Sub<Output = T> + NumCast> PointString<T> {
     /// Compute geometrical length of the path defined by the point string.
     /// # Examples
     ///
@@ -119,9 +122,7 @@ impl<T: Copy + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for 
     type Output = PointString<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        let new_points: Option<Vec<_>> = self.points.iter()
-            .map(|p| p.try_cast())
-            .collect();
+        let new_points: Option<Vec<_>> = self.points.iter().map(|p| p.try_cast()).collect();
 
         new_points.map(|p| PointString::new(p))
     }
@@ -129,14 +130,13 @@ impl<T: Copy + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for 
 
 /// Create a point string from something that can be turned into an iterator of values convertible to [`Point`]s.
 impl<I, T, P> From<I> for PointString<T>
-    where T: Copy,
-          I: IntoIterator<Item=P>,
-          Point<T>: From<P>
+where
+    T: Copy,
+    I: IntoIterator<Item = P>,
+    Point<T>: From<P>,
 {
     fn from(iter: I) -> Self {
-        let points: Vec<Point<T>> = iter.into_iter().map(
-            |x| x.into()
-        ).collect();
+        let points: Vec<Point<T>> = iter.into_iter().map(|x| x.into()).collect();
 
         PointString { points }
     }
@@ -173,35 +173,35 @@ impl<I, T, P> From<I> for PointString<T>
 
 /// Create a point string from a iterator of values convertible to [`Point`]s.
 impl<T, P> FromIterator<P> for PointString<T>
-    where T: Copy,
-          P: Into<Point<T>>
+where
+    T: Copy,
+    P: Into<Point<T>>,
 {
     fn from_iter<I>(iter: I) -> Self
-        where I: IntoIterator<Item=P>
+    where
+        I: IntoIterator<Item = P>,
     {
-        let points: Vec<Point<T>> = iter.into_iter().map(
-            |x| x.into()
-        ).collect();
+        let points: Vec<Point<T>> = iter.into_iter().map(|x| x.into()).collect();
 
         PointString { points }
     }
 }
 
 impl<T> MapPointwise<T> for PointString<T>
-    where T: Copy {
+where
+    T: Copy,
+{
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
-        let points = self.points.iter()
-            .map(|&p| tf(p))
-            .collect();
+        let points = self.points.iter().map(|&p| tf(p)).collect();
 
-        PointString {
-            points
-        }
+        PointString { points }
     }
 }
 
 impl<T> TryBoundingBox<T> for PointString<T>
-    where T: Copy + PartialOrd {
+where
+    T: Copy + PartialOrd,
+{
     /// Compute the bounding box of all the points in this string.
     /// Returns `None` if the string is empty.
     /// # Examples

@@ -7,19 +7,19 @@
 
 use crate::CoordinateType;
 
-use crate::point::Point;
 use crate::edge::Edge;
+use crate::point::Point;
 use crate::rect::Rect;
 
-pub use crate::traits::{DoubledOrientedArea, TryBoundingBox, MapPointwise, WindingNumber};
+pub use crate::traits::{DoubledOrientedArea, MapPointwise, TryBoundingBox, WindingNumber};
 
 use crate::types::*;
 
-use std::iter::FromIterator;
-use std::cmp::{Ord, PartialEq};
-use std::slice::Iter;
-use num_traits::{NumCast, Num};
 use crate::traits::TryCastCoord;
+use num_traits::{Num, NumCast};
+use std::cmp::{Ord, PartialEq};
+use std::iter::FromIterator;
+use std::slice::Iter;
 
 /// A `SimplePolygon` is a polygon defined by vertices. It does not contain holes but can be
 /// self-intersecting.
@@ -29,7 +29,7 @@ use crate::traits::TryCastCoord;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimplePolygon<T> {
     /// Vertices of the polygon.
-    pub points: Vec<Point<T>>
+    pub points: Vec<Point<T>>,
 }
 
 /// Shorthand notation for creating a simple polygon.
@@ -53,16 +53,12 @@ impl<T> SimplePolygon<T> {
     /// The points are taken as they are, without reordering
     /// or simplification.
     pub fn new(points: Vec<Point<T>>) -> Self {
-        Self {
-            points
-        }
+        Self { points }
     }
 
     /// Create empty polygon without any vertices.
     pub fn empty() -> Self {
-        SimplePolygon {
-            points: Vec::new()
-        }
+        SimplePolygon { points: Vec::new() }
     }
 
     /// Get the number of vertices.
@@ -84,10 +80,12 @@ impl<T> SimplePolygon<T> {
 impl<T: Copy> SimplePolygon<T> {
     /// Create a new simple polygon from a rectangle.
     pub fn from_rect(rect: &Rect<T>) -> Self {
-        Self::new(
-            vec![rect.lower_left(), rect.lower_right(),
-                 rect.upper_right(), rect.upper_left()]
-        )
+        Self::new(vec![
+            rect.lower_left(),
+            rect.lower_right(),
+            rect.upper_right(),
+            rect.upper_left(),
+        ])
     }
 }
 
@@ -96,7 +94,7 @@ impl<T> SimplePolygon<T> {
     fn prev(&self, i: usize) -> usize {
         match i {
             0 => self.points.len() - 1,
-            x => x - 1
+            x => x - 1,
         }
     }
 
@@ -104,19 +102,16 @@ impl<T> SimplePolygon<T> {
     fn next(&self, i: usize) -> usize {
         match i {
             _ if i == self.points.len() - 1 => 0,
-            x => x + 1
+            x => x + 1,
         }
     }
 }
 
 impl<T: Copy> SimplePolygon<T> {
-
     /// Get an iterator over the polygon points.
     /// Point 0 is appended to the end to close the cycle.
-    fn iter_cycle(&self) -> impl Iterator<Item=&Point<T>> {
-        self.points.iter()
-            .cycle()
-            .take(self.points.len() + 1)
+    fn iter_cycle(&self) -> impl Iterator<Item = &Point<T>> {
+        self.points.iter().cycle().take(self.points.len() + 1)
     }
 
     /// Get all exterior edges of the polygon.
@@ -137,7 +132,7 @@ impl<T: Copy> SimplePolygon<T> {
     }
 
     /// Iterate over all edges.
-    pub fn edges_iter(&self) -> impl Iterator<Item=Edge<T>> + '_ {
+    pub fn edges_iter(&self) -> impl Iterator<Item = Edge<T>> + '_ {
         self.iter()
             .zip(self.iter_cycle().skip(1))
             .map(|(a, b)| Edge::new(a, b))
@@ -145,7 +140,6 @@ impl<T: Copy> SimplePolygon<T> {
 }
 
 impl<T: CoordinateType> SimplePolygon<T> {
-
     /// Normalize the points of the polygon such that they are arranged counter-clock-wise.
     ///
     /// After normalizing, `SimplePolygon::area_doubled_oriented()` will return a semi-positive value.
@@ -154,7 +148,9 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// has not orientation.
     /// Here, the oriented area is used to define the orientation.
     pub fn normalize_orientation<Area>(&mut self)
-        where Area: Num + PartialOrd + From<T> {
+    where
+        Area: Num + PartialOrd + From<T>,
+    {
         if self.orientation::<Area>() != Orientation::CounterClockWise {
             self.points.reverse();
         }
@@ -162,11 +158,12 @@ impl<T: CoordinateType> SimplePolygon<T> {
 
     /// Call `normalize_orientation()` while taking ownership and returning the result.
     pub fn normalized_orientation<Area>(mut self) -> Self
-        where Area: Num + PartialOrd + From<T> {
+    where
+        Area: Num + PartialOrd + From<T>,
+    {
         self.normalize_orientation::<Area>();
         self
     }
-
 
     /// Get the orientation of the polygon.
     /// The orientation is defined by the oriented area. A polygon with a positive area
@@ -186,7 +183,9 @@ impl<T: CoordinateType> SimplePolygon<T> {
     ///
     /// ```
     pub fn orientation<Area>(&self) -> Orientation
-        where Area: Num + From<T> + PartialOrd {
+    where
+        Area: Num + From<T> + PartialOrd,
+    {
         // Find the orientation based the polygon area.
         let area2: Area = self.area_doubled_oriented();
 
@@ -205,7 +204,9 @@ impl<T: CoordinateType> SimplePolygon<T> {
     /// Implements Andrew's Monotone Chain algorithm.
     /// See: <http://geomalgorithms.com/a10-_hull-1.html>
     pub fn convex_hull(&self) -> SimplePolygon<T>
-        where T: Ord {
+    where
+        T: Ord,
+    {
         crate::algorithms::convex_hull::convex_hull(self.points.clone())
     }
 
@@ -240,20 +241,21 @@ impl<T: CoordinateType> SimplePolygon<T> {
         debug_assert!(!self.points.is_empty());
 
         // Find minimum.
-        let min = self.points
+        let min = self
+            .points
             .iter()
             .enumerate()
-            .min_by(|(_, &p1), (_, &p2)|
-                p1.partial_cmp(&p2).unwrap());
+            .min_by(|(_, &p1), (_, &p2)| p1.partial_cmp(&p2).unwrap());
         let (idx, point) = min.unwrap();
 
         (idx, *point)
     }
 }
 
-
 impl<T> WindingNumber<T> for SimplePolygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     /// Calculate the winding number of the polygon around this point.
     ///
     /// TODO: Define how point on edges and vertices is handled.
@@ -271,14 +273,17 @@ impl<T> WindingNumber<T> for SimplePolygon<T>
         // 4. the edge-ray intersection point must be strictly right of the point P.
 
         for e in edges {
-            if e.start.y <= point.y { // Crosses upward?
-                if e.end.y > point.y { // Crosses really upward?
+            if e.start.y <= point.y {
+                // Crosses upward?
+                if e.end.y > point.y {
+                    // Crosses really upward?
                     // Yes, crosses upward.
                     if e.side_of(point) == Side::Left {
                         winding_number += 1;
                     }
                 }
-            } else if e.end.y <= point.y { // Crosses downward?
+            } else if e.end.y <= point.y {
+                // Crosses downward?
                 // Yes, crosses downward.
                 // `e.start.y > point.y` needs not to be checked anymore.
                 if e.side_of(point) == Side::Right {
@@ -293,14 +298,13 @@ impl<T> WindingNumber<T> for SimplePolygon<T>
 
 /// Create a polygon from a type that is convertible into an iterator of values convertible to `Point`s.
 impl<I, T, P> From<I> for SimplePolygon<T>
-    where T: Copy,
-          I: IntoIterator<Item=P>,
-          Point<T>: From<P>
+where
+    T: Copy,
+    I: IntoIterator<Item = P>,
+    Point<T>: From<P>,
 {
     fn from(iter: I) -> Self {
-        let points: Vec<Point<T>> = iter.into_iter().map(
-            |x| x.into()
-        ).collect();
+        let points: Vec<Point<T>> = iter.into_iter().map(|x| x.into()).collect();
 
         SimplePolygon { points }
     }
@@ -346,25 +350,29 @@ impl<I, T, P> From<I> for SimplePolygon<T>
 
 /// Create a polygon from a iterator of values convertible to `Point`s.
 impl<T, P> FromIterator<P> for SimplePolygon<T>
-    where T: Copy,
-          P: Into<Point<T>>
+where
+    T: Copy,
+    P: Into<Point<T>>,
 {
     fn from_iter<I>(iter: I) -> Self
-        where I: IntoIterator<Item=P>
+    where
+        I: IntoIterator<Item = P>,
     {
-        let points: Vec<Point<T>> = iter.into_iter().map(
-            |x| x.into()
-        ).collect();
+        let points: Vec<Point<T>> = iter.into_iter().map(|x| x.into()).collect();
 
-        assert!(points.len() >= 2, "A polygon needs to have at least two points.");
+        assert!(
+            points.len() >= 2,
+            "A polygon needs to have at least two points."
+        );
 
         SimplePolygon { points }
     }
 }
 
-
 impl<T> TryBoundingBox<T> for SimplePolygon<T>
-    where T: Copy + PartialOrd {
+where
+    T: Copy + PartialOrd,
+{
     fn try_bounding_box(&self) -> Option<Rect<T>> {
         if self.len() > 0 {
             let mut x_min = self.points[0].x;
@@ -395,13 +403,13 @@ impl<T> TryBoundingBox<T> for SimplePolygon<T>
 }
 
 impl<T> MapPointwise<T> for SimplePolygon<T>
-    where T: CoordinateType {
+where
+    T: CoordinateType,
+{
     fn transform<F: Fn(Point<T>) -> Point<T>>(&self, tf: F) -> Self {
         let points = self.points.iter().map(|&p| tf(p)).collect();
 
-        let mut new = SimplePolygon {
-            points
-        };
+        let mut new = SimplePolygon { points };
 
         // Make sure the polygon is oriented the same way as before.
         // TODO: Could be done more efficiently if the magnification/mirroring of the transformation is known.
@@ -414,8 +422,10 @@ impl<T> MapPointwise<T> for SimplePolygon<T>
 }
 
 impl<A, T> DoubledOrientedArea<A> for SimplePolygon<T>
-    where T: CoordinateType,
-          A: Num + From<T> {
+where
+    T: CoordinateType,
+    A: Num + From<T>,
+{
     /// Calculates the doubled oriented area.
     ///
     /// Using doubled area allows to compute in the integers because the area
@@ -451,12 +461,12 @@ impl<A, T> DoubledOrientedArea<A> for SimplePolygon<T>
     }
 }
 
-
 impl<T: PartialEq> Eq for SimplePolygon<T> {}
 
-
 impl<T> PartialEq for SimplePolygon<T>
-    where T: PartialEq {
+where
+    T: PartialEq,
+{
     /// Equality test for simple polygons.
     ///
     /// Two polygons are equal iff a cyclic shift on their vertices can be applied
@@ -483,13 +493,13 @@ impl<T> PartialEq for SimplePolygon<T>
     }
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for SimplePolygon<T> {
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst>
+    for SimplePolygon<T>
+{
     type Output = SimplePolygon<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        let new_points: Option<Vec<_>> = self.points.iter()
-            .map(|p| p.try_cast())
-            .collect();
+        let new_points: Option<Vec<_>> = self.points.iter().map(|p| p.try_cast()).collect();
 
         new_points.map(|p| SimplePolygon::new(p))
     }

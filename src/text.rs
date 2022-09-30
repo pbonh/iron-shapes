@@ -6,12 +6,12 @@
 //! `Text` is used as labels associated with a point.
 
 use crate::point::Point;
-use crate::traits::*;
-use std::ops::Deref;
 use crate::rect::Rect;
+use crate::traits::*;
 use num_traits::NumCast;
 use std::fmt;
 use std::hash::Hash;
+use std::ops::Deref;
 
 /// Trait for types that can be used as the text of this label.
 /// The most simple solution is to use `String`. However, in many cases
@@ -34,15 +34,19 @@ pub struct Text<T, S = String> {
 
 /// Display format of the text label.
 impl<T, S> fmt::Display for Text<T, S>
-    where T: fmt::Display,
-          S: TextType + fmt::Display {
+where
+    T: fmt::Display,
+    S: TextType + fmt::Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Text({}, {})", self.text, self.location)
     }
 }
 
 impl<T, S> Deref for Text<T, S>
-    where S: Deref<Target=String> {
+where
+    S: Deref<Target = String>,
+{
     type Target = String;
 
     /// Dereference to String.
@@ -54,10 +58,7 @@ impl<T, S> Deref for Text<T, S>
 impl<T, S: TextType> Text<T, S> {
     /// Create a new text object.
     pub fn new(text: S, location: Point<T>) -> Self {
-        Text {
-            location,
-            text,
-        }
+        Text { location, text }
     }
 
     /// Get a reference to the text string.
@@ -86,40 +87,40 @@ impl<T: Copy, S: TextType> Text<T, S> {
     }
 }
 
-
 impl<T: Copy + PartialOrd, S> TryBoundingBox<T> for Text<T, S> {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        Some(
-            Rect::new(self.location, self.location)
-        )
+        Some(Rect::new(self.location, self.location))
     }
 }
 
-
 impl<T, Dst, S> TryCastCoord<T, Dst> for Text<T, S>
-    where T: Copy + NumCast,
-          Dst: Copy + NumCast,
-          S: Clone {
+where
+    T: Copy + NumCast,
+    Dst: Copy + NumCast,
+    S: Clone,
+{
     type Output = Text<Dst, S>;
 
     fn try_cast(&self) -> Option<Self::Output> {
-        self.location.try_cast()
-            .map(|loc| Text {
-                location: loc,
-                text: self.text.clone(),
-            })
+        self.location.try_cast().map(|loc| Text {
+            location: loc,
+            text: self.text.clone(),
+        })
     }
 }
 
 /// Point wise transformation for a single point.
 impl<T, S> MapPointwise<T> for Text<T, S>
-    where T: Copy,
-          S: Clone
+where
+    T: Copy,
+    S: Clone,
 {
     /// Point wise transformation.
     #[inline]
     fn transform<F>(&self, transformation: F) -> Self
-        where F: Fn(Point<T>) -> Point<T> {
+    where
+        F: Fn(Point<T>) -> Point<T>,
+    {
         Text {
             location: transformation(self.location),
             text: self.text.clone(),

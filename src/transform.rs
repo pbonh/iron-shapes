@@ -8,16 +8,16 @@
 
 use crate::CoordinateType;
 
-use crate::vector::Vector;
-use crate::point::Point;
 use crate::matrix2d::*;
-use crate::traits::{RotateOrtho, Mirror, Translate, Scale, TryCastCoord};
+use crate::point::Point;
+use crate::traits::{Mirror, RotateOrtho, Scale, Translate, TryCastCoord};
 use crate::types::Angle;
+use crate::vector::Vector;
 
-use std::ops::Mul;
-use crate::types::FloatType;
 use crate::matrix3d::Matrix3d;
-use num_traits::{Zero, Float, NumCast, One};
+use crate::types::FloatType;
+use num_traits::{Float, NumCast, One, Zero};
+use std::ops::Mul;
 
 /// General geometric transformation.
 pub trait Transformation {
@@ -49,7 +49,9 @@ pub trait SimilarityTransform: AffineTransform {
 
 /// Geometric transformation which preserves angles and ratios of distances.
 /// Adds resizing by integer numbers to the [`IsometricRTransform`].
-pub trait SimilarityTransform90: SimilarityTransform<SourceCoord=Self::Coord, DestinationCoord=Self::Coord> {
+pub trait SimilarityTransform90:
+    SimilarityTransform<SourceCoord = Self::Coord, DestinationCoord = Self::Coord>
+{
     /// Type or source and destination coordinates.
     type Coord;
     // TODO
@@ -93,7 +95,6 @@ pub trait DisplacementTransform: IsometricTransform90 {
 //     }
 // }
 
-
 /// Description of a transformation in the euclidean plane by a 2x2 matrix `A`.
 /// Transforming a point `p` is computed by the matrix product `A*p`.
 #[derive(Clone, Hash, PartialEq, Debug)]
@@ -127,9 +128,7 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
     /// Create a scaling by a factor.
     pub fn new_scaling(factor: T) -> Self {
         let zero = T::zero();
-        Matrix2dTransform::new(
-            Matrix2d::new(factor, zero, zero, factor)
-        )
+        Matrix2dTransform::new(Matrix2d::new(factor, zero, zero, factor))
     }
 
     /// Mirror at the x-axis.
@@ -137,9 +136,7 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
         let zero = T::zero();
         let one = T::one();
         let minus_one = zero - one;
-        Matrix2dTransform::new(
-            Matrix2d::new(minus_one, zero, zero, one)
-        )
+        Matrix2dTransform::new(Matrix2d::new(minus_one, zero, zero, one))
     }
 
     /// Mirror at the y-axis.
@@ -147,9 +144,7 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
         let zero = T::zero();
         let one = T::one();
         let minus_one = zero - one;
-        Matrix2dTransform::new(
-            Matrix2d::new(one, zero, zero, minus_one)
-        )
+        Matrix2dTransform::new(Matrix2d::new(one, zero, zero, minus_one))
     }
 
     // pub fn is_unitary(&self) -> bool {
@@ -169,8 +164,7 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
 
     /// Get the inverse transformation.
     pub fn try_invert(&self) -> Option<Self> {
-        self.matrix.try_inverse()
-            .map(|inv| Self { matrix: inv })
+        self.matrix.try_inverse().map(|inv| Self { matrix: inv })
     }
 }
 
@@ -178,10 +172,22 @@ impl<T: CoordinateType> Matrix2dTransform<T> {
 fn test_matrix_transform_rotations() {
     let p = Point::new(1, 0);
 
-    assert_eq!(Matrix2dTransform::new_rotation90(Angle::R0).transform_point(p), p);
-    assert_eq!(Matrix2dTransform::new_rotation90(Angle::R90).transform_point(p), Point::new(0, 1));
-    assert_eq!(Matrix2dTransform::new_rotation90(Angle::R180).transform_point(p), Point::new(-1, 0));
-    assert_eq!(Matrix2dTransform::new_rotation90(Angle::R270).transform_point(p), Point::new(0, -1));
+    assert_eq!(
+        Matrix2dTransform::new_rotation90(Angle::R0).transform_point(p),
+        p
+    );
+    assert_eq!(
+        Matrix2dTransform::new_rotation90(Angle::R90).transform_point(p),
+        Point::new(0, 1)
+    );
+    assert_eq!(
+        Matrix2dTransform::new_rotation90(Angle::R180).transform_point(p),
+        Point::new(-1, 0)
+    );
+    assert_eq!(
+        Matrix2dTransform::new_rotation90(Angle::R270).transform_point(p),
+        Point::new(0, -1)
+    );
 }
 
 /// Transformation that consists only of a rotation by a multiple of 90 degrees
@@ -260,19 +266,13 @@ impl<T: Zero + One> SimpleTransform<T> {
     /// Create a translation by a vector.
     pub fn translate<V: Into<Vector<T>>>(v: V) -> Self {
         let t = v.into();
-        Self::new(
-            false, Angle::R0,
-            T::one(), t,
-        )
+        Self::new(false, Angle::R0, T::one(), t)
     }
 
     /// Create a rotation by an integer multiple of 90 degrees.
     /// Rotation center is (0, 0).
     pub fn rotate90(angle: Angle) -> Self {
-        Self::new(
-            false, angle,
-            T::one(), Vector::zero(),
-        )
+        Self::new(false, angle, T::one(), Vector::zero())
     }
 
     /// Rotate 90 degrees counter-clock wise.
@@ -287,32 +287,24 @@ impl<T: Zero + One> SimpleTransform<T> {
 
     /// Create a transformation that mirrors at the x-axis.
     pub fn mirror_x() -> Self {
-        Self::new(
-            true, Angle::R0,
-            T::one(), Vector::zero(),
-        )
+        Self::new(true, Angle::R0, T::one(), Vector::zero())
     }
 
     /// Create a transformation that mirrors at the y-axis.
     pub fn mirror_y() -> Self {
-        Self::new(
-            true, Angle::R180,
-            T::one(), Vector::zero(),
-        )
+        Self::new(true, Angle::R180, T::one(), Vector::zero())
     }
 
     /// Create a scaling by a factor.
     pub fn scale(factor: T) -> Self {
-        Self::new(
-            false, Angle::R0,
-            factor, Vector::zero(),
-        )
+        Self::new(false, Angle::R0, factor, Vector::zero())
     }
 }
 
-
 impl<T> SimpleTransform<T>
-    where T: Copy + Mul<Output=T> {
+where
+    T: Copy + Mul<Output = T>,
+{
     /// Transform a distance.
     pub fn transform_distance(&self, d: T) -> T {
         d * self.magnification
@@ -327,14 +319,9 @@ impl<T: CoordinateType> SimpleTransform<T> {
             .then(&Self::translate(rotation_center))
     }
 
-
     /// Transform a single point.
     pub fn transform_point(&self, p: Point<T>) -> Point<T> {
-        if self.mirror {
-            p.mirror_x()
-        } else {
-            p
-        }
+        if self.mirror { p.mirror_x() } else { p }
             .rotate_ortho(self.rotation)
             .scale(self.magnification)
             .translate(self.displacement)
@@ -342,7 +329,8 @@ impl<T: CoordinateType> SimpleTransform<T> {
 
     /// Inverse-transform a single point.
     pub fn inverse_transform_point(&self, p: Point<T>) -> Point<T> {
-        let p = p.translate(Vector::zero() - self.displacement)
+        let p = p
+            .translate(Vector::zero() - self.displacement)
             .scale(T::one() / self.magnification)
             .rotate_ortho(-self.rotation);
 
@@ -360,9 +348,9 @@ impl<T: CoordinateType> SimpleTransform<T> {
         } else {
             Matrix3dTransform::identity()
         }
-            .then_rotate90(self.rotation)
-            .then_scale(self.magnification)
-            .then_translate(self.displacement)
+        .then_rotate90(self.rotation)
+        .then_scale(self.magnification)
+        .then_translate(self.displacement)
     }
 
     /// Return a new transformation that is equal to applying
@@ -385,14 +373,18 @@ impl<T: CoordinateType> SimpleTransform<T> {
 
 #[test]
 fn test_simple_transform_combine() {
-    let t1 = SimpleTransform::new(false, Angle::R90,
-                                  1, (1, 2).into());
-    let t2 = SimpleTransform::new(true, Angle::R90,
-                                  1, (3, 4).into());
+    let t1 = SimpleTransform::new(false, Angle::R90, 1, (1, 2).into());
+    let t2 = SimpleTransform::new(true, Angle::R90, 1, (3, 4).into());
 
     let p = Point::new(10, 11);
-    assert_eq!(t2.transform_point(t1.transform_point(p)), t1.then(&t2).transform_point(p));
-    assert_eq!(t1.transform_point(t2.transform_point(p)), t2.then(&t1).transform_point(p));
+    assert_eq!(
+        t2.transform_point(t1.transform_point(p)),
+        t1.then(&t2).transform_point(p)
+    );
+    assert_eq!(
+        t1.transform_point(t2.transform_point(p)),
+        t2.then(&t1).transform_point(p)
+    );
 }
 
 /// Transformation described by a mirroring at the `x` axis,
@@ -455,11 +447,7 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
     /// Create a translation by a vector.
     pub fn translate<V: Into<Vector<T>>>(v: V) -> Self {
         let t = v.into();
-        Self::new(
-            T::one(), T::zero(),
-            T::zero(), T::one(),
-            t.x, t.y,
-        )
+        Self::new(T::one(), T::zero(), T::zero(), T::one(), t.x, t.y)
     }
 
     /// Create a rotation by an integer multiple of 90 degrees.
@@ -475,21 +463,13 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
             Angle::R270 => (zero, minus_one, one, zero),
         };
 
-        Self::new(
-            a, b,
-            c, d,
-            T::zero(), T::zero(),
-        )
+        Self::new(a, b, c, d, T::zero(), T::zero())
     }
 
     /// Create a scaling by a factor.
     pub fn scale(factor: T) -> Self {
         let zero = T::zero();
-        Self::new(
-            factor, zero,
-            zero, factor,
-            zero, zero,
-        )
+        Self::new(factor, zero, zero, factor, zero, zero)
     }
 
     /// Mirror at the x-axis.
@@ -497,11 +477,7 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
         let zero = T::zero();
         let one = T::one();
         let minus_one = zero - one;
-        Self::new(
-            minus_one, zero,
-            zero, one,
-            zero, zero,
-        )
+        Self::new(minus_one, zero, zero, one, zero, zero)
     }
 
     /// Mirror at the y-axis.
@@ -509,11 +485,7 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
         let zero = T::zero();
         let one = T::one();
         let minus_one = zero - one;
-        Self::new(
-            one, zero,
-            zero, minus_one,
-            zero, zero,
-        )
+        Self::new(one, zero, zero, minus_one, zero, zero)
     }
 
     /// Apply the transformation to a single point.
@@ -524,67 +496,72 @@ impl<T: CoordinateType> Matrix3dTransform<T> {
         )
     }
 
-
     /// Return the 3x3 matrix describing this transformation.
     pub fn to_matrix3d(&self) -> Matrix3d<T> {
         Matrix3d::new(
-            self.m11, self.m12, T::zero(),
-            self.m21, self.m22, T::zero(),
-            self.m31, self.m32, T::zero(),
+            self.m11,
+            self.m12,
+            T::zero(),
+            self.m21,
+            self.m22,
+            T::zero(),
+            self.m31,
+            self.m32,
+            T::zero(),
         )
     }
 
     /// Return the 2x2 matrix that describes this transformation
     /// without any translation.
     pub fn to_matrix2d(&self) -> Matrix2d<T> {
-        Matrix2d::new(
-            self.m11, self.m12,
-            self.m21, self.m22,
-        )
+        Matrix2d::new(self.m11, self.m12, self.m21, self.m22)
     }
 
     /// Compute the determinant of the 3x3 matrix that describes this transformation.
     pub fn determinant(&self) -> T {
         /*
-         ```python
-         import sympy as sp
-         m = sp.Matrix([[sp.Symbol(f"self.m{i}{j}") for j in range(1,4)] for i in range(1,4)])
-         m[0,2] = 0
-         m[1,2] = 0
-         m[2,2] = 1
-         print(m.det())
-         ```
-          */
+        ```python
+        import sympy as sp
+        m = sp.Matrix([[sp.Symbol(f"self.m{i}{j}") for j in range(1,4)] for i in range(1,4)])
+        m[0,2] = 0
+        m[1,2] = 0
+        m[2,2] = 1
+        print(m.det())
+        ```
+         */
         self.m11 * self.m22 - self.m12 * self.m21
     }
 
     /// Get the inverse transformation if it exists.
     pub fn try_invert(&self) -> Option<Self> {
         /*
-         ```python
-         import sympy as sp
-         m = sp.Matrix([[sp.Symbol(f"a.m{i}{j}") for j in range(1,4)] for i in range(1,4)])
-         m[0,2] = 0
-         m[1,2] = 0
-         m[2,2] = 1
-         det = sp.Symbol('det')
+        ```python
+        import sympy as sp
+        m = sp.Matrix([[sp.Symbol(f"a.m{i}{j}") for j in range(1,4)] for i in range(1,4)])
+        m[0,2] = 0
+        m[1,2] = 0
+        m[2,2] = 1
+        det = sp.Symbol('det')
 
-         # Compute inverse multiplied with determinant.
-         inv_det = m.inv() * m.det()
-         inv = inv_det / det
-         # Print inverse with factored-out determinant.
-         print(repr(inv).replace('[', '').replace(']', ''))
-         ```
-          */
+        # Compute inverse multiplied with determinant.
+        inv_det = m.inv() * m.det()
+        inv = inv_det / det
+        # Print inverse with factored-out determinant.
+        print(repr(inv).replace('[', '').replace(']', ''))
+        ```
+         */
         let a = self;
 
         // Compute determinant.
         let det = a.determinant();
         if !det.is_zero() {
             Some(Self::new(
-                a.m22 / det, T::zero() - a.m12 / det,
-                T::zero() - a.m21 / det, a.m11 / det,
-                (a.m21 * a.m32 - a.m22 * a.m31) / det, (a.m12 * a.m31 - a.m11 * a.m32) / det,
+                a.m22 / det,
+                T::zero() - a.m12 / det,
+                T::zero() - a.m21 / det,
+                a.m11 / det,
+                (a.m21 * a.m32 - a.m22 * a.m31) / det,
+                (a.m12 * a.m31 - a.m11 * a.m32) / det,
             ))
         } else {
             None
@@ -685,11 +662,7 @@ impl<T: CoordinateType + Float> Matrix3dTransform<T> {
         let zero = T::zero();
         let cos = phi.cos();
         let sin = phi.sin();
-        Self::new(
-            cos, sin,
-            zero - sin, cos,
-            T::zero(), T::zero(),
-        )
+        Self::new(cos, sin, zero - sin, cos, T::zero(), T::zero())
     }
 
     /// Create a new transformation with an additional rotation.
@@ -703,13 +676,9 @@ fn test_rotate() {
     let p = Point::new(1.0, 0.0);
     let pi = std::f64::consts::PI;
     let tf = Matrix3dTransform::rotation(pi);
-    assert!(
-        (tf.transform_point(p) - Point::new(-1.0, 0.0)).norm2_squared() < 1e-6
-    );
+    assert!((tf.transform_point(p) - Point::new(-1.0, 0.0)).norm2_squared() < 1e-6);
     let tf = Matrix3dTransform::rotation(pi * 0.5);
-    assert!(
-        (tf.transform_point(p) - Point::new(0.0, 1.0)).norm2_squared() < 1e-6
-    );
+    assert!((tf.transform_point(p) - Point::new(0.0, 1.0)).norm2_squared() < 1e-6);
 }
 
 #[test]
@@ -756,19 +725,20 @@ fn test_invert_float() {
     assert!((p - p2).norm2_squared() < 1e-6); // Test for approximate equality.
 }
 
-impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst> for SimpleTransform<T> {
+impl<T: CoordinateType + NumCast, Dst: CoordinateType + NumCast> TryCastCoord<T, Dst>
+    for SimpleTransform<T>
+{
     type Output = SimpleTransform<Dst>;
 
     fn try_cast(&self) -> Option<Self::Output> {
         match (self.displacement.try_cast(), Dst::from(self.magnification)) {
-            (Some(displacement), Some(magnification)) => Some(
-                Self::Output {
-                    mirror: self.mirror,
-                    displacement,
-                    magnification,
-                    rotation: self.rotation,
-                }),
-            _ => None
+            (Some(displacement), Some(magnification)) => Some(Self::Output {
+                mirror: self.mirror,
+                displacement,
+                magnification,
+                rotation: self.rotation,
+            }),
+            _ => None,
         }
     }
 }
