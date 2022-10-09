@@ -86,7 +86,7 @@ impl Default for Angle {
 
 /// Location relative to a directed line or edge.
 /// Something can be on the left of the line, right of the line or on top of the line (center).
-#[derive(Clone, Copy, Hash, PartialEq, Debug)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, Debug)]
 pub enum Side {
     /// Location on the left side.
     Left,
@@ -121,7 +121,7 @@ impl Side {
 }
 
 /// Relative orientation of two geometrical objects such as vectors.
-#[derive(Clone, Copy, Hash, PartialEq, Debug)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, Debug)]
 pub enum Orientation {
     /// Clock-wise orientation.
     ClockWise,

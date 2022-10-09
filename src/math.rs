@@ -102,13 +102,13 @@ pub fn int_sqrt_floor<T: PrimInt>(n: T) -> T {
         n >= T::zero(),
         "Cannot compute the square root of a negative number."
     );
-    let _1 = T::one();
-    let _2 = _1 + _1;
+    let one = T::one();
+    let two = one + one;
     let mut x = n;
-    let mut y = (x + _1) / _2;
+    let mut y = (x + one) / two;
     while y < x {
         x = y;
-        y = (x + (n / x)) / _2;
+        y = (x + (n / x)) / two;
     }
     x
 }

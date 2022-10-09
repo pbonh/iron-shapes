@@ -29,7 +29,7 @@ pub type REdgeIntersection<T> = EdgeIntersection<T, T, REdge<T>>;
 
 /// Return type for the line-line intersection functions.
 /// Stores all possible results of a line to line intersection.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum RLineIntersection<T: CoordinateType> {
     /// No intersection at all.
     None,

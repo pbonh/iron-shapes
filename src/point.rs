@@ -37,19 +37,11 @@ macro_rules! point {
 }
 
 /// A point is defined by a x and y coordinate in the euclidean plane.
-#[derive(Copy, Clone, Default, Hash)]
+#[derive(Copy, Clone, Default, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Point<T> {
     /// Store the location as a translation from the origin.
     location: Vector<T>,
-}
-
-impl<T: PartialEq> Eq for Point<T> {}
-
-impl<T: PartialEq> PartialEq for Point<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.location == other.location
-    }
 }
 
 impl<T> Deref for Point<T> {

@@ -97,7 +97,7 @@ pub trait DisplacementTransform: IsometricTransform90 {
 
 /// Description of a transformation in the euclidean plane by a 2x2 matrix `A`.
 /// Transforming a point `p` is computed by the matrix product `A*p`.
-#[derive(Clone, Hash, PartialEq, Debug)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Matrix2dTransform<T: CoordinateType> {
     matrix: Matrix2d<T>,
@@ -192,7 +192,7 @@ fn test_matrix_transform_rotations() {
 
 /// Transformation that consists only of a rotation by a multiple of 90 degrees
 /// around the origin `(0, 0)`.
-#[derive(Clone, Hash, PartialEq, Debug)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Rot90Transform {
     angle: Angle,
@@ -226,7 +226,7 @@ impl Rot90Transform {
 /// Describes a geometric transformation that consists of a optional mirroring along the x-axis
 /// followed by a rotation by a multiple of 90 degrees
 /// followed by a displacement.
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SimpleTransform<T> {
     /// Mirror on the x-axis?

@@ -374,7 +374,7 @@ where
     T: Copy + PartialOrd,
 {
     fn try_bounding_box(&self) -> Option<Rect<T>> {
-        if self.len() > 0 {
+        if !self.is_empty() {
             let mut x_min = self.points[0].x;
             let mut x_max = x_min;
             let mut y_min = self.points[0].y;
